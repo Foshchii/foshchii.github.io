@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://foshchii.github.io/sv_resume/sitemap.xml
