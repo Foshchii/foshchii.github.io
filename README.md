@@ -89,7 +89,9 @@ and set `data-api` on the widget in `contact.html`.
 
 ## 📄 Source content
 
-`CV.md` and `Resume 2.md` hold the underlying CV content the site is based on.
+The site content is based on Sviatoslav's [LinkedIn profile](https://www.linkedin.com/in/sviatoslav-foshchii/)
+(the single source of truth for experience, certifications, education, skills and
+recommendations). `CV.md` and `Resume 2.md` hold earlier underlying CV content.
 
 ---
 

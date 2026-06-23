@@ -515,6 +515,60 @@ p { color: var(--text-muted); }
 .cert h4 { font-family: var(--font-display); font-size: 1.02rem; margin-bottom: .2rem; }
 .cert p { font-size: .88rem; margin: 0; }
 .cert .meta { font-size: .82rem; color: var(--text-subtle); margin-top: .35rem; }
+.cert .meta .expired { color: var(--text-subtle); }
+
+/* Role progression inside a timeline item */
+.tl-roles { display: grid; gap: .55rem; margin: 0 0 1rem; }
+.tl-role { display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem; }
+.tl-role .role-title { font-weight: 600; color: var(--text); }
+.tl-role .role-when { font-size: .82rem; color: var(--text-subtle); }
+.tl-role .role-now {
+  font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--brand); background: var(--brand-soft);
+  padding: .1rem .5rem; border-radius: var(--r-full);
+}
+
+/* Testimonials / recommendations */
+.testimonial {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 2rem 1.85rem 1.6rem;
+  box-shadow: var(--shadow-sm);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--speed) ease, box-shadow var(--speed) ease, border-color var(--speed) ease;
+}
+.testimonial:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.testimonial::before {
+  content: "\201C";
+  position: absolute;
+  top: -.35rem; left: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 4.5rem; line-height: 1;
+  color: var(--brand); opacity: .18;
+}
+.testimonial blockquote {
+  position: relative;
+  margin: 0 0 1.25rem;
+  font-size: .98rem;
+  color: var(--text-muted);
+}
+.testimonial blockquote p { margin-bottom: .8rem; }
+.testimonial blockquote p:last-child { margin-bottom: 0; }
+.testimonial figcaption { margin-top: auto; display: flex; align-items: center; gap: .85rem; }
+.testimonial .t-avatar {
+  flex: none;
+  display: grid; place-items: center;
+  width: 44px; height: 44px;
+  border-radius: var(--r-full);
+  background: linear-gradient(120deg, var(--brand), var(--accent));
+  color: #fff; font-weight: 700; font-family: var(--font-display);
+}
+.testimonial .t-name { font-weight: 600; color: var(--text); }
+.testimonial .t-role { font-size: .82rem; color: var(--text-subtle); }
 
 /* 9. PAGE SECTIONS ------------------------------------------------------ */
 /* Hero */
