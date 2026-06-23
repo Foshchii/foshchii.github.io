@@ -73,7 +73,7 @@ The workflow in `.github/workflows/deploy-pages.yml` then deploys on every push 
 | What | Where |
 | --- | --- |
 | **Your photo** | Replace `assets/img/profile-placeholder.svg` with a real photo (e.g. `profile.jpg`) and update the `<img src>` in `index.html`. |
-| **Contact email** | Search & replace `svyat.f8@gmail.com` across the `.html` files (it's also the booking host email and the JSON-LD). |
+| **Contact email** | Search & replace `sviatoslav.foshchii@gmail.com` across the `.html` files (it's also the booking host email and the JSON-LD). |
 | **Phone / LinkedIn / location** | In each page's header/footer and `contact.html`. |
 | **Colours & fonts** | CSS variables at the top of `assets/css/styles.css` (`--brand`, `--accent`, fonts). |
 | **Text content** | Directly in the HTML — it's organised with clear section comments. |

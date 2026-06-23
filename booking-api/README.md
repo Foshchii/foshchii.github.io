@@ -1,95 +1,102 @@
-# Booking backend (optional, free)
+# Booking backend (optional, free) — Google + iCloud
 
 Your booking widget (`assets/js/booking-widget.js`) works **with no backend at
 all** — it shows your working-hours slots and, on confirm, emails you the
 request and hands the visitor a calendar invite (`.ics`).
 
-Add a backend only when you want the next level:
+Add the backend when you want it to read your **real** availability from **both
+your Google and iCloud calendars** and book into both. It's free.
 
-| Feature                                    | No backend | With backend |
-| ------------------------------------------ | :--------: | :----------: |
-| Beautiful, reusable booking UI             |     ✅     |      ✅      |
-| Visitor gets a calendar invite (`.ics`)    |     ✅     |      ✅      |
-| You get emailed about the request          |     ✅     |      ✅      |
-| Only shows times you're **actually free**  |     ❌     |      ✅      |
-| Writes the event to your calendar for you  |     ❌     |      ✅      |
-| Prevents double-booking                    |     ❌     |      ✅      |
+| Feature                                         | No backend | With backend |
+| ----------------------------------------------- | :--------: | :----------: |
+| Beautiful, reusable booking UI                  |     ✅     |      ✅      |
+| Visitor gets a calendar invite (`.ics`)         |     ✅     |      ✅      |
+| You get emailed about the request               |     ✅     |      ✅      |
+| Shows only times you're free on **Google**      |     ❌     |      ✅      |
+| Shows only times you're free on **iCloud**      |     ❌     |      ✅      |
+| Writes the booking to your calendar(s)          |     ❌     |      ✅      |
 
-Everything below is free.
+## How it works (and why)
 
----
+The backend is a **Google Apps Script** (`google-apps-script.gs`). It runs as
+*you*, so it reads/writes your Google Calendar with no API keys. For iCloud it
+reads your **published calendar `.ics` feed** and creates the booking with your
+iCloud address as a guest, so the event lands on your iCloud calendar too.
 
-## Option A — Google Calendar (recommended, easiest)
+> Why not pure CalDAV for iCloud? Apps Script can't send the `PROPFIND`/`REPORT`
+> methods CalDAV needs. The published-feed + guest-invite approach is the
+> reliable, free way to cover iCloud from Apps Script. (If you'd rather have full
+> two-way CalDAV sync, I can give you a free Cloudflare Worker instead — just ask.)
 
-Uses **Google Apps Script** (`google-apps-script.gs`). It runs as *you*, so it
-can read your free/busy times and create events with **no API keys and no
-server**.
+## Setup (~10 minutes)
 
+### 1. Create the script
 1. Go to <https://script.google.com> → **New project**.
-2. Delete the sample code and paste the contents of `google-apps-script.gs`.
-3. Edit the `CONFIG` block (calendar, timezone, working hours).
-4. **Project Settings** (gear icon) → set the **time zone** to match `CONFIG.timezone`.
-5. **Deploy → New deployment → Web app**
-   * *Execute as:* **Me**
-   * *Who has access:* **Anyone**
-6. Authorize when prompted, then copy the **Web app URL** (ends in `/exec`).
-7. In `contact.html`, set it on the widget:
+2. Delete the sample code, paste all of `google-apps-script.gs`.
+3. **Project Settings** (⚙) → set the **time zone** to `Europe/Copenhagen`
+   (must match `CONFIG.timezone`).
+
+### 2. Connect iCloud (so its busy times are respected)
+1. On a Mac: **Calendar app → right-click the calendar → Share Calendar →
+   Public Calendar**, copy the `webcal://…` link.
+   On iCloud.com: **Calendar → ⚲ share icon → Public Calendar**, copy the link.
+2. In Apps Script: **Project Settings → Script properties → Add property**
+   * Name: `ICLOUD_ICS_URL`
+   * Value: the link you copied (the script auto-converts `webcal://` → `https://`).
+3. Open `CONFIG.icloudGuestEmail` in the script and confirm it's your iCloud
+   address (`sviatoslav.foshchii@icloud.com`) so bookings are pushed there.
+
+> Privacy note: a published iCloud calendar is readable by anyone who has the
+> (long, unguessable) link. Consider publishing a dedicated "Availability"
+> calendar rather than your personal one.
+
+### 3. Test it
+In the Apps Script editor, run `testIcloudFeed` then `testAvailabilityTomorrow`
+(**View → Logs**). Authorize when prompted. You should see your busy blocks and
+the free slots.
+
+### 4. Deploy & connect
+1. **Deploy → New deployment → Web app** — *Execute as:* **Me**, *Who has
+   access:* **Anyone**.
+2. Copy the **/exec URL**.
+3. In `contact.html`, set it on the widget:
    ```html
    <div class="sf-booking" ... data-api="https://script.google.com/macros/s/XXXX/exec"></div>
    ```
 
-That's it — the widget now shows live availability and books straight into your
-calendar.
+Done — the widget now merges both calendars and books into both.
 
 ---
 
-## Option B — Outlook / Microsoft 365, iCloud, or any calendar
+## Endpoint contract (if you ever swap in another backend)
 
-The widget talks to **any** backend that implements the two endpoints below, so
-you can host it on a free serverless platform (e.g. **Cloudflare Workers**,
-Vercel, or Netlify functions) and connect it to:
+Any backend exposing these two endpoints works with the widget:
 
-* **Outlook / Microsoft 365** → Microsoft Graph API (`/me/calendar`)
-* **iCloud** → CalDAV
-* **Google** → Google Calendar API (service account)
-
-Ping me (or open an issue) and I'll add a ready-to-deploy Cloudflare Worker for
-your provider. The contract it must satisfy is:
-
-### `GET  {api}/availability?date=YYYY-MM-DD&duration=30&tz=Area/City`
+**`GET {api}/availability?date=YYYY-MM-DD&duration=30&tz=Area/City`**
 ```json
 { "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] }
 ```
-Return slot **start times as ISO-8601 UTC strings** — only the ones you're free.
+Return free slot start times as ISO-8601 UTC strings.
 
-### `POST {api}/book`   (body is JSON sent as text/plain to avoid CORS preflight)
+**`POST {api}/book`**  (body sent as text/plain to avoid CORS preflight)
 ```json
-{
-  "name": "Jane Doe", "email": "jane@acme.com", "message": "Re: PM role",
-  "title": "Intro call", "start": "2026-07-01T07:00:00.000Z",
-  "end": "2026-07-01T07:30:00.000Z", "duration": 30,
-  "host": "you@example.com", "timezone": "Europe/Copenhagen"
-}
+{ "name":"Jane Doe","email":"jane@acme.com","message":"Re: PM role",
+  "title":"Intro call","start":"2026-07-01T07:00:00.000Z",
+  "end":"2026-07-01T07:30:00.000Z","duration":30,
+  "host":"you@example.com","timezone":"Europe/Copenhagen" }
 ```
-Respond `{"ok": true}` on success, or `{"ok": false, "error": "..."}`.
+Respond `{"ok": true}` or `{"ok": false, "error": "..."}`.
 
-> **CORS:** allow your site's origin (or `*`) and the `GET`/`POST` methods. The
-> widget intentionally sends the POST body as plain text so browsers skip the
-> preflight — read it with `await request.text()` then `JSON.parse(...)`.
-
----
-
-## Reusing the widget on other sites
-
-The widget is self-contained. On any other site, add:
+## Reusing the widget on your other sites
 
 ```html
 <div class="sf-booking"
-     data-name="Your Name" data-email="you@example.com"
+     data-name="Your Name"
+     data-email="you@gmail.com,you@icloud.com"
      data-title="Intro call" data-durations="30,45,60"
      data-timezone="Europe/Copenhagen"
      data-api="https://script.google.com/macros/s/XXXX/exec"></div>
 <script src="https://foshchii.github.io/sv_resume/assets/js/booking-widget.js" defer></script>
 ```
 
-One calendar backend can serve all of your sites.
+One Apps Script backend can serve all of your sites.

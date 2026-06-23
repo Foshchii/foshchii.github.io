@@ -145,6 +145,9 @@
       daysAhead: parseInt(el.dataset.daysAhead || "21", 10),
       api: (el.dataset.api || "").trim()
     };
+    // data-email may be comma-separated: first = calendar organiser, all = notified.
+    cfg.emails = cfg.email.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    cfg.organizer = cfg.emails[0] || cfg.email;
     var visitorTz = Intl.DateTimeFormat().resolvedOptions().timeZone || cfg.tz;
     var state = { view: new Date(), date: null, slot: null, duration: cfg.durations[0] || 30 };
     state.view.setDate(1);
@@ -317,7 +320,7 @@
         "DTSTART:" + icsStamp(start),"DTEND:" + icsStamp(end),
         "SUMMARY:" + esc(cfg.title) + " — " + esc(name),
         "DESCRIPTION:" + esc(msg ? msg.replace(/\n/g, "\\n") : "Booked via website"),
-        "ORGANIZER;CN=" + esc(cfg.name) + ":mailto:" + esc(cfg.email),
+        "ORGANIZER;CN=" + esc(cfg.name) + ":mailto:" + esc(cfg.organizer),
         "ATTENDEE;CN=" + esc(name) + ";RSVP=TRUE:mailto:" + esc(email),
         "STATUS:CONFIRMED","END:VEVENT","END:VCALENDAR"].join("\r\n");
     }
@@ -335,7 +338,7 @@
         "When: " + encodeURIComponent(when) + " (" + encodeURIComponent(visitorTz) + ")%0D%0A" +
         "Duration: " + state.duration + " min%0D%0A" +
         "Notes: " + encodeURIComponent(msg || "—");
-      var href = "mailto:" + cfg.email + "?subject=" +
+      var href = "mailto:" + cfg.emails.join(",") + "?subject=" +
         encodeURIComponent("Booking request: " + cfg.title) + "&body=" + body;
       var w = window.open(href, "_blank"); if (!w) location.href = href;
     }
