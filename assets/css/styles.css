@@ -228,6 +228,21 @@ p { color: var(--text-muted); }
 .chip:hover { transform: translateY(-2px); color: var(--brand); border-color: var(--brand); }
 .chip-group { display: flex; flex-wrap: wrap; gap: .65rem; }
 
+.ai-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .18rem .55rem;
+  font-size: .75rem;
+  font-weight: 600;
+  border-radius: var(--r-full);
+  background: linear-gradient(120deg, var(--brand-soft), color-mix(in srgb, var(--accent) 15%, transparent));
+  color: var(--brand);
+  border: 1px solid color-mix(in srgb, var(--brand) 30%, transparent);
+  vertical-align: middle;
+  letter-spacing: .01em;
+}
+
 /* 6. HEADER / NAV ------------------------------------------------------- */
 .site-header {
   position: sticky;
