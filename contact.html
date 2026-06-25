@@ -68,10 +68,11 @@
 
         <div class="booking reveal d1">
           <!-- Your own reusable booking widget (assets/js/booking-widget.js).
-               Standalone today (.ics invite + emails you). To enable LIVE
-               availability that merges your Google + iCloud calendars and books
-               into BOTH, deploy the free backend in /booking-api and paste its
-               URL into data-api below (e.g. the Apps Script /exec URL).
+               Connected to the free Apps Script backend (/booking-api) via the
+               data-api URL below: it merges Google + iCloud availability, books
+               into both calendars and emails you each request.
+               SECURITY: the private iCloud feed URL lives ONLY in the Apps
+               Script "Script properties" — never paste it into this repo.
                data-email is comma-separated: the first is the calendar
                organiser, all are notified. -->
           <div class="sf-booking"
@@ -85,7 +86,7 @@
                data-end="17:00"
                data-slot-step="30"
                data-days-ahead="21"
-               data-api="">
+               data-api="https://script.google.com/macros/s/AKfycbwqhm9CjTVPgb-UAWnDeXO_2mtZ-grRujVU7KM38Gl0JixgO12lFYTdBBqKsTe_m9-GUQ/exec">
             <noscript>
               <p class="text-center" style="padding:2rem">
                 To book a meeting, email <a href="mailto:sviatoslav.foshchii@gmail.com">sviatoslav.foshchii@gmail.com</a>.
