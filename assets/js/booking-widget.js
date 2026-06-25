@@ -191,17 +191,6 @@
       return out.filter(function (x) { return x.getTime() > now + 60 * 60 * 1000; });
     }
 
-    async function fetchSlots(d) {
-      if (!cfg.api) return localSlots(d);
-      try {
-        var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(d) +
-                "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
-        var j = await jsonp(u);
-        if (!j || !j.slots) return localSlots(d);   // backend not reachable → working-hours fallback
-        return j.slots.map(function (s) { return new Date(s); });
-      } catch (e) { return localSlots(d); }
-    }
-
     /* ---- renderers ---- */
     function render() {
       injectStyles();
@@ -242,7 +231,14 @@
     }
 
     function shiftMonth(n) { state.view.setMonth(state.view.getMonth() + n); render(); }
-    function pickDate(d) { state.date = d; state.slot = null; render(); }
+    function pickDate(d) {
+      state.date = d; state.slot = null; render();
+      // On narrow (single-column) layout, scroll the slot panel into view so the user sees it
+      if (window.innerWidth <= 680) {
+        var side = el.querySelector(".sfb-side");
+        if (side) setTimeout(function () { side.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, 30);
+      }
+    }
 
     async function renderSide() {
       var side = el.querySelector(".sfb-side");
@@ -253,27 +249,45 @@
         wireDurations(side);
         return;
       }
+      var capturedDate = state.date;
       var label = state.date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
       side.innerHTML = '<div class="sfb-slots-title">' + label + '</div>' +
         '<div class="sfb-tz">Times shown in ' + visitorTz.replace(/_/g, " ") + '</div>' +
-        durHTML() + '<div class="sfb-loading">Loading times…</div>';
+        durHTML() + '<div class="sfb-slotlist-wrap"></div>';
       wireDurations(side);
-      var slots = await fetchSlots(state.date);
-      var box = '<div class="sfb-slotlist">';
-      if (!slots.length) {
-        box = '<p class="sfb-empty">No open times this day. Try another date.</p>';
-      } else {
+
+      function paintSlots(slots) {
+        if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
+        var wrap = side.querySelector(".sfb-slotlist-wrap");
+        if (!wrap) return;
+        if (!slots.length) {
+          wrap.innerHTML = '<p class="sfb-empty">No open times this day. Try another date.</p>';
+          return;
+        }
+        var html = '<div class="sfb-slotlist">';
         slots.forEach(function (s, i) {
-          box += '<button class="sfb-slot" data-i="' + i + '">' +
+          html += '<button class="sfb-slot" data-i="' + i + '">' +
             s.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + "</button>";
         });
-        box += "</div>";
+        html += "</div>";
+        wrap.innerHTML = html;
+        wrap.querySelectorAll(".sfb-slot").forEach(function (b) {
+          b.onclick = function () { state.slot = slots[+b.dataset.i]; renderForm(); };
+        });
       }
-      var loading = side.querySelector(".sfb-loading");
-      if (loading) loading.outerHTML = box;
-      side.querySelectorAll(".sfb-slot").forEach(function (b) {
-        b.onclick = function () { state.slot = slots[+b.dataset.i]; renderForm(); };
-      });
+
+      // Show working-hours slots immediately — no spinner
+      paintSlots(localSlots(state.date));
+
+      // Silently replace with live availability when backend responds (8 s timeout)
+      if (cfg.api) {
+        try {
+          var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(state.date) +
+                  "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
+          var j = await jsonp(u, 8000);
+          if (j && j.slots) paintSlots(j.slots.map(function (s) { return new Date(s); }));
+        } catch (e) { /* working-hours slots already shown */ }
+      }
     }
 
     function durHTML() {
