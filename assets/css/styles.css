@@ -570,6 +570,46 @@ p { color: var(--text-muted); }
 .testimonial .t-name { font-weight: 600; color: var(--text); }
 .testimonial .t-role { font-size: .82rem; color: var(--text-subtle); }
 
+/* Projects */
+.project-list { display: grid; gap: 1.5rem; }
+.project {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 1.5rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.85rem;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--speed) ease, box-shadow var(--speed) ease, border-color var(--speed) ease;
+}
+.project:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.project-ico {
+  display: grid; place-items: center;
+  width: 56px; height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand), var(--accent));
+  color: #fff;
+}
+.project-ico svg { width: 28px; height: 28px; }
+.project-top { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-bottom: .55rem; }
+.project-cat {
+  font-size: .72rem; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--brand); background: var(--brand-soft);
+  padding: .22rem .65rem; border-radius: var(--r-full);
+}
+.project-year { font-size: .8rem; color: var(--text-subtle); }
+.project-body h3 { margin-bottom: .15rem; }
+.project-role { color: var(--text-subtle); font-weight: 500; font-size: .92rem; margin-bottom: .85rem; }
+.project-body > p { font-size: .97rem; }
+.project .tl-list { margin: .9rem 0 0; }
+.project .chip-group { margin-top: 1.1rem; }
+.project-links { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.3rem; }
+
+@media (max-width: 600px) {
+  .project { grid-template-columns: 1fr; gap: 1.1rem; padding: 1.5rem; }
+}
+
 /* 9. PAGE SECTIONS ------------------------------------------------------ */
 /* Hero */
 .hero {

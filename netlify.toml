@@ -1,0 +1,12 @@
+# Netlify configuration — static site, no build step needed.
+#
+# To deploy for free while keeping this repo private:
+#   1. Sign in at https://app.netlify.com with your GitHub account.
+#   2. "Add new site" → "Import an existing project" → pick this repository.
+#   3. Build command: (leave empty) · Publish directory: .
+#   4. Deploy. Netlify gives you a free https://<name>.netlify.app address.
+#
+# 404.html in the project root is served automatically for unknown URLs.
+[build]
+  publish = "."
+  command = ""
