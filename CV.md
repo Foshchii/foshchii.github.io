@@ -1,6 +1,6 @@
 # SVIATOSLAV FOSHCHII
 Phone: (+45) 71636396 | Email: svyat.f8@gmail.com  
-Address: Toldbodgade 17a, 2.sal, 1050 Copenhagen, Denmark  
+Address: Copenhagen, Denmark  
 
 ## Professional Summary
 An accomplished Project Manager with over four years of success in the digital marketing and technology sectors, and a unique psychological background that enhances team dynamics and customer engagement. Utilizing data-driven strategies to improve project efficiency and performance, I am known for my strong leadership abilities, excellent communication skills, and a consistent track record of delivering projects on time and within budget. Eager to pursue continuous growth and learning within the rapidly evolving field of project management.

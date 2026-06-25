@@ -1,7 +1,7 @@
 # SVIATOSLAV FOSHCHII
 >Phone: (+45) 71636396  
 >Email: svyat.f8@gmail.com  
->Home: Toldbodgade 17a, 2.sal, 1050 Copenhagen, Denmark
+>Home: Copenhagen, Denmark
 
 ---
 
