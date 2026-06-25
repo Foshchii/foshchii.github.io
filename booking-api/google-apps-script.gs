@@ -39,17 +39,29 @@ var CONFIG = {
   bufferMin: 60                 // don't offer slots within the next hour
 };
 
-/* ----------------------------- routing ----------------------------- */
+/* ----------------------------- routing ----------------------------- *
+ * Browsers can't read a normal fetch() response from Apps Script (it sends no
+ * CORS headers and 302-redirects), so the widget calls us with JSONP via GET:
+ *   ?callback=fn&action=availability&date=…&duration=…&tz=…
+ *   ?callback=fn&action=book&name=…&email=…&start=…&end=…&title=…
+ * The original pathInfo routes and POST still work, for compatibility.        */
 function doGet(e) {
-  if (e && e.pathInfo === "availability") return json(availability(e.parameter || {}));
-  return json({ ok: true, service: "SF Booking (Google + iCloud)", endpoints: ["/availability", "/book"] });
+  e = e || {}; var p = e.parameter || {};
+  var action = p.action || (e.pathInfo || "").replace(/^\//, "");
+  var out;
+  if (action === "availability") out = availability(p);
+  else if (action === "book") { try { out = book(p); } catch (err) { out = { ok: false, error: String(err) }; } }
+  else out = { ok: true, service: "SF Booking (Google + iCloud)", endpoints: ["availability", "book"] };
+  return reply(out, p.callback);
 }
 function doPost(e) {
-  if (e && e.pathInfo === "book") {
-    try { return json(book(JSON.parse(e.postData.contents))); }
-    catch (err) { return json({ ok: false, error: String(err) }); }
-  }
-  return json({ ok: false, error: "Unknown route" });
+  e = e || {}; var p = e.parameter || {};
+  var action = p.action || (e.pathInfo || "").replace(/^\//, "") || "book";
+  try {
+    var data = (e.postData && e.postData.contents) ? JSON.parse(e.postData.contents) : p;
+    if (action === "availability") return reply(availability(data), p.callback);
+    return reply(book(data), p.callback);
+  } catch (err) { return reply({ ok: false, error: String(err) }, p.callback); }
 }
 
 /* --------------------------- availability -------------------------- */
@@ -108,7 +120,7 @@ function book(b) {
       sendInvites: true
     }
   );
-  return { ok: true };
+  return { ok: true, booked: true };
 }
 
 /* --------------------------- Google busy --------------------------- */
@@ -218,6 +230,15 @@ function parseRRule(val) {
 function prop(k) { return PropertiesService.getScriptProperties().getProperty(k) || ""; }
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+// Reply as JSONP when a callback is given (cross-origin <script> load), else JSON.
+function reply(obj, callback) {
+  var body = JSON.stringify(obj);
+  if (callback) {
+    return ContentService.createTextOutput(callback + "(" + body + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(body).setMimeType(ContentService.MimeType.JSON);
 }
 
 /* --------- run these from the editor to verify your setup ---------- */
