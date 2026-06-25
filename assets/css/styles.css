@@ -610,6 +610,36 @@ p { color: var(--text-muted); }
   .project { grid-template-columns: 1fr; gap: 1.1rem; padding: 1.5rem; }
 }
 
+/* Looking-forward feature split (home) */
+.lookahead {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  box-shadow: var(--shadow-sm);
+}
+.lookahead-media { border-radius: var(--r-md); overflow: hidden; }
+.lookahead-media img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: 3 / 2; display: block; }
+.lookahead-copy h2 { margin: .3rem 0 .8rem; }
+.lookahead-copy .hero-cta { margin: 1.5rem 0 0; }
+
+/* Vision page feature photo */
+.vision-photo {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  aspect-ratio: 4 / 5;
+}
+.vision-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (max-width: 760px) {
+  .lookahead { grid-template-columns: 1fr; }
+}
+
 /* 9. PAGE SECTIONS ------------------------------------------------------ */
 /* Hero */
 .hero {
