@@ -66,26 +66,39 @@ the free slots.
 
 Done — the widget now merges both calendars and books into both.
 
+> **Re-deploying after a code change.** Editing the script does **not** update
+> the live web app on its own. Go to **Deploy → Manage deployments →** (pencil
+> to edit the active one) **→ Version: New version → Deploy**. The `/exec` URL
+> stays the same, so you don't need to touch `contact.html` again.
+
+> **Why JSONP / GET?** Browsers can't read a normal `fetch()` response from
+> Apps Script (it returns no CORS headers and 302-redirects). So the widget
+> calls the backend with a JSONP `<script>` load over **GET**, passing a
+> `callback` param; the backend replies `callback({…})`. This is the reliable,
+> free way to reach Apps Script from a static site.
+
 ---
 
 ## Endpoint contract (if you ever swap in another backend)
 
-Any backend exposing these two endpoints works with the widget:
+The widget calls the backend over **GET with JSONP** (a `callback` param);
+the backend wraps its JSON reply as `callback({…})`. It routes on an `action`
+param. A drop-in backend needs to support:
 
-**`GET {api}/availability?date=YYYY-MM-DD&duration=30&tz=Area/City`**
-```json
-{ "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] }
+**`GET {api}?action=availability&date=YYYY-MM-DD&duration=30&tz=Area/City&callback=fn`**
+```js
+fn({ "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] })
 ```
 Return free slot start times as ISO-8601 UTC strings.
 
-**`POST {api}/book`**  (body sent as text/plain to avoid CORS preflight)
-```json
-{ "name":"Jane Doe","email":"jane@acme.com","message":"Re: PM role",
-  "title":"Intro call","start":"2026-07-01T07:00:00.000Z",
-  "end":"2026-07-01T07:30:00.000Z","duration":30,
-  "host":"you@example.com","timezone":"Europe/Copenhagen" }
+**`GET {api}?action=book&callback=fn&...`** with the booking fields as query
+params: `name`, `email`, `message`, `title`, `start` (ISO), `end` (ISO),
+`duration`, `host`, `timezone`.
+```js
+fn({ "ok": true, "booked": true })   // or fn({ "ok": false, "error": "…" })
 ```
-Respond `{"ok": true}` or `{"ok": false, "error": "..."}`.
+The widget treats the booking as successful only when `booked` is `true`.
+(The original `POST {api}/book` with a JSON body still works too.)
 
 ## Reusing the widget on your other sites
 

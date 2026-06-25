@@ -130,6 +130,26 @@
   }
   function esc(s) { return String(s == null ? "" : s); }
 
+  // Call an Apps Script web app cross-origin. Apps Script sends no CORS headers
+  // and 302-redirects, so fetch() can't read its response — but a JSONP
+  // <script> load can. Resolves with the object the backend returns.
+  function jsonp(url, timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      var cb = "sfb_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+      var s = document.createElement("script");
+      var timer = setTimeout(function () { cleanup(); reject(new Error("timeout")); }, timeoutMs || 20000);
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+      }
+      window[cb] = function (data) { cleanup(); resolve(data); };
+      s.onerror = function () { cleanup(); reject(new Error("network")); };
+      s.src = url + (url.indexOf("?") === -1 ? "?" : "&") + "callback=" + cb;
+      document.head.appendChild(s);
+    });
+  }
+
   /* ----------------------------- widget ---------------------------- */
   function Booking(el) {
     var cfg = {
@@ -174,11 +194,11 @@
     async function fetchSlots(d) {
       if (!cfg.api) return localSlots(d);
       try {
-        var u = cfg.api.replace(/\/$/, "") + "/availability?date=" + ymd(d) +
+        var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(d) +
                 "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
-        var r = await fetch(u, { headers: { Accept: "application/json" } });
-        var j = await r.json();
-        return (j.slots || []).map(function (s) { return new Date(s); });
+        var j = await jsonp(u);
+        if (!j || !j.slots) return localSlots(d);   // backend not reachable → working-hours fallback
+        return j.slots.map(function (s) { return new Date(s); });
       } catch (e) { return localSlots(d); }
     }
 
@@ -293,23 +313,32 @@
       if (!name || !/.+@.+\..+/.test(email)) { alert("Please enter your name and a valid email."); return; }
       var btn = side.querySelector("#sfb-go"); btn.disabled = true; btn.textContent = "Booking…";
 
-      var payload = { name: name, email: email, message: msg, title: cfg.title,
-        start: start.toISOString(), end: end.toISOString(), duration: state.duration,
-        host: cfg.email, timezone: cfg.tz };
-
       if (cfg.api) {
+        // Book via JSONP GET. A readable fetch() to Apps Script is impossible
+        // (no CORS + 302 redirect), but a <script> load reaches doGet and
+        // returns the result. The backend creates the event and emails invites.
+        var u = cfg.api.replace(/\/$/, "") + "?action=book" +
+          "&name=" + encodeURIComponent(name) +
+          "&email=" + encodeURIComponent(email) +
+          "&message=" + encodeURIComponent(msg) +
+          "&title=" + encodeURIComponent(cfg.title) +
+          "&start=" + encodeURIComponent(start.toISOString()) +
+          "&end=" + encodeURIComponent(end.toISOString()) +
+          "&duration=" + state.duration +
+          "&host=" + encodeURIComponent(cfg.email) +
+          "&timezone=" + encodeURIComponent(cfg.tz);
         try {
-          // Note: no Content-Type header on purpose — sending a plain-text body
-          // avoids a CORS preflight, which keeps free backends like Google
-          // Apps Script happy. The backend just JSON.parses the text.
-          var r = await fetch(cfg.api.replace(/\/$/, "") + "/book", {
-            method: "POST", body: JSON.stringify(payload) });
-          if (!r.ok) throw new Error("bad");
+          var res = await jsonp(u);
+          if (!res || !res.booked) throw new Error(res && res.error ? res.error : "Booking failed");
           success(start, end, name, email, msg, true);
-          return;
-        } catch (e) { /* fall through to standalone */ }
+        } catch (e) {
+          btn.disabled = false; btn.textContent = "Confirm booking";
+          alert("Sorry — that booking couldn't be completed (" + e.message + ").\n" +
+                "Please pick another time, or email " + cfg.organizer + " directly.");
+        }
+        return;
       }
-      // Standalone: notify host by email + give attendee an .ics invite.
+      // No backend configured: notify host by email + give attendee an .ics invite.
       notifyHost(start, end, name, email, msg);
       success(start, end, name, email, msg, false);
     }
