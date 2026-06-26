@@ -820,6 +820,26 @@ p { color: var(--text-muted); }
 .form-field input:focus,
 .form-field textarea:focus { border-color: var(--brand); box-shadow: var(--ring); outline: none; }
 .form-note { font-size: .82rem; color: var(--text-subtle); margin-top: .4rem; }
+.form-status {
+  margin-top: .9rem;
+  padding: .7rem 1rem;
+  border-radius: var(--r-sm);
+  font-size: .9rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+}
+.form-status.is-success {
+  color: #15803d;
+  background: color-mix(in srgb, #22c55e 12%, transparent);
+  border-color: color-mix(in srgb, #22c55e 35%, transparent);
+}
+.form-status.is-error {
+  color: #b91c1c;
+  background: color-mix(in srgb, #ef4444 12%, transparent);
+  border-color: color-mix(in srgb, #ef4444 35%, transparent);
+}
+:root[data-theme="dark"] .form-status.is-success { color: #4ade80; }
+:root[data-theme="dark"] .form-status.is-error { color: #f87171; }
 
 /* 10. UTILITIES --------------------------------------------------------- */
 .text-center { text-align: center; }
