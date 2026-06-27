@@ -122,7 +122,72 @@
     nums.forEach((el) => co.observe(el));
   }
 
-  /* ---- 7. FOOTER YEAR -------------------------------------------------- */
+  /* ---- 7. CONTACT FORM (progressive enhancement) ---------------------- */
+  /* If the Formspree endpoint is still the placeholder, the plain POST would
+     hit a 404. Intercept submit and fall back to the visitor's email client
+     (the behaviour the markup comment already promises), with inline status.
+     When a real endpoint is configured, submit it via fetch and report
+     success/error without leaving the page. */
+  const contactForm = document.querySelector('form[action*="formspree.io"]');
+  if (contactForm) {
+    const status = contactForm.querySelector(".form-status");
+    const showStatus = (msg, kind) => {
+      if (!status) return;
+      status.textContent = msg;
+      status.classList.remove("is-success", "is-error");
+      if (kind) status.classList.add("is-" + kind);
+      status.hidden = false;
+    };
+    const isPlaceholder = /YOUR_FORM_ID/.test(contactForm.getAttribute("action") || "");
+
+    contactForm.addEventListener("submit", function (e) {
+      if (!contactForm.checkValidity()) return; // let the browser surface field errors
+      e.preventDefault();
+
+      const data = new FormData(contactForm);
+      const name = (data.get("name") || "").toString().trim();
+      const email = (data.get("email") || "").toString().trim();
+      const message = (data.get("message") || "").toString().trim();
+
+      if (isPlaceholder) {
+        // No backend yet — open the visitor's email client, pre-filled.
+        const subject = "Website enquiry from " + (name || "a visitor");
+        const body = message + "\n\n— " + name + (email ? " (" + email + ")" : "");
+        window.location.href =
+          "mailto:sviatoslav.foshchii@gmail.com" +
+          "?subject=" + encodeURIComponent(subject) +
+          "&body=" + encodeURIComponent(body);
+        showStatus("Opening your email app so you can send the message. If nothing happens, write to sviatoslav.foshchii@gmail.com.", "success");
+        return;
+      }
+
+      const submitBtn = contactForm.querySelector('[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      showStatus("Sending…", null);
+
+      fetch(contactForm.action, {
+        method: "POST",
+        body: data,
+        headers: { Accept: "application/json" }
+      })
+        .then((res) => {
+          if (res.ok) {
+            contactForm.reset();
+            showStatus("Thanks — your message has been sent. I'll reply by email soon.", "success");
+          } else {
+            showStatus("Something went wrong. Please email sviatoslav.foshchii@gmail.com instead.", "error");
+          }
+        })
+        .catch(() => {
+          showStatus("Couldn't reach the server. Please email sviatoslav.foshchii@gmail.com instead.", "error");
+        })
+        .finally(() => {
+          if (submitBtn) submitBtn.disabled = false;
+        });
+    });
+  }
+
+  /* ---- 8. FOOTER YEAR -------------------------------------------------- */
   const yr = document.getElementById("year");
   if (yr) yr.textContent = new Date().getFullYear();
 })();
