@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How To Keep Marketing Operations Running During A Platform Migration — Sviatoslav Foshchii</title>
+  <meta name="description" content="A practical migration playbook from Sviatoslav Foshchii on keeping marketing operations stable while moving platforms.">
+  <link rel="canonical" href="https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="How To Keep Marketing Operations Running During A Platform Migration">
+  <meta property="og:description" content="Business-as-usual marketing work should be planned as a migration workstream, not treated as an interruption.">
+  <meta property="og:url" content="https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html">
+  <meta property="og:site_name" content="Sviatoslav Foshchii">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://foshchii.github.io/assets/img/og-image.png">
+  <meta property="article:published_time" content="2026-06-28">
+  <meta property="article:modified_time" content="2026-06-28">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="How To Keep Marketing Operations Running During A Platform Migration">
+  <meta name="twitter:description" content="How to protect business-as-usual marketing delivery while a platform migration is in progress.">
+  <meta name="twitter:image" content="https://foshchii.github.io/assets/img/og-image.png">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#4f46e5">
+  <script>(function(){try{var t=localStorage.getItem("sf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20260628">
+  <link rel="alternate" type="application/rss+xml" title="Sviatoslav Foshchii Insights" href="https://foshchii.github.io/feed.xml">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "How to keep marketing operations running during a platform migration",
+    "description": "A practical migration playbook for keeping marketing operations stable while moving platforms.",
+    "image": "https://foshchii.github.io/assets/img/og-image.png",
+    "datePublished": "2026-06-28",
+    "dateModified": "2026-06-28",
+    "author": { "@type": "Person", "name": "Sviatoslav Foshchii", "url": "https://foshchii.github.io/" },
+    "publisher": { "@type": "Person", "name": "Sviatoslav Foshchii" },
+    "mainEntityOfPage": "https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html",
+    "keywords": ["Marketing operations", "Platform migration", "Salesforce Marketing Cloud", "Agile delivery"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="../index.html" aria-label="Sviatoslav Foshchii — home"><span class="brand-mark">SF</span><span>Sviatoslav&nbsp;Foshchii</span></a>
+      <nav class="nav" id="primary-nav" aria-label="Primary">
+        <a href="../index.html">Home</a><a href="../about.html">About</a><a href="../experience.html">Experience</a><a href="../resume.html">Resume</a><a href="../projects.html">Projects</a><a href="../insights.html" class="active" aria-current="page">Insights</a><a href="../education.html">Education</a><a href="../contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language"><a class="active" href="/" hreflang="en" lang="en">EN</a><a href="/da/" hreflang="da" lang="da">DA</a><a href="/uk/" hreflang="uk" lang="uk">UK</a><a href="/ru/" hreflang="ru" lang="ru">RU</a></nav>
+        <button class="icon-btn theme-toggle" type="button" aria-label="Switch theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></button>
+        <button class="icon-btn menu-btn" type="button" aria-label="Open menu" aria-controls="primary-nav" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <article>
+      <header class="article-hero">
+        <div class="container">
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a> <span>/</span> <a href="../insights.html">Insights</a> <span>/</span> <span>Operations during migration</span></nav>
+          <p class="article-kicker">Marketing operations</p>
+          <h1>How to keep marketing operations running during a platform migration</h1>
+          <p class="lead">The safest migration plan treats day-to-day campaign work as a first-class delivery stream, not as noise around the project.</p>
+          <div class="article-meta"><span>By Sviatoslav Foshchii</span><span>Published June 28, 2026</span><span>6 min read</span></div>
+        </div>
+      </header>
+
+      <div class="container article-layout">
+        <div class="article-content">
+          <p>Marketing teams rarely get a quiet quarter for a platform migration. Campaigns still need to launch, stakeholders still need answers and production issues still appear. That is why operational continuity has to be designed into the migration from the start.</p>
+
+          <p class="article-callout">Business-as-usual is not a distraction from a migration. It is the environment the migration has to survive.</p>
+
+          <h2>Separate migration work from operations work</h2>
+          <p>I like to make two lanes visible: migration delivery and live operations. The migration lane contains discovery, build, QA, data mapping, documentation and handover. The operations lane contains active campaigns, urgent fixes, stakeholder support, approvals and production monitoring.</p>
+          <p>When both lanes are visible, the team can make better tradeoffs. When only migration tasks are visible, operations work becomes invisible pressure.</p>
+
+          <h2>Define what cannot break</h2>
+          <p>Not every campaign, automation or report carries the same risk. Before the migration gets busy, define the non-negotiables: critical customer journeys, revenue-sensitive sends, compliance-related communications, peak-season campaigns and escalation paths.</p>
+          <p>That list becomes a practical filter. It helps the team decide where to add extra QA, where to slow down and where a simpler temporary process is acceptable.</p>
+
+          <h2>Keep a shared decision log</h2>
+          <p>Migrations create hundreds of small decisions. If those decisions live only in meetings, the team will repeat conversations and rediscover old assumptions.</p>
+          <p>A useful decision log is simple: date, topic, decision, owner, reason and follow-up. It does not need to be perfect. It needs to be searchable and trusted.</p>
+
+          <h2>Make QA boring and repeatable</h2>
+          <p>Good QA is not hero work. It is a repeatable checklist that reduces uncertainty: data source confirmed, audience logic reviewed, personalization tested, links checked, rendering reviewed, suppression logic confirmed, tracking validated and rollback path understood.</p>
+          <p>When QA is consistent, stakeholders learn what "ready" means. That makes approvals faster and reduces subjective last-minute changes.</p>
+
+          <h2>Plan the handover before the end</h2>
+          <p>Handover should not wait until the last week. The receiving team needs time to absorb the new way of working, challenge unclear documentation and rehearse support scenarios.</p>
+          <p>For me, a good handover includes ownership, known limitations, support routines, naming conventions, QA checklists and examples of common changes.</p>
+
+          <h2>My practical takeaway</h2>
+          <p>The best way to protect marketing operations during a migration is to treat operational work as part of the plan. That sounds obvious, but it is where many migration plans become unrealistic.</p>
+
+          <div class="article-links">
+            <a class="btn btn--accent" href="../experience.html">See experience</a>
+            <a class="btn btn--ghost" href="../resume.html">View resume</a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col"><a class="brand" href="../index.html"><span class="brand-mark">SF</span><span>Sviatoslav&nbsp;Foshchii</span></a><p>Application Consultant &amp; Technical Project Manager in Copenhagen — Salesforce Marketing Cloud, agile delivery and process improvement.</p></div>
+        <div class="footer-col"><h4>Explore</h4><a href="../index.html">Home</a><a href="../about.html">About</a><a href="../experience.html">Experience</a><a href="../resume.html">Resume</a><a href="../projects.html">Projects</a><a href="../insights.html">Insights</a><a href="../education.html">Education &amp; Certifications</a><a href="../contact.html">Contact</a></div>
+        <div class="footer-col"><h4>Get in touch</h4><a href="mailto:sviatoslav.foshchii@gmail.com">sviatoslav.foshchii@gmail.com</a><a href="tel:+4571636396">+45 71 63 63 96</a><a href="https://www.linkedin.com/in/sviatoslav-foshchii/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/Foshchii" target="_blank" rel="noopener">GitHub</a></div>
+      </div>
+      <div class="footer-bottom"><span>&copy; <span id="year">2026</span> Sviatoslav Foshchii. All rights reserved.</span><span>Built with HTML, CSS and JavaScript.</span></div>
+    </div>
+  </footer>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

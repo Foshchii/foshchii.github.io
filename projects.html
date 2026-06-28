@@ -26,7 +26,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/styles.css?v=20260628">
+  <link rel="alternate" type="application/rss+xml" title="Sviatoslav Foshchii Insights" href="https://foshchii.github.io/feed.xml">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -40,12 +41,14 @@
         <a href="index.html">Home</a>
         <a href="about.html">About</a>
         <a href="experience.html">Experience</a>
+        <a href="resume.html">Resume</a>
         <a href="projects.html" class="active" aria-current="page">Projects</a>
-        <a href="vision.html">Vision</a>
+        <a href="insights.html">Insights</a>
         <a href="education.html">Education</a>
         <a href="contact.html">Contact</a>
       </nav>
       <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language"><a class="active" href="/" hreflang="en" lang="en">EN</a><a href="/da/" hreflang="da" lang="da">DA</a><a href="/uk/" hreflang="uk" lang="uk">UK</a><a href="/ru/" hreflang="ru" lang="ru">RU</a></nav>
         <button class="icon-btn theme-toggle" type="button" aria-label="Switch theme">
           <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -79,19 +82,25 @@
             <div class="project-body">
               <div class="project-top">
                 <span class="project-cat">Personal product</span>
-                <span class="project-year">2026 · Live · <span class="ai-tag">AI-built</span></span>
+                <span class="project-year">2026 · Live · <span class="ai-tag">AI-assisted</span></span>
               </div>
               <h3>Keto Scanner</h3>
-              <p class="project-role">Solo build — concept, design, code &amp; deployment — with Claude as co-pilot</p>
-              <p>A personal web app that helps me check whether a food product fits a <strong>pescatarian-keto</strong> diet — built to solve my own daily problem of decoding ingredient lists and macros while shopping. I used <strong>Claude AI as a co-pilot</strong> throughout: architecture decisions, writing the code, iterating on the UI and deploying.</p>
+              <p class="project-role">Solo build — concept, design, code &amp; deployment — with Claude as implementation partner</p>
+              <p>A personal web app that helps me check whether a food product fits a <strong>pescatarian-keto</strong> diet — built to solve my own daily problem of decoding ingredient lists and macros while shopping. I used <strong>Claude AI as an implementation partner</strong> throughout: architecture decisions, interface iteration, application logic and deployment.</p>
+              <div class="case-details">
+                <div class="case-detail"><h4>Context</h4><p>Personal product for quick food-label evaluation while shopping.</p></div>
+                <div class="case-detail"><h4>My role</h4><p>Product owner, designer and implementer, using AI to speed up build cycles.</p></div>
+                <div class="case-detail"><h4>Outcome</h4><p>Live app deployed on Vercel and used as a daily decision-support tool.</p></div>
+                <div class="case-detail"><h4>Learning</h4><p>AI-assisted development works best when the human owns product judgement and acceptance criteria.</p></div>
+              </div>
               <ul class="tl-list">
-                <li>Built end-to-end with AI: from initial concept and data model through to interface, logic and Vercel deployment.</li>
+                <li>Built end-to-end with AI-assisted development: from initial concept and data model through to interface, logic and Vercel deployment.</li>
                 <li>Scans a product's label and flags how well it suits a pescatarian-keto way of eating.</li>
-                <li>Continuously iterated — a real example of vibe coding that ships and gets used daily.</li>
+                <li>Continuously iterated — a real example of AI-assisted product development that ships and gets used daily.</li>
               </ul>
               <div class="chip-group">
                 <span class="chip">Claude AI</span>
-                <span class="chip">Vibe coding</span>
+                <span class="chip">AI-assisted development</span>
                 <span class="chip">JavaScript</span>
                 <span class="chip">Web app</span>
                 <span class="chip">Vercel</span>
@@ -118,6 +127,12 @@
               <h3>Adobe Campaign → Salesforce Marketing Cloud migration</h3>
               <p class="project-role">Technical Project Manager → Application Consultant</p>
               <p>Led a significant platform migration from <strong>Adobe Campaign Standard to Salesforce Marketing Cloud</strong> for a worldwide brand, keeping marketing operations running continuously throughout the move.</p>
+              <div class="case-details">
+                <div class="case-detail"><h4>Context</h4><p>Enterprise martech migration from Adobe Campaign Standard to Salesforce Marketing Cloud.</p></div>
+                <div class="case-detail"><h4>My role</h4><p>Technical Project Manager coordinating delivery, documentation, ceremonies and stakeholder alignment.</p></div>
+                <div class="case-detail"><h4>Outcome</h4><p>Operational continuity during migration and a 25% delivery-efficiency contribution for SFMC operations.</p></div>
+                <div class="case-detail"><h4>Learning</h4><p>The handover and operating model are as important as the technical platform build.</p></div>
+              </div>
               <ul class="tl-list">
                 <li>Ensured continuous system functionality during the migration and a smooth hand-over to the client's established-markets operations team.</li>
                 <li>Created uniform procedures and documentation across the technical development teams.</li>
@@ -194,11 +209,17 @@
             <div class="project-body">
               <div class="project-top">
                 <span class="project-cat">Web · Side project</span>
-                <span class="project-year">2026 · Live · <span class="ai-tag">AI-built</span></span>
+                <span class="project-year">2026 · Live · <span class="ai-tag">AI-assisted</span></span>
               </div>
               <h3>This website &amp; booking widget</h3>
-              <p class="project-role">Built with Claude Code — design, code &amp; iteration</p>
-              <p>The site you're on. Yes — it was built with AI. I used <strong>Claude Code</strong> as the coding partner to design, write and iterate every page: the layout system, the dark-mode theme, the accessible components, and the custom booking widget. The direction, content and decisions are mine; AI handled the implementation.</p>
+              <p class="project-role">Built with Claude Code — product direction, implementation &amp; iteration</p>
+              <p>The site you're on was built with AI-assisted implementation. I used <strong>Claude Code</strong> as a coding partner to design, write and iterate every page: the layout system, the dark-mode theme, the accessible components, and the custom booking widget. The direction, content and decisions are mine; AI accelerated implementation.</p>
+              <div class="case-details">
+                <div class="case-detail"><h4>Context</h4><p>Personal portfolio designed to support job search, credibility and AI/search discoverability.</p></div>
+                <div class="case-detail"><h4>My role</h4><p>Owned positioning, content, product direction and acceptance criteria.</p></div>
+                <div class="case-detail"><h4>Outcome</h4><p>Static, fast, accessible site with booking, resume, project proof and multilingual entry pages.</p></div>
+                <div class="case-detail"><h4>Learning</h4><p>AI is strongest as an implementation partner when the product owner keeps decisions explicit.</p></div>
+              </div>
               <ul class="tl-list">
                 <li>Built with Claude Code — semantic HTML, a design-token stylesheet and progressive-enhancement JavaScript.</li>
                 <li>Accessible by default — keyboard navigation, reduced-motion support and a print-friendly layout.</li>
@@ -246,8 +267,9 @@
           <a href="index.html">Home</a>
           <a href="about.html">About</a>
           <a href="experience.html">Experience</a>
-          <a href="projects.html">Projects</a>
-          <a href="vision.html">Vision</a>
+          <a href="resume.html">Resume</a>
+        <a href="projects.html">Projects</a>
+          <a href="insights.html">Insights</a>
           <a href="education.html">Education &amp; Certifications</a>
           <a href="contact.html">Contact</a>
         </div>
@@ -256,11 +278,12 @@
           <a href="mailto:sviatoslav.foshchii@gmail.com">sviatoslav.foshchii@gmail.com</a>
           <a href="tel:+4571636396">+45 71 63 63 96</a>
           <a href="https://www.linkedin.com/in/sviatoslav-foshchii/" target="_blank" rel="noopener">LinkedIn ↗</a>
+          <a href="https://github.com/Foshchii" target="_blank" rel="noopener">GitHub ↗</a>
         </div>
       </div>
       <div class="footer-bottom">
         <span>© <span id="year">2026</span> Sviatoslav Foshchii. All rights reserved.</span>
-        <span>Built with HTML, CSS, JavaScript &amp; Claude Code.</span>
+        <span>Built with HTML, CSS and JavaScript.</span>
       </div>
     </div>
   </footer>

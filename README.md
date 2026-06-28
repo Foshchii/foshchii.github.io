@@ -9,11 +9,12 @@ Calendly alternative) that you can drop into any website you build.
 
 ## ✨ Features
 
-- **Five pages:** Home · About · Experience · Education & Certifications · Contact
+- **Recruiter-ready pages:** Home · About · Experience · Resume · Projects · Insights · Education · Contact
 - **Light/dark theme** toggle (defaults to light, remembers your choice, respects OS setting)
 - **Fully responsive** — looks great from phone to desktop
 - **Accessible** — semantic HTML, keyboard navigation, skip link, focus states, reduced-motion support
-- **SEO & social ready** — per-page meta tags, Open Graph/Twitter cards, JSON-LD, `sitemap.xml`, `robots.txt`
+- **SEO, AI & social ready** — per-page meta tags, Open Graph/Twitter cards, JSON-LD, `sitemap.xml`, `robots.txt`, `llms.txt`, and an RSS feed
+- **Downloadable CV PDF** generated from the same positioning as the web resume
 - **Subtle, tasteful animations** — scroll reveals, animated stats, language bars
 - **Custom booking widget** — pick a date/time, get a calendar invite; optional free backend for live availability
 - **Print-friendly** styles
@@ -26,18 +27,24 @@ Calendly alternative) that you can drop into any website you build.
 ├── index.html            # Home
 ├── about.html            # About
 ├── experience.html       # Work history (timeline)
+├── resume.html           # Recruiter-friendly web resume
 ├── education.html        # Education, certifications & skills
 ├── contact.html          # Contact details + booking widget
+├── insights.html         # Insights index
+├── insights/             # Long-form articles for search/AI visibility
+├── feed.xml              # RSS feed for insight articles
+├── da/ uk/ ru/           # Localised overview pages
 ├── 404.html              # Friendly not-found page
 ├── assets/
 │   ├── css/styles.css        # Design system + all styles
 │   ├── js/main.js            # Theme, nav, scroll animations
 │   ├── js/booking-widget.js  # Reusable booking widget (standalone file)
+│   ├── Sviatoslav-Foshchii-CV.pdf  # Downloadable CV
 │   └── img/                  # Favicon, portrait placeholder, social image
 ├── booking-api/          # Optional free backend for live calendar booking
 │   ├── google-apps-script.gs
 │   └── README.md
-├── sitemap.xml  robots.txt  .nojekyll
+├── sitemap.xml  robots.txt  llms.txt  feed.xml  .nojekyll
 └── .github/workflows/deploy-pages.yml   # Auto-deploy to GitHub Pages
 ```
 
@@ -50,6 +57,30 @@ so paths and the widget behave exactly like production) run a tiny local server:
 # Python 3
 python3 -m http.server 8000
 # then visit http://localhost:8000
+```
+
+If you prefer one repeatable project command:
+
+```bash
+npm run dev
+```
+
+Then visit <http://127.0.0.1:8000>.
+
+## ✅ Development checks
+
+This repo intentionally has no build step or runtime dependencies. The included
+checker validates local links/assets, SEO basics, sitemap coverage, one `h1` per
+page and JSON-LD syntax:
+
+```bash
+npm run check
+```
+
+To regenerate the downloadable CV PDF:
+
+```bash
+python3 scripts/generate-resume-pdf.py
 ```
 
 ## 🌐 Publish on GitHub Pages (free)
@@ -77,7 +108,7 @@ The workflow in `.github/workflows/deploy-pages.yml` then deploys on every push 
 | **Phone / LinkedIn / location** | In each page's header/footer and `contact.html`. |
 | **Colours & fonts** | CSS variables at the top of `assets/css/styles.css` (`--brand`, `--accent`, fonts). |
 | **Text content** | Directly in the HTML — it's organised with clear section comments. |
-| **Message form** | In `contact.html`, create a free form at [formspree.io](https://formspree.io) and replace `YOUR_FORM_ID`. |
+| **Contact options** | In `contact.html`, update the email, LinkedIn and booking-widget details. |
 
 ## 📅 Booking widget
 

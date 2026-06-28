@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sviatoslav Foshchii Insights</title>
+    <link>https://foshchii.github.io/insights.html</link>
+    <atom:link href="https://foshchii.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Practical notes on Salesforce Marketing Cloud, martech migrations, CRM operations, agile delivery and AI-assisted project work.</description>
+    <language>en</language>
+    <lastBuildDate>Sun, 28 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <managingEditor>sviatoslav.foshchii@gmail.com (Sviatoslav Foshchii)</managingEditor>
+    <webMaster>sviatoslav.foshchii@gmail.com (Sviatoslav Foshchii)</webMaster>
+    <item>
+      <title>What I learned migrating from Adobe Campaign to Salesforce Marketing Cloud</title>
+      <link>https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html</link>
+      <guid isPermaLink="true">https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html</guid>
+      <pubDate>Sun, 28 Jun 2026 00:00:00 +0000</pubDate>
+      <description>A migration is less about moving templates and data than protecting marketing continuity while people learn a new operating model.</description>
+    </item>
+    <item>
+      <title>How to keep marketing operations running during a platform migration</title>
+      <link>https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html</link>
+      <guid isPermaLink="true">https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html</guid>
+      <pubDate>Sun, 28 Jun 2026 00:00:00 +0000</pubDate>
+      <description>The safest migration plan treats business-as-usual work as a first-class workstream, not an interruption.</description>
+    </item>
+    <item>
+      <title>How I use AI as a project delivery partner, not a replacement</title>
+      <link>https://foshchii.github.io/insights/ai-project-delivery-partner.html</link>
+      <guid isPermaLink="true">https://foshchii.github.io/insights/ai-project-delivery-partner.html</guid>
+      <pubDate>Sun, 28 Jun 2026 00:00:00 +0000</pubDate>
+      <description>AI is most useful when it speeds up framing, documentation and iteration while people still own judgement, risk and accountability.</description>
+    </item>
+  </channel>
+</rss>

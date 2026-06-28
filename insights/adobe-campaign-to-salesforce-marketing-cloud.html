@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>What I Learned Migrating From Adobe Campaign To Salesforce Marketing Cloud — Sviatoslav Foshchii</title>
+  <meta name="description" content="Practical lessons from Sviatoslav Foshchii on migrating from Adobe Campaign to Salesforce Marketing Cloud while protecting marketing operations, documentation and team alignment.">
+  <link rel="canonical" href="https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="What I Learned Migrating From Adobe Campaign To Salesforce Marketing Cloud">
+  <meta property="og:description" content="A Salesforce Marketing Cloud migration is not only a platform move. It is an operating-model change for marketing teams.">
+  <meta property="og:url" content="https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html">
+  <meta property="og:site_name" content="Sviatoslav Foshchii">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="https://foshchii.github.io/assets/img/og-image.png">
+  <meta property="article:published_time" content="2026-06-28">
+  <meta property="article:modified_time" content="2026-06-28">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="What I Learned Migrating From Adobe Campaign To Salesforce Marketing Cloud">
+  <meta name="twitter:description" content="Practical lessons on protecting marketing continuity during an Adobe Campaign to Salesforce Marketing Cloud migration.">
+  <meta name="twitter:image" content="https://foshchii.github.io/assets/img/og-image.png">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#4f46e5">
+  <script>(function(){try{var t=localStorage.getItem("sf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20260628">
+  <link rel="alternate" type="application/rss+xml" title="Sviatoslav Foshchii Insights" href="https://foshchii.github.io/feed.xml">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "What I learned migrating from Adobe Campaign to Salesforce Marketing Cloud",
+    "description": "Practical lessons on migrating from Adobe Campaign to Salesforce Marketing Cloud while protecting marketing operations and team alignment.",
+    "image": "https://foshchii.github.io/assets/img/og-image.png",
+    "datePublished": "2026-06-28",
+    "dateModified": "2026-06-28",
+    "author": { "@type": "Person", "name": "Sviatoslav Foshchii", "url": "https://foshchii.github.io/" },
+    "publisher": { "@type": "Person", "name": "Sviatoslav Foshchii" },
+    "mainEntityOfPage": "https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html",
+    "keywords": ["Salesforce Marketing Cloud", "Adobe Campaign", "Martech migration", "CRM operations"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="../index.html" aria-label="Sviatoslav Foshchii — home"><span class="brand-mark">SF</span><span>Sviatoslav&nbsp;Foshchii</span></a>
+      <nav class="nav" id="primary-nav" aria-label="Primary">
+        <a href="../index.html">Home</a><a href="../about.html">About</a><a href="../experience.html">Experience</a><a href="../resume.html">Resume</a><a href="../projects.html">Projects</a><a href="../insights.html" class="active" aria-current="page">Insights</a><a href="../education.html">Education</a><a href="../contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <nav class="lang-switch" aria-label="Language"><a class="active" href="/" hreflang="en" lang="en">EN</a><a href="/da/" hreflang="da" lang="da">DA</a><a href="/uk/" hreflang="uk" lang="uk">UK</a><a href="/ru/" hreflang="ru" lang="ru">RU</a></nav>
+        <button class="icon-btn theme-toggle" type="button" aria-label="Switch theme"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/></svg></button>
+        <button class="icon-btn menu-btn" type="button" aria-label="Open menu" aria-controls="primary-nav" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <article>
+      <header class="article-hero">
+        <div class="container">
+          <nav class="crumbs" aria-label="Breadcrumb"><a href="../index.html">Home</a> <span>/</span> <a href="../insights.html">Insights</a> <span>/</span> <span>Adobe Campaign to SFMC</span></nav>
+          <p class="article-kicker">Salesforce Marketing Cloud</p>
+          <h1>What I learned migrating from Adobe Campaign to Salesforce Marketing Cloud</h1>
+          <p class="lead">A martech migration is not only a technical platform move. It changes how marketing teams plan work, trust data and keep campaigns moving.</p>
+          <div class="article-meta">
+            <span>By Sviatoslav Foshchii</span>
+            <span>Published June 28, 2026</span>
+            <span>7 min read</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="container article-layout">
+        <div class="article-content">
+          <p>I have worked on a significant Adobe Campaign Standard to Salesforce Marketing Cloud migration for a worldwide brand. The confidential details are not mine to publish, but the delivery lessons are portable.</p>
+
+          <p class="article-callout">A platform migration succeeds when marketing operations still feel boring while the technology underneath is changing.</p>
+
+          <h2>1. Treat the migration as an operating-model change</h2>
+          <p>It is tempting to define the work as a list of assets to rebuild: templates, automations, journeys, data flows, documentation. That list matters, but it is not enough. The real change is how people request work, test changes, approve campaigns, handle incidents and understand what the new platform is doing.</p>
+          <p>That is why I like migration plans that separate technical conversion from operational adoption. The first asks, "Can the new system do this?" The second asks, "Can the team reliably work this way next month?"</p>
+
+          <h2>2. Protect business-as-usual work explicitly</h2>
+          <p>Campaign calendars do not pause because the platform is being replaced. If business-as-usual delivery is treated as background noise, the migration team will constantly be surprised by urgent production needs.</p>
+          <p>The better approach is to make business-as-usual work visible in the plan. Keep capacity for production support, campaign QA, stakeholder questions and documentation updates. A migration plan that ignores day-to-day marketing work is usually too optimistic.</p>
+
+          <h2>3. Documentation is not an afterthought</h2>
+          <p>Documentation is often framed as cleanup after delivery. In a migration, it is part of delivery. It gives the receiving team a way to understand decisions, troubleshoot issues and continue improving the setup after the project team moves on.</p>
+          <p>The most useful documentation is not a giant manual. It is a set of living artifacts: naming conventions, data assumptions, known limitations, QA checklists, ownership maps and escalation paths.</p>
+
+          <h2>4. Stakeholder alignment is technical risk management</h2>
+          <p>Many technical issues start as alignment gaps. One team assumes a field means one thing; another team uses it differently. One stakeholder approves a journey; another later challenges the customer experience. One person knows a workaround; the rest of the team does not.</p>
+          <p>Good project management reduces those gaps early. I try to keep assumptions visible and repeat them until they are boring. Boring alignment is cheaper than late rework.</p>
+
+          <h2>5. The handover is the product</h2>
+          <p>A migration is not finished when the new platform can send messages. It is finished when the team can operate, maintain and improve the platform with confidence.</p>
+          <p>That changes the definition of done. A migrated journey should include the supporting process: who owns it, how it is tested, how changes are requested, what data it depends on and what happens if something breaks.</p>
+
+          <h2>My practical takeaway</h2>
+          <p>For Salesforce Marketing Cloud migrations, the technical build and the human operating model have to move together. If one gets ahead of the other, the project slows down later.</p>
+
+          <div class="article-links">
+            <a class="btn btn--accent" href="../projects.html">See related projects</a>
+            <a class="btn btn--ghost" href="../contact.html">Contact me</a>
+          </div>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col"><a class="brand" href="../index.html"><span class="brand-mark">SF</span><span>Sviatoslav&nbsp;Foshchii</span></a><p>Application Consultant &amp; Technical Project Manager in Copenhagen — Salesforce Marketing Cloud, agile delivery and process improvement.</p></div>
+        <div class="footer-col"><h4>Explore</h4><a href="../index.html">Home</a><a href="../about.html">About</a><a href="../experience.html">Experience</a><a href="../resume.html">Resume</a><a href="../projects.html">Projects</a><a href="../insights.html">Insights</a><a href="../education.html">Education &amp; Certifications</a><a href="../contact.html">Contact</a></div>
+        <div class="footer-col"><h4>Get in touch</h4><a href="mailto:sviatoslav.foshchii@gmail.com">sviatoslav.foshchii@gmail.com</a><a href="tel:+4571636396">+45 71 63 63 96</a><a href="https://www.linkedin.com/in/sviatoslav-foshchii/" target="_blank" rel="noopener">LinkedIn</a><a href="https://github.com/Foshchii" target="_blank" rel="noopener">GitHub</a></div>
+      </div>
+      <div class="footer-bottom"><span>&copy; <span id="year">2026</span> Sviatoslav Foshchii. All rights reserved.</span><span>Built with HTML, CSS and JavaScript.</span></div>
+    </div>
+  </footer>
+  <script src="../assets/js/main.js" defer></script>
+</body>
+</html>

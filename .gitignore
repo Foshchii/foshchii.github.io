@@ -1,0 +1,12 @@
+.DS_Store
+Thumbs.db
+
+node_modules/
+tmp/
+.netlify/
+.vercel/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

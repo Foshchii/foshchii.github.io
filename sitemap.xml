@@ -2,37 +2,77 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://foshchii.github.io/</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://foshchii.github.io/da/</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/uk/</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/ru/</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://foshchii.github.io/about.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://foshchii.github.io/experience.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/resume.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://foshchii.github.io/projects.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://foshchii.github.io/vision.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <loc>https://foshchii.github.io/insights.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/insights/adobe-campaign-to-salesforce-marketing-cloud.html</loc>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://foshchii.github.io/insights/keep-marketing-operations-running-platform-migration.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/insights/ai-project-delivery-partner.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://foshchii.github.io/vision.html</loc>
+    <lastmod>2026-06-28</lastmod>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://foshchii.github.io/education.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://foshchii.github.io/contact.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <priority>0.9</priority>
   </url>
 </urlset>
