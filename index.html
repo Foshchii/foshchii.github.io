@@ -33,6 +33,9 @@
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#4f46e5">
 
+  <!-- Preload the LCP portrait so it paints sooner -->
+  <link rel="preload" as="image" href="assets/img/profile.jpg" fetchpriority="high">
+
   <!-- Set theme before paint to avoid flash -->
   <script>(function(){try{var t=localStorage.getItem("sf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
 
@@ -138,6 +141,7 @@
 
         <div class="portrait-wrap">
           <img class="portrait" src="assets/img/profile.jpg" width="800" height="1200"
+               fetchpriority="high" decoding="async"
                alt="Portrait of Sviatoslav Foshchii">
           <span class="portrait-badge">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
@@ -379,7 +383,7 @@
       <div class="container">
         <div class="lookahead reveal">
           <div class="lookahead-media">
-            <img src="assets/img/binoculars.jpg" width="1000" height="667" loading="lazy"
+            <img src="assets/img/binoculars.jpg" width="1000" height="667" loading="lazy" decoding="async"
                  alt="Sviatoslav Foshchii sitting outdoors in Copenhagen, holding a pair of binoculars">
           </div>
           <div class="lookahead-copy">
