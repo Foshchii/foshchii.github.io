@@ -1042,7 +1042,10 @@ p { color: var(--text-muted); }
 .divider { height: 1px; background: var(--border); border: 0; margin-block: 2.5rem; }
 
 /* 11. ANIMATIONS -------------------------------------------------------- */
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1); }
+/* Reveal-on-scroll: only hide elements once JS is confirmed running (the
+   inline head script adds `.js`). Without JS — disabled or failed to load —
+   `.reveal` content stays visible instead of rendering as a blank page. */
+.js .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s cubic-bezier(.22,1,.36,1); }
 .reveal.in { opacity: 1; transform: none; }
 .reveal.d1 { transition-delay: .08s; }
 .reveal.d2 { transition-delay: .16s; }
@@ -1280,5 +1283,5 @@ p { color: var(--text-muted); }
 /* Respect reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
-  .reveal { opacity: 1; transform: none; }
+  .reveal, .js .reveal { opacity: 1; transform: none; }
 }
