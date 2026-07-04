@@ -15,6 +15,8 @@ your Google and iCloud calendars** and book into both. It's free.
 | Shows only times you're free on **Google**      |     ❌     |      ✅      |
 | Shows only times you're free on **iCloud**      |     ❌     |      ✅      |
 | Writes the booking to your calendar(s)          |     ❌     |      ✅      |
+| Site quietly hides booking if live checks fail  |     —      |      ✅      |
+| You get an email alert for backend-detected issues |  ❌   |      ✅      |
 
 ## How it works (and why)
 
@@ -22,6 +24,14 @@ The backend is a **Google Apps Script** (`google-apps-script.gs`). It runs as
 *you*, so it reads/writes your Google Calendar with no API keys. For iCloud it
 reads your **published calendar `.ics` feed** and creates the booking with your
 iCloud address as a guest, so the event lands on your iCloud calendar too.
+
+When `data-api` is set, the widget runs in strict live mode by default. If live
+availability cannot be confirmed, this site quietly hides the booking block,
+booking CTAs and booking-related proof items for a few hours instead of showing
+possibly wrong slots. The backend also emails `CONFIG.notificationEmail` when
+availability, booking or health checks fail. If Apps Script itself is
+unreachable, the browser cannot send an automatic email, so the quiet site
+fallback is the guardrail.
 
 > Why not pure CalDAV for iCloud? Apps Script can't send the `PROPFIND`/`REPORT`
 > methods CalDAV needs. The published-feed + guest-invite approach is the
@@ -35,6 +45,8 @@ iCloud address as a guest, so the event lands on your iCloud calendar too.
 2. Delete the sample code, paste all of `google-apps-script.gs`.
 3. **Project Settings** (⚙) → set the **time zone** to `Europe/Copenhagen`
    (must match `CONFIG.timezone`).
+4. Confirm `CONFIG.notificationEmail` is the inbox that should receive booking
+   widget issue alerts.
 
 ### 2. Connect iCloud (so its busy times are respected)
 1. On a Mac: **Calendar app → right-click the calendar → Share Calendar →
@@ -51,9 +63,10 @@ iCloud address as a guest, so the event lands on your iCloud calendar too.
 > calendar rather than your personal one.
 
 ### 3. Test it
-In the Apps Script editor, run `testIcloudFeed` then `testAvailabilityTomorrow`
-(**View → Logs**). Authorize when prompted. You should see your busy blocks and
-the free slots.
+In the Apps Script editor, run `testIcloudFeed`, `testAvailabilityTomorrow`,
+`testHealth` and `testIssueNotification` (**View → Logs**). Authorize when
+prompted. You should see busy blocks, free slots, a healthy status object and a
+test alert email.
 
 ### 4. Deploy & connect
 1. **Deploy → New deployment → Web app** — *Execute as:* **Me**, *Who has
@@ -65,6 +78,15 @@ the free slots.
    ```
 
 Done — the widget now merges both calendars and books into both.
+
+After deployment, you can also open this URL in a browser to check the backend:
+
+```text
+https://script.google.com/macros/s/XXXX/exec?action=health
+```
+
+It should return `"ok":true`. If it returns `"ok":false`, the script sends an
+issue alert email and the website widget will block live booking.
 
 > **Re-deploying after a code change.** Editing the script does **not** update
 > the live web app on its own. Go to **Deploy → Manage deployments →** (pencil
@@ -87,7 +109,7 @@ param. A drop-in backend needs to support:
 
 **`GET {api}?action=availability&date=YYYY-MM-DD&duration=30&tz=Area/City&callback=fn`**
 ```js
-fn({ "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] })
+fn({ "ok": true, "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] })
 ```
 Return free slot start times as ISO-8601 UTC strings.
 
@@ -100,6 +122,18 @@ fn({ "ok": true, "booked": true })   // or fn({ "ok": false, "error": "…" })
 The widget treats the booking as successful only when `booked` is `true`.
 (The original `POST {api}/book` with a JSON body still works too.)
 
+**`GET {api}?action=health&callback=fn`**
+```js
+fn({ "ok": true, "google": [{ "id": "primary", "ok": true }], "icloud": { "configured": true, "ok": true } })
+```
+
+**`GET {api}?action=issue&kind=availability&message=...&callback=fn`**
+```js
+fn({ "ok": true, "notified": true })
+```
+The backend throttles repeated alerts for 30 minutes so one outage does not
+flood your inbox.
+
 ## Reusing the widget on your other sites
 
 ```html
@@ -108,6 +142,8 @@ The widget treats the booking as successful only when `booked` is `true`.
      data-email="you@gmail.com,you@icloud.com"
      data-title="Intro call" data-durations="30,45,60"
      data-timezone="Europe/Copenhagen"
+     data-strict-live="true"
+     data-failure-mode="hide"
      data-api="https://script.google.com/macros/s/XXXX/exec"></div>
 <script src="https://foshchii.github.io/sv_resume/assets/js/booking-widget.js" defer></script>
 ```

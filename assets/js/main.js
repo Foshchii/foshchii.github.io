@@ -125,4 +125,95 @@
   /* ---- 7. FOOTER YEAR -------------------------------------------------- */
   const yr = document.getElementById("year");
   if (yr) yr.textContent = new Date().getFullYear();
+
+  /* ---- 8. BOOKING GUARDRAIL -------------------------------------------- */
+  const BOOKING_API = "https://script.google.com/macros/s/AKfycbwqhm9CjTVPgb-UAWnDeXO_2mtZ-grRujVU7KM38Gl0JixgO12lFYTdBBqKsTe_m9-GUQ/exec";
+  const BOOKING_STATUS_KEY = "sf-booking-status-v1";
+  const BOOKING_HIDE_MS = 6 * 60 * 60 * 1000;
+  const BOOKING_CHECK_MS = 6 * 60 * 60 * 1000;
+  const hasBookingSurface = document.querySelector("[data-booking-dependent], [data-booking-fallback]");
+
+  function bookingJsonp(url, timeoutMs = 6000) {
+    return new Promise(function (resolve, reject) {
+      const cb = "sf_booking_health_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
+      const s = document.createElement("script");
+      const timer = setTimeout(function () { cleanup(); reject(new Error("timeout")); }, timeoutMs);
+      function cleanup() {
+        clearTimeout(timer);
+        try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+        if (s.parentNode) s.parentNode.removeChild(s);
+      }
+      window[cb] = function (data) { cleanup(); resolve(data); };
+      s.onerror = function () { cleanup(); reject(new Error("network")); };
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      document.head.appendChild(s);
+    });
+  }
+
+  function readBookingStatus() {
+    try { return JSON.parse(localStorage.getItem(BOOKING_STATUS_KEY) || "null"); }
+    catch (e) { return null; }
+  }
+
+  function writeBookingStatus(status) {
+    try { localStorage.setItem(BOOKING_STATUS_KEY, JSON.stringify(status)); }
+    catch (e) {}
+  }
+
+  function applyBookingUnavailable() {
+    root.classList.add("booking-unavailable");
+    document.querySelectorAll("[data-booking-dependent]").forEach((el) => { el.hidden = true; });
+    document.querySelectorAll("[data-booking-fallback]").forEach((el) => { el.hidden = false; });
+  }
+
+  function clearBookingUnavailable() {
+    root.classList.remove("booking-unavailable");
+    document.querySelectorAll("[data-booking-dependent]").forEach((el) => { el.hidden = false; });
+    document.querySelectorAll("[data-booking-fallback]").forEach((el) => { el.hidden = true; });
+  }
+
+  function markBookingUnavailable(reason) {
+    writeBookingStatus({
+      status: "unavailable",
+      reason: String(reason || "health check failed"),
+      checkedAt: Date.now(),
+      hideUntil: Date.now() + BOOKING_HIDE_MS
+    });
+    applyBookingUnavailable();
+  }
+
+  function bookingHealthOk(data) {
+    const googleOk = Array.isArray(data && data.google) &&
+      data.google.length > 0 &&
+      data.google.every((cal) => cal && cal.ok === true);
+    const icloudOk = data && data.icloud && data.icloud.configured === true && data.icloud.ok === true;
+    return data && data.ok === true && googleOk && icloudOk;
+  }
+
+  function checkBookingHealth() {
+    bookingJsonp(BOOKING_API + "?action=health")
+      .then(function (data) {
+        if (!bookingHealthOk(data)) throw new Error("calendar health check failed");
+        writeBookingStatus({ status: "ok", checkedAt: Date.now() });
+        clearBookingUnavailable();
+      })
+      .catch(function (err) {
+        markBookingUnavailable(err && err.message ? err.message : err);
+      });
+  }
+
+  document.addEventListener("sf-booking:unavailable", function (event) {
+    markBookingUnavailable(event.detail && event.detail.message);
+  });
+
+  if (hasBookingSurface) {
+    const cachedBooking = readBookingStatus();
+    if (cachedBooking && cachedBooking.status === "unavailable" && cachedBooking.hideUntil > Date.now()) {
+      applyBookingUnavailable();
+    } else if (!cachedBooking || !cachedBooking.checkedAt || Date.now() - cachedBooking.checkedAt > BOOKING_CHECK_MS) {
+      checkBookingHealth();
+    } else if (cachedBooking.status === "ok") {
+      clearBookingUnavailable();
+    }
+  }
 })();

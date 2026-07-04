@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Contact &amp; Book a Meeting — Sviatoslav Foshchii</title>
-  <meta name="description" content="Get in touch with Sviatoslav Foshchii or book a meeting straight from his calendar. Email, phone and LinkedIn for Salesforce Marketing Cloud and project delivery opportunities in Copenhagen.">
+  <title>Contact — Sviatoslav Foshchii</title>
+  <meta name="description" content="Get in touch with Sviatoslav Foshchii by email, phone or LinkedIn for Salesforce Marketing Cloud and project delivery opportunities in Copenhagen.">
   <link rel="canonical" href="https://foshchii.github.io/contact.html">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Contact &amp; Book a Meeting — Sviatoslav Foshchii">
-  <meta property="og:description" content="Email, phone, LinkedIn — or book a slot directly on my calendar.">
+  <meta property="og:title" content="Contact — Sviatoslav Foshchii">
+  <meta property="og:description" content="Email, phone and LinkedIn for Salesforce Marketing Cloud and project delivery opportunities.">
   <meta property="og:url" content="https://foshchii.github.io/contact.html">
   <meta property="og:site_name" content="Sviatoslav Foshchii">
   <meta property="og:locale" content="en_US">
@@ -17,8 +17,8 @@
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="Sviatoslav Foshchii — Technical Project Manager, Copenhagen">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Contact &amp; Book a Meeting — Sviatoslav Foshchii">
-  <meta name="twitter:description" content="Email, phone, LinkedIn — or book a slot directly on my calendar.">
+  <meta name="twitter:title" content="Contact — Sviatoslav Foshchii">
+  <meta name="twitter:description" content="Email, phone and LinkedIn for Salesforce Marketing Cloud and project delivery opportunities.">
   <meta name="twitter:image" content="https://foshchii.github.io/assets/img/og-image.png">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
   <meta name="theme-color" content="#4f46e5">
@@ -77,12 +77,15 @@
         <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>/</span> <span>Contact</span></nav>
         <span class="eyebrow" style="margin-top:1rem">Contact</span>
         <h1>Let's talk</h1>
-        <p class="lead">Hiring for a project management role, or just want to connect? Book a time on my calendar or reach out directly — I usually reply within a day.</p>
+        <p class="lead">
+          <span data-booking-dependent>Hiring for a project management role, or just want to connect? Book a time on my calendar or reach out directly — I usually reply within a day.</span>
+          <span data-booking-fallback hidden>Hiring for a project management role, or just want to connect? Reach out by email or LinkedIn — I usually reply within a day.</span>
+        </p>
       </div>
     </section>
 
     <!-- BOOK A MEETING -->
-    <section class="section" id="book">
+    <section class="section" id="book" data-booking-dependent>
       <div class="container">
         <div class="section-head center reveal">
           <span class="eyebrow">Book a meeting</span>
@@ -94,7 +97,9 @@
           <!-- Your own reusable booking widget (assets/js/booking-widget.js).
                Connected to the free Apps Script backend (/booking-api) via the
                data-api URL below: it merges Google + iCloud availability, books
-               into both calendars and emails you each request.
+               into both calendars and emails you each request. data-strict-live
+               keeps the widget from offering slots when live availability fails;
+               data-failure-mode hides this booking block if the backend is unhealthy.
                SECURITY: the private iCloud feed URL lives ONLY in the Apps
                Script "Script properties" — never paste it into this repo.
                data-email is comma-separated: the first is the calendar
@@ -110,6 +115,8 @@
                data-end="17:00"
                data-slot-step="30"
                data-days-ahead="21"
+               data-strict-live="true"
+               data-failure-mode="hide"
                data-api="https://script.google.com/macros/s/AKfycbwqhm9CjTVPgb-UAWnDeXO_2mtZ-grRujVU7KM38Gl0JixgO12lFYTdBBqKsTe_m9-GUQ/exec">
             <noscript>
               <p class="text-center" style="padding:2rem">

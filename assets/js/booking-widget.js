@@ -12,7 +12,9 @@
           data-workdays="1,2,3,4,5"      // 0=Sun … 6=Sat
           data-start="09:00" data-end="17:00"
           data-days-ahead="21"
-          data-api="">                   // optional backend base URL (see /booking-api)
+          data-api=""                    // optional backend base URL (see /booking-api)
+          data-strict-live="true"        // connected mode blocks booking if live availability fails
+          data-failure-mode="show">      // "show" displays an error; "hide" lets the site quietly remove booking
      </div>
      <script src="assets/js/booking-widget.js" defer></script>
 
@@ -68,6 +70,18 @@
     cursor:pointer;font:inherit;font-weight:600;font-size:.9rem;color:var(--sfb-text);transition:.15s}
   .sfb-slot:hover{border-color:var(--sfb-accent);color:var(--sfb-accent);transform:translateY(-1px)}
   .sfb-empty,.sfb-loading{color:var(--sfb-muted);font-size:.9rem;padding:1.5rem 0;text-align:center}
+  .sfb-status{border:1px solid var(--sfb-border);border-radius:12px;padding:.85rem .95rem;margin:1rem 0;
+    font-size:.88rem;line-height:1.45;background:var(--sfb-alt);color:var(--sfb-muted)}
+  .sfb-status strong{display:block;color:var(--sfb-text);margin-bottom:.25rem}
+  .sfb-status p{margin:.25rem 0;color:inherit}
+  .sfb-status--error{border-color:#fecaca;background:#fef2f2;color:#7f1d1d}
+  .sfb-status--error strong{color:#7f1d1d}
+  .sfb-status--warning{border-color:#fde68a;background:#fffbeb;color:#78350f}
+  .sfb-status--warning strong{color:#78350f}
+  .sfb-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;align-items:center}
+  .sfb-actions .sfb-btn,.sfb-actions .sfb-link{width:auto;margin:0;text-decoration:none}
+  .sfb-actions .sfb-btn{display:inline-flex;align-items:center;justify-content:center;padding:.55rem .9rem}
+  .sfb-btn--secondary{background:var(--sfb-text);color:#fff}
   .sfb-field{margin-bottom:.85rem}
   .sfb-field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.3rem}
   .sfb-field input,.sfb-field textarea{width:100%;font:inherit;padding:.6rem .75rem;color:var(--sfb-text);
@@ -129,6 +143,17 @@
            pad(date.getUTCHours()) + pad(date.getUTCMinutes()) + pad(date.getUTCSeconds()) + "Z";
   }
   function esc(s) { return String(s == null ? "" : s); }
+  function html(s) {
+    return esc(s).replace(/[&<>"']/g, function (ch) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+    });
+  }
+  function readableError(err) {
+    var msg = esc(err && err.message ? err.message : err || "calendar check failed");
+    if (msg === "timeout") return "The calendar service did not answer in time.";
+    if (msg === "network") return "The calendar service could not be reached.";
+    return msg;
+  }
 
   // Call an Apps Script web app cross-origin. Apps Script sends no CORS headers
   // and 302-redirects, so fetch() can't read its response — but a JSONP
@@ -163,7 +188,9 @@
       end: el.dataset.end || "17:00",
       step: parseInt(el.dataset.slotStep || "30", 10),
       daysAhead: parseInt(el.dataset.daysAhead || "21", 10),
-      api: (el.dataset.api || "").trim()
+      api: (el.dataset.api || "").trim(),
+      strictLive: el.dataset.strictLive !== "false",
+      failureMode: el.dataset.failureMode || "show"
     };
     // data-email may be comma-separated: first = calendar organiser, all = notified.
     cfg.emails = cfg.email.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
@@ -189,6 +216,97 @@
       // hide past times for today
       var now = Date.now();
       return out.filter(function (x) { return x.getTime() > now + 60 * 60 * 1000; });
+    }
+
+    function mailtoHref(subject, body) {
+      var to = (cfg.emails.length ? cfg.emails : [cfg.organizer]).map(encodeURIComponent).join(",");
+      return "mailto:" + to + "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+    }
+
+    function fallbackMailHref(reason) {
+      return mailtoHref(
+        "Booking request: " + cfg.title,
+        "Hi " + cfg.name + ",\n\nI tried to book through your website, but the calendar widget reported: " +
+          reason + "\n\nCould we find a time manually?\n"
+      );
+    }
+
+    function bookingMailHref(start, end, name, email, msg, reason) {
+      var when = start.toLocaleString() + " - " + end.toLocaleTimeString();
+      return mailtoHref(
+        "Booking request: " + cfg.title,
+        "New booking request\n\nName: " + name + "\nEmail: " + email +
+          "\nWhen: " + when + " (" + visitorTz + ")\nDuration: " + state.duration +
+          " min\nNotes: " + (msg || "-") + "\n\nWidget status: " + reason
+      );
+    }
+
+    function serviceErrorHTML(message) {
+      return '<div class="sfb-status sfb-status--error" role="alert">' +
+        '<strong>Calendar connection needs attention</strong>' +
+        '<p>' + html(message) + '</p>' +
+        '<p>Please email ' + html(cfg.organizer) + ' directly so no meeting is booked against the wrong availability.</p>' +
+        '<div class="sfb-actions">' +
+          '<a class="sfb-btn sfb-btn--secondary" href="' + fallbackMailHref(message) + '">Email directly</a>' +
+          '<button class="sfb-link sfb-retry" type="button">Try again</button>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function warningHTML(message) {
+      return '<div class="sfb-status sfb-status--warning" role="status">' +
+        '<strong>Live calendar check unavailable</strong>' +
+        '<p>' + html(message) + ' Times below are working-hour suggestions only.</p>' +
+      '</div>';
+    }
+
+    function bookingErrorHTML(message, start, end, name, email, msg) {
+      return '<div class="sfb-status sfb-status--error sfb-booking-error" role="alert">' +
+        '<strong>Booking was not confirmed</strong>' +
+        '<p>' + html(message) + '</p>' +
+        '<p>Please try another time or email ' + html(cfg.organizer) + ' directly.</p>' +
+        '<div class="sfb-actions">' +
+          '<a class="sfb-btn sfb-btn--secondary" href="' + bookingMailHref(start, end, name, email, msg, message) + '">Email this request</a>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function parseLiveSlots(raw) {
+      if (!Array.isArray(raw)) throw new Error("Calendar service returned an invalid availability response.");
+      return raw.map(function (s) {
+        var d = new Date(s);
+        if (isNaN(d.getTime())) throw new Error("Calendar service returned an invalid time slot.");
+        return d;
+      });
+    }
+
+    async function loadAvailability(date) {
+      var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(date) +
+              "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
+      var j = await jsonp(u, cfg.strictLive ? 10000 : 8000);
+      if (!j || j.ok === false) throw new Error(j && j.error ? j.error : "Calendar service did not confirm availability.");
+      return parseLiveSlots(j.slots);
+    }
+
+    function reportIssue(kind, message, extra) {
+      if (!cfg.api) return;
+      var u = cfg.api.replace(/\/$/, "") + "?action=issue" +
+        "&kind=" + encodeURIComponent(kind) +
+        "&message=" + encodeURIComponent(message) +
+        "&page=" + encodeURIComponent(location.href) +
+        "&extra=" + encodeURIComponent(JSON.stringify(extra || {}));
+      jsonp(u, 5000).catch(function () {});
+    }
+
+    function quietUnavailable(message, extra) {
+      reportIssue("availability", message, extra);
+      try {
+        document.dispatchEvent(new CustomEvent("sf-booking:unavailable", {
+          detail: { message: message, source: "booking-widget", extra: extra || {} }
+        }));
+      } catch (e) {}
+      var wrapper = el.closest("[data-booking-dependent]") || el;
+      wrapper.hidden = true;
     }
 
     /* ---- renderers ---- */
@@ -276,17 +394,40 @@
         });
       }
 
-      // Show working-hours slots immediately — no spinner
+      if (cfg.api && cfg.strictLive) {
+        var wrap = side.querySelector(".sfb-slotlist-wrap");
+        if (wrap) wrap.innerHTML = '<p class="sfb-loading">Checking live calendar availability...</p>';
+        try {
+          paintSlots(await loadAvailability(state.date));
+        } catch (e) {
+          if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
+          var strictMessage = readableError(e);
+          var strictContext = { date: ymd(capturedDate), duration: state.duration, strictLive: true };
+          if (cfg.failureMode === "hide") {
+            quietUnavailable(strictMessage, strictContext);
+            return;
+          }
+          reportIssue("availability", strictMessage, strictContext);
+          if (wrap) {
+            wrap.innerHTML = serviceErrorHTML(strictMessage);
+            var retry = wrap.querySelector(".sfb-retry");
+            if (retry) retry.onclick = renderSide;
+          }
+        }
+        return;
+      }
+
       paintSlots(localSlots(state.date));
 
-      // Silently replace with live availability when backend responds (8 s timeout)
       if (cfg.api) {
         try {
-          var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(state.date) +
-                  "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
-          var j = await jsonp(u, 8000);
-          if (j && j.slots) paintSlots(j.slots.map(function (s) { return new Date(s); }));
-        } catch (e) { /* working-hours slots already shown */ }
+          paintSlots(await loadAvailability(state.date));
+        } catch (e) {
+          var fallbackWrap = side.querySelector(".sfb-slotlist-wrap");
+          var fallbackMessage = readableError(e);
+          reportIssue("availability", fallbackMessage, { date: ymd(capturedDate), duration: state.duration, strictLive: false });
+          if (fallbackWrap) fallbackWrap.insertAdjacentHTML("afterbegin", warningHTML(fallbackMessage));
+        }
       }
     }
 
@@ -324,7 +465,15 @@
       var name = side.querySelector("#sfb-n").value.trim();
       var email = side.querySelector("#sfb-e").value.trim();
       var msg = side.querySelector("#sfb-m").value.trim();
-      if (!name || !/.+@.+\..+/.test(email)) { alert("Please enter your name and a valid email."); return; }
+      var oldError = side.querySelector(".sfb-booking-error");
+      if (oldError) oldError.remove();
+      if (!name || !/.+@.+\..+/.test(email)) {
+        side.querySelector("#sfb-go").insertAdjacentHTML(
+          "beforebegin",
+          '<div class="sfb-status sfb-status--error sfb-booking-error" role="alert"><strong>Check the form</strong><p>Please enter your name and a valid email.</p></div>'
+        );
+        return;
+      }
       var btn = side.querySelector("#sfb-go"); btn.disabled = true; btn.textContent = "Booking…";
 
       if (cfg.api) {
@@ -347,8 +496,13 @@
           success(start, end, name, email, msg, true);
         } catch (e) {
           btn.disabled = false; btn.textContent = "Confirm booking";
-          alert("Sorry — that booking couldn't be completed (" + e.message + ").\n" +
-                "Please pick another time, or email " + cfg.organizer + " directly.");
+          var bookingMessage = readableError(e);
+          reportIssue("booking", bookingMessage, {
+            start: start.toISOString(),
+            end: end.toISOString(),
+            duration: state.duration
+          });
+          btn.insertAdjacentHTML("beforebegin", bookingErrorHTML(bookingMessage, start, end, name, email, msg));
         }
         return;
       }

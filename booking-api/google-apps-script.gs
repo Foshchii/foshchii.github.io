@@ -8,8 +8,10 @@
  *     so the meeting lands on BOTH calendars.
  *
  * Endpoints (the widget calls these):
- *   GET  .../exec/availability?date=YYYY-MM-DD&duration=30  → { slots: [ISO,…] }
- *   POST .../exec/book   { name,email,message,title,start,end,host }  → { ok }
+ *   GET .../exec?action=availability&date=YYYY-MM-DD&duration=30 → { ok, slots: [ISO,…] }
+ *   GET .../exec?action=book&name=…&email=…&start=…&end=…       → { ok, booked }
+ *   GET .../exec?action=health                                  → { ok, google, icloud }
+ *   GET .../exec?action=issue&kind=…&message=…                  → sends an alert email
  *
  * WHY THIS DESIGN: Apps Script runs AS YOU (free Google calendar access, no API
  * keys) but cannot speak CalDAV (it blocks PROPFIND/REPORT). Reading iCloud via
@@ -23,13 +25,16 @@
  *      copy the link. Project Settings → Script properties:
  *         ICLOUD_ICS_URL = https://pXX-caldav.icloud.com/published/2/XXXX
  *      (Leave it unset to run Google-only.)
- *   4) Deploy → New deployment → Web app → Execute as: Me, Access: Anyone.
- *   5) Copy the /exec URL into contact.html  →  data-api="…".
+ *   4) Confirm CONFIG.notificationEmail points to the address that should
+ *      receive guardrail alerts.
+ *   5) Deploy → New deployment → Web app → Execute as: Me, Access: Anyone.
+ *   6) Copy the /exec URL into contact.html  →  data-api="…".
  */
 
 var CONFIG = {
   googleCalendarIds: ["primary"],                    // add more IDs to merge them
   icloudGuestEmail:  "sviatoslav.foshchii@icloud.com", // invited so it lands on iCloud
+  notificationEmail: "sviatoslav.foshchii@gmail.com",  // alerts when availability/booking checks fail
   timezone:  "Europe/Copenhagen",
   workdays:  [1, 2, 3, 4, 5],   // 0=Sun … 6=Sat
   startHour: 9,                 // 09:00
@@ -49,8 +54,28 @@ function doGet(e) {
   e = e || {}; var p = e.parameter || {};
   var action = p.action || (e.pathInfo || "").replace(/^\//, "");
   var out;
-  if (action === "availability") out = availability(p);
-  else if (action === "book") { try { out = book(p); } catch (err) { out = { ok: false, error: String(err) }; } }
+  if (action === "availability") {
+    try { out = availability(p); }
+    catch (err) {
+      notifyIssueSafe("availability", err, p);
+      out = { ok: false, error: safeError(err), slots: [] };
+    }
+  }
+  else if (action === "book") {
+    try { out = book(p); }
+    catch (err) {
+      notifyIssueSafe("booking", err, p);
+      out = { ok: false, error: safeError(err) };
+    }
+  }
+  else if (action === "health") {
+    try { out = health(); }
+    catch (err) {
+      notifyIssueSafe("health", err, p);
+      out = { ok: false, error: safeError(err) };
+    }
+  }
+  else if (action === "issue") out = notifyIssueFromClient(p);
   else out = { ok: true, service: "SF Booking (Google + iCloud)", endpoints: ["availability", "book"] };
   return reply(out, p.callback);
 }
@@ -61,7 +86,10 @@ function doPost(e) {
     var data = (e.postData && e.postData.contents) ? JSON.parse(e.postData.contents) : p;
     if (action === "availability") return reply(availability(data), p.callback);
     return reply(book(data), p.callback);
-  } catch (err) { return reply({ ok: false, error: String(err) }, p.callback); }
+  } catch (err) {
+    notifyIssueSafe(action || "post", err, p);
+    return reply({ ok: false, error: safeError(err) }, p.callback);
+  }
 }
 
 /* --------------------------- availability -------------------------- */
@@ -92,7 +120,7 @@ function availability(p) {
     }
     if (free) slots.push(s.toISOString());
   }
-  return { slots: slots };
+  return { ok: true, slots: slots, checkedAt: new Date().toISOString() };
 }
 
 /* ----------------------------- booking ----------------------------- */
@@ -140,6 +168,46 @@ function getGoogleCal(id) {
   return (!id || id === "primary") ? CalendarApp.getDefaultCalendar() : CalendarApp.getCalendarById(id);
 }
 
+/* ------------------------------ health ----------------------------- */
+function health() {
+  var out = {
+    ok: true,
+    service: "SF Booking (Google + iCloud)",
+    timezone: CONFIG.timezone,
+    checkedAt: new Date().toISOString(),
+    google: [],
+    icloud: { configured: !!prop("ICLOUD_ICS_URL"), ok: true }
+  };
+
+  CONFIG.googleCalendarIds.forEach(function (id) {
+    try {
+      var cal = getGoogleCal(id);
+      if (!cal) throw new Error("Calendar not found");
+      out.google.push({ id: id, ok: true, name: cal.getName() });
+    } catch (err) {
+      out.ok = false;
+      out.google.push({ id: id, ok: false, error: safeError(err) });
+    }
+  });
+
+  var url = prop("ICLOUD_ICS_URL");
+  if (url) {
+    try {
+      var res = UrlFetchApp.fetch(url.replace(/^webcal:/i, "https:"), { muteHttpExceptions: true, followRedirects: true });
+      out.icloud.ok = res.getResponseCode() < 300;
+      out.icloud.status = res.getResponseCode();
+      if (!out.icloud.ok) out.ok = false;
+    } catch (err) {
+      out.ok = false;
+      out.icloud.ok = false;
+      out.icloud.error = safeError(err);
+    }
+  }
+
+  if (!out.ok) notifyIssueSafe("health", "Calendar health check failed", out);
+  return out;
+}
+
 /* ---------------------------- iCloud busy -------------------------- *
  * Reads the published iCloud calendar .ics feed and returns busy blocks
  * that overlap [start, end]. Handles concrete events and simple DAILY/WEEKLY
@@ -150,9 +218,9 @@ function icloudBusy(start, end) {
   url = url.replace(/^webcal:/i, "https:");
   try {
     var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-    if (res.getResponseCode() >= 300) { Logger.log("iCloud feed HTTP " + res.getResponseCode()); return []; }
+    if (res.getResponseCode() >= 300) throw new Error("iCloud feed HTTP " + res.getResponseCode());
     return parseIcsBusy(res.getContentText(), start, end);
-  } catch (err) { Logger.log("iCloud feed error: " + err); return []; }
+  } catch (err) { throw new Error("iCloud availability unavailable: " + safeError(err)); }
 }
 
 function parseIcsBusy(text, rangeStart, rangeEnd) {
@@ -228,6 +296,38 @@ function parseRRule(val) {
 
 /* ----------------------------- helpers ----------------------------- */
 function prop(k) { return PropertiesService.getScriptProperties().getProperty(k) || ""; }
+function safeError(err) {
+  return String(err && err.message ? err.message : err);
+}
+function notifyIssueFromClient(p) {
+  notifyIssueSafe(p.kind || "client", p.message || "Widget reported an issue", p);
+  return { ok: true, notified: true };
+}
+function notifyIssueSafe(kind, err, context) {
+  try { notifyIssue(kind, safeError(err), context || {}); }
+  catch (notifyErr) { Logger.log("Issue notification failed: " + safeError(notifyErr)); }
+}
+function notifyIssue(kind, message, context) {
+  if (!CONFIG.notificationEmail) return;
+
+  var cache = CacheService.getScriptCache();
+  var key = "sfb_issue_" + Utilities.base64EncodeWebSafe(kind + ":" + message).slice(0, 80);
+  if (cache.get(key)) return;
+  cache.put(key, "1", 1800);
+
+  var body = [
+    "Booking widget guardrail triggered.",
+    "",
+    "Kind: " + kind,
+    "Message: " + message,
+    "Time: " + new Date().toISOString(),
+    "",
+    "Context:",
+    JSON.stringify(context || {}, null, 2)
+  ].join("\n");
+
+  MailApp.sendEmail(CONFIG.notificationEmail, "Booking widget issue: " + kind, body);
+}
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -254,4 +354,10 @@ function testAvailabilityTomorrow() {
   var t = new Date(); t.setDate(t.getDate() + 1);
   var date = t.getFullYear() + "-" + ("0" + (t.getMonth() + 1)).slice(-2) + "-" + ("0" + t.getDate()).slice(-2);
   Logger.log("Slots for " + date + ": " + JSON.stringify(availability({ date: date, duration: "30" })));
+}
+function testHealth() {
+  Logger.log(JSON.stringify(health(), null, 2));
+}
+function testIssueNotification() {
+  notifyIssue("test", "This is a test booking-widget alert.", { source: "Apps Script editor" });
 }

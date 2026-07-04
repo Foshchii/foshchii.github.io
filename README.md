@@ -118,6 +118,10 @@ invite, you get an email). To enable **live availability + automatic calendar
 booking** for free, follow [`booking-api/README.md`](booking-api/README.md)
 and set `data-api` on the widget in `contact.html`.
 
+The public site includes a guardrail: if live booking health checks fail, the
+booking block and booking-related CTAs are hidden temporarily, while the backend
+emails the configured notification address when it is able to do so.
+
 ## 📄 Source content
 
 The site content is based on Sviatoslav's [LinkedIn profile](https://www.linkedin.com/in/sviatoslav-foshchii/)
