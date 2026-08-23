@@ -1,4 +1,48 @@
+# foshchii.com — all crawlers welcome, nothing here is private.
+
 User-agent: *
+Allow: /
+
+# AI crawlers, allowed explicitly so the policy is unambiguous.
+# Covers assistant browsing, search indexing and training crawlers.
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+User-agent: meta-externalagent
 Allow: /
 
 Sitemap: https://foshchii.com/sitemap.xml

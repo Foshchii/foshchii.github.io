@@ -1,0 +1,30 @@
+# Sviatoslav Foshchii
+
+> Technical project manager based in Copenhagen, working in Salesforce Marketing
+> Cloud, Adobe Campaign and wider martech delivery. Focused on platform
+> migrations, marketing operations continuity, and running delivery so that
+> business-as-usual work does not break while systems change underneath it.
+
+Personal site. Static, no tracking. Contact: sviatoslav@foshchii.com
+
+## Pages
+
+- [Home](https://foshchii.com/): Overview — who he is, what he works on, and how to get in touch.
+- [About](https://foshchii.com/about.html): The long version, told as an interview: from a small Ukrainian town to Copenhagen, and the careers in between.
+- [Experience](https://foshchii.com/experience.html): Roles, selected work, stack, credentials and languages — the full professional record.
+- [Education](https://foshchii.com/education.html): Degrees, project-management training, and the Salesforce, Scrum and PM credential stack.
+- [Writing](https://foshchii.com/writing.html): Index of field notes on martech delivery, platform migrations, CRM operations and AI-assisted work.
+- [Contact](https://foshchii.com/contact.html): Booking calendar and direct email.
+
+## Writing
+
+- [The migration nobody wanted](https://foshchii.com/writing-sfmc-migration.html): Adobe Campaign to Salesforce Marketing Cloud — protecting marketing continuity through a platform migration.
+- [Keeping marketing operations running](https://foshchii.com/writing-marketing-operations.html): Why business-as-usual work deserves to be a first-class workstream during a migration, not an afterthought.
+- [AI as a delivery partner](https://foshchii.com/writing-ai-delivery-partner.html): Where AI genuinely helps in delivery work, and where human judgment still has to win.
+- [Vision](https://foshchii.com/writing-vision.html): What he believes about martech delivery, and how he works in it.
+
+## Topics
+
+Salesforce Marketing Cloud · Adobe Campaign · marketing operations · platform
+migration · CRM operations · martech delivery · technical project management ·
+Scrum and agile delivery · AI-assisted delivery work · Copenhagen · Denmark
