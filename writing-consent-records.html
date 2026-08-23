@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Migrating subscriber status is easy. Migrating the evidence behind it — timestamps, source, wording, suppression — is the part that gets left behind.">
+<title>~/foshchii · consent</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="canonical" href="https://foshchii.com/writing-consent-records.html">
+<meta property="og:url" content="https://foshchii.com/writing-consent-records.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Sviatoslav Foshchii">
+<meta property="og:title" content="Consent is a record, not a checkbox — Sviatoslav Foshchii">
+<meta property="og:description" content="Migrating subscriber status is easy. Migrating the evidence behind it — timestamps, source, wording, suppression — is the part that gets left behind.">
+<meta property="og:image" content="https://foshchii.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sviatoslav Foshchii — technical project manager, Copenhagen">
+<meta name="twitter:card" content="summary_large_image">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Consent is a record, not a checkbox",
+  "description": "Migrating subscriber status is easy. Migrating the evidence behind it — timestamps, source, wording, suppression — is the part that gets left behind.",
+  "url": "https://foshchii.com/writing-consent-records.html",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23",
+  "author": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "image": "https://foshchii.com/assets/og-image.png",
+  "inLanguage": "en",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://foshchii.com/writing-consent-records.html"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://foshchii.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Writing",
+      "item": "https://foshchii.com/writing.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Consent is a record, not a checkbox",
+      "item": "https://foshchii.com/writing-consent-records.html"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="Consent is a record, not a checkbox" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180">
+    <a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a>
+    <span style="color:#2E323D">/</span>
+    <a href="writing.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+    <span style="color:#2E323D">/</span> consent-records
+  </div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:48px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">consent</div>
+    <h1 style="margin:0; font:500 42px/1.3 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:900px; animation:om-rise .6s ease-out .08s both">Consent is a record, not a checkbox.</h1>
+    <p style="margin:22px 0 0; font-size:17px; line-height:1.65; color:#A5A9B4; max-width:700px; animation:om-rise .6s ease-out .16s both">Subscriber status migrates easily. The evidence behind it — who agreed, when, and to what — is the part that gets left behind, and the part you have to be able to produce.</p>
+    <div style="margin-top:22px; display:flex; align-items:center; gap:12px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; animation:om-rise .6s ease-out .24s both">
+      <span style="white-space:nowrap">by sviatoslav foshchii</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">aug 23, 2026</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">8 min read</span>
+    </div>
+  </div>
+
+  <!-- body -->
+  <div data-reveal="0" data-m="pad" style="padding:48px 48px 0">
+    <div style="max-width:660px">
+      <p style="margin:0; font-size:17.5px; line-height:1.78; color:#C9CCD4">A migration plan will always have a line for subscriber data. It rarely has one for the evidence sitting behind that data — and the evidence is the half that is hard to reconstruct once the old platform is switched off.</p>
+      <div style="border-left:2px solid #67E8F9; padding-left:20px; margin:32px 0 0; font:500 21px/1.55 'Space Grotesk',sans-serif; color:#E8E9EC; max-width:620px; letter-spacing:-0.005em">You are not migrating permission. You are migrating your ability to prove permission.</div>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">01</span><span>Status is the outcome, not the record</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Most migrations move the flag. Subscribed, unsubscribed, bounced — a column that says where someone currently stands. That column is the result of a decision the person made, not evidence that they made it.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Under GDPR Article 7(1), a controller has to be able to demonstrate that consent was given. A boolean in a newly configured platform demonstrates nothing on its own. It says what the system believes today, with no account of how it came to believe it.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">The risk is quiet and delayed. If the old platform is decommissioned on schedule and its logs go with it, you can keep every status and still lose the ability to answer a question that arrives a year later.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">02</span><span>What has to travel alongside the flag</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Four things make a status defensible: when consent was given, through what mechanism, what the person was actually told at the time, and every change since, each with its own timestamp.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">The awkward part is that these usually do not live in the subscriber table. They sit in form submission logs, import histories, campaign records and archived page templates — none of which appear in a standard subscriber export.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That is why this belongs in scoping rather than in cutover week. Finding out during the final export that consent history was never in scope leaves two options, both bad: delay, or go live knowing the evidence has been left behind.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">03</span><span>Suppression is a safety system</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Unsubscribes, complaints, hard bounces and legally suppressed addresses are the records where mistakes are most visible and least forgivable. Emailing somebody who explicitly opted out is the failure people remember, and it is entirely preventable.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Import order is the usual culprit. Load the master audience after the suppression list, without the suppression logic in place, and you can resurrect people who left years ago — in a single send, at full volume.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Verify by count and by spot check. Take a set of known unsubscribes from the old platform and confirm each one is suppressed in the new one before any campaign goes out. An import summary reporting success only tells you rows were written.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">04</span><span>Preferences are promises, and collapsing them is a decision</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Topic and frequency preferences are commitments made to a person. Someone chose monthly rather than weekly, or product news rather than everything.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">New platforms rarely model preferences the same way, and some granularity usually cannot be carried across exactly. That is a normal constraint. What is not normal is letting it resolve itself silently during a data mapping workshop.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">If a preference cannot be honoured after the migration, someone has to decide what happens instead — default to the most conservative option, or re-ask. Collapsing “monthly digest only” into “all email” because the target schema is simpler is a broken promise, made at the scale of the whole database.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">05</span><span>Test withdrawal before go-live, not after</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">GDPR Article 7(3) requires that withdrawing consent be as easy as giving it. In practice that means the unsubscribe path has to work on the new platform on day one, not once someone reports it.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Test it end to end and from a real send: click the unsubscribe link in an actual email from the new platform, confirm the record updates, then run a subsequent send and confirm the address is excluded. Previews and test sends often use different link handling, so passing in preview proves less than it appears.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">This is a short test that takes an hour and reliably finds at least one broken assumption about how the new platform writes back.</p>
+
+      <div style="margin-top:52px; border:1px solid #24262C; background:#15161B; padding:30px 32px; transition:all .3s" style-hover="border-color:#67E8F9; box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:12px">my_practical_takeaway</div>
+        <p style="margin:0; font-size:16px; line-height:1.65; color:#A5A9B4">Put consent evidence in the migration scope with its own acceptance criteria, and agree the old platform's retention window against that, not against the licence renewal date. Status tells you what to send today. The record is what you rely on if anyone ever asks why.</p>
+      </div>
+
+      <p style="margin:28px 0 0; font-size:14.5px; line-height:1.7; color:#7E838F">This is delivery practice, not legal advice. How the rules apply to a specific programme is a conversation for your legal team or DPO — the point here is that the migration plan has to leave them something to work with.</p>
+
+      <div style="margin-top:32px; display:flex; gap:28px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em">
+        <a href="writing-email-deliverability.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">read: the inbox does not migrate with you</a>
+        <a href="contact.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">contact me</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- comments (mobile only for now) -->
+  <div data-m="comments-wrap" style="display:block; padding:56px 48px 0">
+    <div data-m="comments" data-key="consent-records" style="max-width:700px"></div>
+  </div>
+
+  <!-- prev/next -->
+  <div data-reveal="0.05" data-m="pad" style="margin-top:64px; padding:24px 48px; border-top:1px solid #24262C; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; flex-wrap:wrap; gap:16px">
+    <a href="writing.html" style="color:#7E838F; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9"><span data-m="linkarrow" data-dir="back">←</span> all writing</a>
+    <a href="writing-email-deliverability.html" style="color:#67E8F9; text-decoration:none; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">next: the inbox does not migrate with you <span data-m="linkarrow">→</span></a>
+  </div>
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+
+</script>
+</body>
+</html>

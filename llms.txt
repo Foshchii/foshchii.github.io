@@ -18,6 +18,7 @@ Personal site. Static, no tracking. Contact: sviatoslav@foshchii.com
 
 ## Writing
 
+- [Consent is a record, not a checkbox](https://foshchii.com/writing-consent-records.html): What has to migrate alongside subscriber status — consent timestamps, source, wording, suppression lists and preference promises.
 - [The inbox does not migrate with you](https://foshchii.com/writing-email-deliverability.html): Changing email platform resets sending reputation — authentication, warm-up, and the deliverability signals worth watching.
 - [The migration nobody wanted](https://foshchii.com/writing-sfmc-migration.html): Adobe Campaign to Salesforce Marketing Cloud — protecting marketing continuity through a platform migration.
 - [Keeping marketing operations running](https://foshchii.com/writing-marketing-operations.html): Why business-as-usual work deserves to be a first-class workstream during a migration, not an afterthought.
