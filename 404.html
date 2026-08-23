@@ -27,12 +27,17 @@ h1{font-size:clamp(52px,9vw,96px);font-weight:600;letter-spacing:-.03em;line-hei
 nav{display:flex;flex-wrap:wrap;gap:14px 30px;font:400 15px 'IBM Plex Mono',monospace;letter-spacing:.02em}
 nav a{color:#7E838F;text-decoration:none;transition:color .2s;border-bottom:1px solid transparent;padding-bottom:2px}
 nav a:hover{color:#67E8F9;border-bottom-color:rgba(103,232,249,.45)}
+.skip{position:fixed;left:-9999px;top:12px;z-index:200;font:400 12.5px 'IBM Plex Mono',monospace;letter-spacing:.03em;color:#101114;background:#67E8F9;padding:9px 14px;text-decoration:none}
+.skip:focus{left:12px}
+a:focus-visible{outline:2px solid #67E8F9;outline-offset:3px;border-radius:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 footer{padding:24px max(24px,calc((100% - 1440px)/2 + 48px)) 34px;font:400 12px 'IBM Plex Mono',monospace;color:#4E5460;letter-spacing:.03em}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">skip to content</a>
 <header><a href="/">~/foshchii</a></header>
-<main>
+<main id="main" tabindex="-1">
   <div class="code">cd: no such file or directory</div>
   <h1>404</h1>
   <p class="msg">That page doesn't exist — it may have moved, or the link that brought you here is out of date.</p>
