@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Schema choices made in week three quietly determine which campaigns are possible in year two. They are strategy decisions wearing technical clothes.">
+<title>~/foshchii · data</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="canonical" href="https://foshchii.com/writing-data-model.html">
+<meta property="og:url" content="https://foshchii.com/writing-data-model.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Sviatoslav Foshchii">
+<meta property="og:title" content="The data model decides — Sviatoslav Foshchii">
+<meta property="og:description" content="Schema choices made in week three quietly determine which campaigns are possible in year two. They are strategy decisions wearing technical clothes.">
+<meta property="og:image" content="https://foshchii.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sviatoslav Foshchii — technical project manager, Copenhagen">
+<meta name="twitter:card" content="summary_large_image">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The data model decides",
+  "description": "Schema choices made in week three quietly determine which campaigns are possible in year two. They are strategy decisions wearing technical clothes.",
+  "url": "https://foshchii.com/writing-data-model.html",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23",
+  "author": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "image": "https://foshchii.com/assets/og-image.png",
+  "inLanguage": "en",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://foshchii.com/writing-data-model.html"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://foshchii.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Writing",
+      "item": "https://foshchii.com/writing.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "The data model decides",
+      "item": "https://foshchii.com/writing-data-model.html"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="The data model decides" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180">
+    <a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a>
+    <span style="color:#2E323D">/</span>
+    <a href="writing.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+    <span style="color:#2E323D">/</span> data-model
+  </div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:48px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">data</div>
+    <h1 style="margin:0; font:500 42px/1.3 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:900px; animation:om-rise .6s ease-out .08s both">The data model decides.</h1>
+    <p style="margin:22px 0 0; font-size:17px; line-height:1.65; color:#A5A9B4; max-width:700px; animation:om-rise .6s ease-out .16s both">Schema choices made in week three quietly determine which campaigns are possible in year two. They are strategy decisions wearing technical clothes.</p>
+    <div style="margin-top:22px; display:flex; align-items:center; gap:12px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; animation:om-rise .6s ease-out .24s both">
+      <span style="white-space:nowrap">by sviatoslav foshchii</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">aug 23, 2026</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">8 min read</span>
+    </div>
+  </div>
+
+  <!-- body -->
+  <div data-reveal="0" data-m="pad" style="padding:48px 48px 0">
+    <div style="max-width:660px">
+      <p style="margin:0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Data model design tends to be treated as a technical detail — something to settle quickly so the visible work can start. It is closer to the opposite: the decision that sets the ceiling on everything marketing will be able to do afterwards.</p>
+      <div style="border-left:2px solid #67E8F9; padding-left:20px; margin:32px 0 0; font:500 21px/1.55 'Space Grotesk',sans-serif; color:#E8E9EC; max-width:620px; letter-spacing:-0.005em">Every campaign a team wants to run in year two is either straightforward or impossible because of a schema decision nobody flagged in year one.</div>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">01</span><span>The model sets the ceiling on segmentation</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">You can only segment on what you store, at the granularity you stored it. That sounds obvious and is routinely discovered too late.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Storing a last purchase date but not purchase history forecloses anything based on frequency, trend or category affinity. The data existed at the moment of the decision; it just was not kept in a form that survives.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Aggregates are cheap to store and impossible to reverse. When the choice is between detail and a summary, detail is the option that keeps future decisions open.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">02</span><span>Identity is the hardest decision and gets the least discussion</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">The subscriber key is chosen early, often by whoever is configuring the platform that week, and it is one of the most consequential choices in the build.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Using email as the key is convenient and breaks the first time somebody changes address: they arrive as a new person, with no history, no preferences and no consent record — while the old record lingers.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">A stable internal identifier costs more to set up and avoids a class of problems that is genuinely painful to unwind once years of data have accumulated against the wrong key.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">03</span><span>Relationships you do not model become manual work forever</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">If the model cannot express a relationship — household, account hierarchy, product to category, subscription to entitlement — marketers do not stop needing it. They rebuild it by hand, per campaign, with spreadsheets and imports.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That is not a data problem showing up once. It is a recurring labour cost, paid by the people least equipped to argue for schema changes, and it rarely finds its way back to whoever chose the model.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">04</span><span>Retention and volume are model decisions too</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">How much history is kept, for how long, and what happens to it afterwards affects query performance, platform cost and what you can honour when somebody asks what you hold about them.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">These decisions are easier to make deliberately at design time than to retrofit against a table that has been growing for three years.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">05</span><span>Document what the model cannot do</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Schema documentation usually describes structure. The more useful half describes limits: what this model cannot answer, and what would have to change to answer it.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Without that, teams design campaigns the model cannot support, discover it late, and treat it as a delivery failure rather than a known constraint that was never written down.</p>
+
+      <div style="margin-top:52px; border:1px solid #24262C; background:#15161B; padding:30px 32px; transition:all .3s" style-hover="border-color:#67E8F9; box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:12px">my_practical_takeaway</div>
+        <p style="margin:0; font-size:16px; line-height:1.65; color:#A5A9B4">Spend the extra week on the data model, and document its limits alongside its structure. It is among the cheapest weeks in the project, and the only one whose consequences compound for years.</p>
+      </div>
+
+      <div style="margin-top:32px; display:flex; gap:28px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em">
+        <a href="writing-consent-records.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">read: consent is a record, not a checkbox</a>
+        <a href="contact.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">contact me</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- comments (mobile only for now) -->
+  <div data-m="comments-wrap" style="display:block; padding:56px 48px 0">
+    <div data-m="comments" data-key="data-model" style="max-width:700px"></div>
+  </div>
+
+  <!-- prev/next -->
+  <div data-reveal="0.05" data-m="pad" style="margin-top:64px; padding:24px 48px; border-top:1px solid #24262C; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; flex-wrap:wrap; gap:16px">
+    <a href="writing.html" style="color:#7E838F; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9"><span data-m="linkarrow" data-dir="back">←</span> all writing</a>
+    <a href="writing-like-for-like.html" style="color:#67E8F9; text-decoration:none; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">next: like for like is not a scope <span data-m="linkarrow">→</span></a>
+  </div>
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+
+</script>
+</body>
+</html>

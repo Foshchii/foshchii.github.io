@@ -18,6 +18,9 @@ Personal site. Static, no tracking. Contact: sviatoslav@foshchii.com
 
 ## Writing
 
+- [Like for like is not a scope](https://foshchii.com/writing-like-for-like.html): Rebuilding exactly what exists imports every workaround the old platform forced on you, and promotes them to requirements.
+- [Preview is not a test](https://foshchii.com/writing-preview-is-not-a-test.html): A preview tells you the template rendered. It says nothing about whether the journey fires or the right person receives it.
+- [The data model decides](https://foshchii.com/writing-data-model.html): Schema choices made in week three determine which campaigns are possible in year two. Strategy decisions wearing technical clothes.
 - [Consent is a record, not a checkbox](https://foshchii.com/writing-consent-records.html): What has to migrate alongside subscriber status — consent timestamps, source, wording, suppression lists and preference promises.
 - [The inbox does not migrate with you](https://foshchii.com/writing-email-deliverability.html): Changing email platform resets sending reputation — authentication, warm-up, and the deliverability signals worth watching.
 - [The migration nobody wanted](https://foshchii.com/writing-sfmc-migration.html): Adobe Campaign to Salesforce Marketing Cloud — protecting marketing continuity through a platform migration.
