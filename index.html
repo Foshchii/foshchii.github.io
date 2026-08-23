@@ -1,441 +1,104 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sviatoslav Foshchii — Salesforce Marketing Cloud Consultant &amp; Technical Project Manager</title>
-  <meta name="description" content="Sviatoslav Foshchii is a Copenhagen-based Salesforce Marketing Cloud Consultant and Technical Project Manager helping teams deliver martech migrations, CRM operations and AI-enabled marketing systems.">
-  <meta name="author" content="Sviatoslav Foshchii">
-  <link rel="canonical" href="https://foshchii.github.io/">
-  <link rel="alternate" hreflang="en" href="https://foshchii.github.io/">
-  <link rel="alternate" hreflang="da" href="https://foshchii.github.io/da/">
-  <link rel="alternate" hreflang="uk" href="https://foshchii.github.io/uk/">
-  <link rel="alternate" hreflang="ru" href="https://foshchii.github.io/ru/">
-  <link rel="alternate" hreflang="x-default" href="https://foshchii.github.io/">
-
-  <!-- Open Graph / Twitter -->
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Sviatoslav Foshchii">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:title" content="Sviatoslav Foshchii — Salesforce Marketing Cloud Consultant &amp; Technical Project Manager">
-  <meta property="og:description" content="Copenhagen-based Salesforce Marketing Cloud Consultant and Technical Project Manager for martech migrations, CRM operations and AI-enabled delivery.">
-  <meta property="og:image" content="https://foshchii.github.io/assets/img/og-image.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Sviatoslav Foshchii — Technical Project Manager, Copenhagen">
-  <meta property="og:url" content="https://foshchii.github.io/">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Sviatoslav Foshchii — Salesforce Marketing Cloud Consultant &amp; Technical Project Manager">
-  <meta name="twitter:description" content="Copenhagen-based Salesforce Marketing Cloud Consultant and Technical Project Manager for martech migrations, CRM operations and AI-enabled delivery.">
-  <meta name="twitter:image" content="https://foshchii.github.io/assets/img/og-image.png">
-
-  <!-- Icons & theme colour -->
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-  <meta name="theme-color" content="#4f46e5">
-
-  <!-- Preload the LCP portrait so it paints sooner -->
-  <link rel="preload" as="image" href="assets/img/profile.jpg" fetchpriority="high">
-
-  <!-- Set theme before paint to avoid flash -->
-  <script>(function(){try{var t=localStorage.getItem("sf-theme")||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);}catch(e){}})();</script>
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="assets/css/styles.css?v=20260628">
-  <link rel="alternate" type="application/rss+xml" title="Sviatoslav Foshchii Insights" href="https://foshchii.github.io/feed.xml">
-
-  <!-- Structured data: who this site is about -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Person",
-    "name": "Sviatoslav Foshchii",
-    "jobTitle": "Salesforce Marketing Cloud Consultant and Technical Project Manager",
-    "description": "Salesforce Marketing Cloud Consultant and Technical Project Manager helping teams deliver martech migrations, CRM operations and AI-enabled marketing systems.",
-    "address": { "@type": "PostalAddress", "addressLocality": "Copenhagen", "addressCountry": "DK" },
-    "email": "mailto:sviatoslav.foshchii@gmail.com",
-    "url": "https://foshchii.github.io/",
-    "sameAs": ["https://www.linkedin.com/in/sviatoslav-foshchii/"],
-    "knowsLanguage": ["uk", "en", "ru"],
-    "knowsAbout": ["Salesforce Marketing Cloud", "Salesforce Data Cloud", "Salesforce AI", "Agile", "Scrum", "Project Management", "Email Marketing"],
-    "worksFor": { "@type": "Organization", "name": "VML MAP" },
-    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Kremenchuk Mykhailo Ostrohradskyi National University" },
-    "hasCredential": [
-      { "@type": "EducationalOccupationalCredential", "name": "Salesforce Certified Marketing Cloud Consultant", "credentialCategory": "Active Salesforce credential" },
-      { "@type": "EducationalOccupationalCredential", "name": "Salesforce Certified Marketing Associate", "credentialCategory": "Active Salesforce credential" },
-      { "@type": "EducationalOccupationalCredential", "name": "Salesforce Certified AI Specialist", "credentialCategory": "Active Salesforce credential" },
-      { "@type": "EducationalOccupationalCredential", "name": "Salesforce Data Cloud Consultant", "credentialCategory": "Active Salesforce credential" },
-      { "@type": "EducationalOccupationalCredential", "name": "Salesforce Marketing Cloud Administrator", "credentialCategory": "Active Salesforce credential" },
-      { "@type": "EducationalOccupationalCredential", "name": "Professional Scrum Master II (PSM II)" }
-    ]
-  }
-  </script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Sviatoslav Foshchii — technical project manager in Copenhagen, working in Salesforce and martech delivery.">
+<title>~/foshchii</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script>
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
 
-  <!-- ===== HEADER ===== -->
-  <header class="site-header">
-    <div class="container">
-      <a class="brand" href="index.html" aria-label="Sviatoslav Foshchii — home">
-        <span class="brand-mark">SF</span>
-        <span>Sviatoslav&nbsp;Foshchii</span>
-      </a>
+<div data-screen-label="Home" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh; display:flex; flex-direction:column">
 
-      <nav class="nav" id="primary-nav" aria-label="Primary">
-        <a href="index.html" class="active" aria-current="page">Home</a>
-        <a href="about.html">About</a>
-        <a href="experience.html">Experience</a>
-        <a href="resume.html">Resume</a>
-        <a href="projects.html">Projects</a>
-        <a href="insights.html">Insights</a>
-        <a href="education.html">Education</a>
-        <a href="contact.html">Contact</a>
-      </nav>
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
 
-      <div class="header-actions">
-        <nav class="lang-switch" aria-label="Language"><a class="active" href="/" hreflang="en" lang="en">EN</a><a href="/da/" hreflang="da" lang="da">DA</a><a href="/uk/" hreflang="uk" lang="uk">UK</a><a href="/ru/" hreflang="ru" lang="ru">RU</a></nav>
-        <button class="icon-btn theme-toggle" type="button" aria-label="Switch theme">
-          <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-        </button>
-        <button class="icon-btn menu-btn" type="button" aria-label="Open menu" aria-controls="primary-nav" aria-expanded="false">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap; text-align:right; margin-left:auto">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+
+  <!-- hero -->
+  <div data-m="pad" style="position:relative; overflow:hidden; flex:1; min-height:440px; display:flex; align-items:center; padding:64px 48px">
+    <img data-m="hero-portrait" src="assets/home-shadow-portrait.jpeg" alt="Sviatoslav Foshchii, portrait in low light" style="position:absolute; top:0; right:0; height:100%; width:min(48vw, 660px); object-fit:cover; object-position:42% 22%; mix-blend-mode:lighten; filter:contrast(1.09); -webkit-mask-image:linear-gradient(to right, transparent 1%, #000 42%); mask-image:linear-gradient(to right, transparent 1%, #000 42%); pointer-events:none">
+    <div data-m="hero-portrait-scan" style="position:absolute; top:0; right:0; height:100%; width:min(48vw, 660px); background:repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0px, rgba(0,0,0,.08) 1px, transparent 1px, transparent 3px); -webkit-mask-image:linear-gradient(to right, transparent 1%, #000 42%); mask-image:linear-gradient(to right, transparent 1%, #000 42%); pointer-events:none"></div>
+    <div style="position:relative; max-width:560px">
+      <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:32px; animation:om-rise .6s ease-out both">// copenhagen, denmark</div>
+      <h1 style="margin:0; font:500 52px/1.18 'Space Grotesk',sans-serif; letter-spacing:-0.025em; animation:om-rise .6s ease-out .08s both">Sviatoslav Foshchii.<span style="color:#67E8F9; animation:om-blink 1.1s steps(1) infinite">_</span></h1>
+      <div style="margin-top:30px; display:flex; gap:24px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; animation:om-rise .6s ease-out .16s both">
+        <a data-warp="streaks" href="about.html" style="color:#9AA0AC; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(154,160,172,0.28); padding-bottom:2px; transition:all .25s" style-hover="color:#67E8F9; border-color:rgba(103,232,249,0.5)">the story</a>
+        <a data-warp="zoom" href="experience.html" style="color:#9AA0AC; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(154,160,172,0.28); padding-bottom:2px; transition:all .25s" style-hover="color:#67E8F9; border-color:rgba(103,232,249,0.5)">my work</a>
+        <a data-warp="spiral" href="contact.html" style="color:#9AA0AC; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(154,160,172,0.28); padding-bottom:2px; transition:all .25s" style-hover="color:#67E8F9; border-color:rgba(103,232,249,0.5)">say hi</a>
       </div>
     </div>
-  </header>
+  </div>
 
-  <main id="main">
-    <!-- ===== HERO ===== -->
-    <section class="hero">
-      <div class="container hero-grid">
-        <div class="hero-copy">
-          <span class="eyebrow">Salesforce Marketing Cloud Consultant · Technical Project Manager · Copenhagen</span>
-          <h1>Salesforce Marketing Cloud delivery for <span class="text-gradient">AI-ready marketing teams.</span></h1>
-          <p class="lead">I'm Sviatoslav Foshchii, an Application Consultant and Technical Project Manager in Copenhagen. I help marketing and CRM teams migrate platforms, run SFMC operations and adopt AI-enabled workflows with clear technical leadership.</p>
-
-          <div class="hero-cta">
-            <a class="btn btn--accent" href="mailto:sviatoslav.foshchii@gmail.com?subject=Opportunity%20for%20Sviatoslav">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m22 6-10 7L2 6"/></svg>
-              Get in touch
-            </a>
-            <a class="btn btn--ghost" href="experience.html">View my experience</a>
-          </div>
-
-          <div class="hero-proof" aria-label="Professional proof points">
-            <span>Adobe Campaign → SFMC migration</span>
-            <span>25% delivery efficiency gain</span>
-            <span>PSM II + 5 active Salesforce credentials</span>
-            <span>AI-assisted product builder</span>
-          </div>
-
-          <div class="hero-availability">
-            <span class="dot" aria-hidden="true"></span>
-            Open to Salesforce Marketing Cloud, martech and project delivery opportunities
-          </div>
-        </div>
-
-        <div class="portrait-wrap">
-          <img class="portrait" src="assets/img/profile.jpg" width="800" height="1200"
-               fetchpriority="high" decoding="async"
-               alt="Portrait of Sviatoslav Foshchii">
-          <span class="portrait-badge">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-            5 active Salesforce certs
-          </span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== STATS ===== -->
-    <section class="section section--tight section--alt">
-      <div class="container">
-        <div class="grid grid-4">
-          <div class="stat reveal">
-            <div class="num" data-count="6" data-suffix="+">6+</div>
-            <div class="label">Years in project delivery</div>
-          </div>
-          <div class="stat reveal d1">
-            <div class="num" data-count="11" data-suffix="">11</div>
-            <div class="label">Professional credentials earned</div>
-          </div>
-          <div class="stat reveal d2">
-            <div class="num" data-count="5" data-suffix="">5</div>
-            <div class="label">Active Salesforce certifications</div>
-          </div>
-          <div class="stat reveal d3">
-            <div class="num" data-count="3" data-suffix="">3</div>
-            <div class="label">Languages spoken</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== WHAT I DO ===== -->
-    <section class="section">
-      <div class="container">
-        <div class="section-head center reveal">
-          <span class="eyebrow">What I bring</span>
-          <h2>Martech delivery that balances people and performance</h2>
-          <p>A combination of hands-on Salesforce expertise, structured agile delivery, and an understanding of what makes teams and customers tick.</p>
-        </div>
-
-        <div class="grid grid-3">
-          <article class="card reveal">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .9-8.91 6 6 0 0 0-11.64-1.6A4 4 0 0 0 7 19z"/><path d="M9 13l2 2 4-4"/></svg>
-            </div>
-            <h3>Salesforce Marketing Cloud</h3>
-            <p>Hands-on SFMC delivery — builds, journeys, automations and platform migrations (e.g. Adobe Campaign → SFMC), backed by a full Salesforce certification stack including Data Cloud and AI.</p>
-          </article>
-
-          <article class="card reveal d1">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-            </div>
-            <h3>Agile delivery</h3>
-            <p>Scrum from planning to launch — comprehensive project plans, facilitated ceremonies, clear milestones, and roadblocks removed before they slow the team. PSM I &amp; II certified.</p>
-          </article>
-
-          <article class="card reveal d2">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </div>
-            <h3>People-first leadership</h3>
-            <p>A psychology background that strengthens team dynamics, stakeholder relationships and customer engagement across multifunctional teams.</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== SKILLS SNAPSHOT ===== -->
-    <section class="section section--alt">
-      <div class="container">
-        <div class="section-head reveal">
-          <span class="eyebrow">Toolbox</span>
-          <h2>Skills &amp; tools I work with</h2>
-        </div>
-        <div class="chip-group reveal d1">
-          <span class="chip">Salesforce Marketing Cloud</span>
-          <span class="chip">Salesforce Data Cloud</span>
-          <span class="chip">Salesforce AI · Einstein · Agentforce</span>
-          <span class="chip">Email Marketing &amp; CRM</span>
-          <span class="chip">Adobe Marketing Cloud</span>
-          <span class="chip">Agile · Scrum</span>
-          <span class="chip">IT &amp; Software Consulting</span>
-          <span class="chip">Change Management</span>
-          <span class="chip">Jira &amp; Confluence</span>
-          <span class="chip">Google Cloud Platform</span>
-          <span class="chip">GitHub</span>
-          <span class="chip">Problem Solving</span>
-        </div>
-        <p class="mt-3 reveal d2"><a href="education.html">See full skills &amp; certifications →</a> · <a href="https://github.com/Foshchii" target="_blank" rel="noopener">View GitHub →</a></p>
-      </div>
-    </section>
-
-    <!-- ===== SELECTED WORK ===== -->
-    <section class="section">
-      <div class="container">
-        <div class="section-head center reveal">
-          <span class="eyebrow">Selected work</span>
-          <h2>A few things I've built &amp; delivered</h2>
-          <p>From a personal product I built end-to-end to enterprise Salesforce Marketing Cloud delivery.</p>
-        </div>
-
-        <div class="grid grid-3">
-          <article class="card reveal">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
-            </div>
-            <h3>Keto Scanner</h3>
-            <p class="project-role" style="margin:.2rem 0 .6rem">Personal product · <span class="ai-tag">AI-assisted</span> · Live</p>
-            <p>A web app I built with AI-assisted product development — checks whether a food product fits a pescatarian-keto diet.</p>
-            <p class="mt-2"><a href="projects.html#keto-scanner">See the project →</a></p>
-          </article>
-
-          <article class="card reveal d1">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-            </div>
-            <h3>SFMC migration</h3>
-            <p class="project-role" style="margin:.2rem 0 .6rem">Salesforce Marketing Cloud · VML MAP</p>
-            <p>Led an Adobe Campaign → Salesforce Marketing Cloud migration for a worldwide brand — +25% delivery efficiency.</p>
-            <p class="mt-2"><a href="projects.html">See the project →</a></p>
-          </article>
-
-          <article class="card reveal d2">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-            </div>
-            <h3>MOSH growth advisory</h3>
-            <p class="project-role" style="margin:.2rem 0 .6rem">Digital growth · 2021–2022</p>
-            <p>Growth advisory for MOSH, the Shark Tank brain-health startup — +20% user experience.</p>
-            <p class="mt-2"><a href="projects.html">See the project →</a></p>
-          </article>
-        </div>
-
-        <p class="text-center mt-4 reveal"><a class="btn btn--ghost" href="projects.html">View all projects</a></p>
-      </div>
-    </section>
-
-    <!-- ===== ME & AI ===== -->
-    <section class="section section--alt" id="ai">
-      <div class="container">
-        <div class="section-head center reveal">
-          <span class="eyebrow">Me &amp; AI</span>
-          <h2>How I actually use AI — and build with it</h2>
-          <p>AI is part of how I work, think and ship. From Salesforce Einstein in client deliveries to building full apps with an AI co-pilot, it's a genuine daily tool — not just a talking point.</p>
-        </div>
-
-        <div class="grid grid-3">
-          <article class="card reveal">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-            </div>
-            <h3>AI in client delivery</h3>
-            <p>I hold the Salesforce AI Specialist certification and apply Einstein, AI-powered flows and Agentforce features in real client projects — not just on paper.</p>
-            <div class="chip-group mt-2">
-              <span class="chip">Salesforce AI</span>
-              <span class="chip">Einstein</span>
-              <span class="chip">Agentforce</span>
-            </div>
-          </article>
-
-          <article class="card reveal d1">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9H2"/><path d="M20 9h-4"/><path d="M17.8 11.8 19 13"/><path d="M15 9h.01"/><path d="M11.2 6.2 10 5"/><path d="M17.8 6.2 19 5"/><path d="M11.2 11.8 10 13"/><line x1="15" y1="9" x2="3" y2="21"/><line x1="18" y1="6" x2="21" y2="3"/></svg>
-            </div>
-            <h3>Keto Scanner — AI-assisted product build</h3>
-            <p>Built with Claude as an implementation partner: architecture, UI, logic and deployment. A live web app I use daily to check whether food products fit a pescatarian-keto diet.</p>
-            <div class="chip-group mt-2">
-              <span class="chip">Claude AI</span>
-              <span class="chip">AI-assisted development</span>
-              <span class="chip">JavaScript</span>
-            </div>
-            <p class="mt-2"><a href="projects.html#keto-scanner">See the project →</a></p>
-          </article>
-
-          <article class="card reveal d2">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            </div>
-            <h3>This website — AI-assisted implementation</h3>
-            <p>This portfolio — every page<span data-booking-dependent>, the booking widget</span> and the design system — was built with Claude Code as an implementation partner. The direction, content and product decisions are mine; AI helped accelerate code drafting and iteration.</p>
-            <div class="chip-group mt-2">
-              <span class="chip">Claude Code</span>
-              <span class="chip">HTML · CSS</span>
-              <span class="chip">JavaScript</span>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== RECOMMENDATIONS ===== -->
-    <section class="section">
-      <div class="container">
-        <div class="section-head center reveal">
-          <span class="eyebrow">Recommendations</span>
-          <h2>What people I've worked with say</h2>
-          <p>A couple of words from colleagues and clients — see more on <a href="https://www.linkedin.com/in/sviatoslav-foshchii/" target="_blank" rel="noopener">LinkedIn</a>.</p>
-        </div>
-
-        <div class="grid grid-2">
-          <figure class="testimonial reveal">
-            <blockquote>
-              <p>I have met few marketers with the discipline, focus, resilience and determination Sviat exemplified as our lead growth adviser and consultant overseeing our digital growth vision and roadmap at MOSH — Patrick Schwarzenegger and Maria Shriver's brain health startup featured on Shark Tank.</p>
-              <p>In less than two years we amassed more than $10M in DTC revenue, sold out of stock 4×'s and launched 6 new products. Sviat was my most consistent and dependable team member… a 5-star talent, team player and future industry all-star you want on your team.</p>
-            </blockquote>
-            <p class="meta">Source: LinkedIn recommendation</p>
-            <figcaption>
-              <span class="t-avatar" aria-hidden="true">PR</span>
-              <span>
-                <span class="t-name">Patrick Roustan</span>
-                <span class="t-role">Fractional CMO · Full-Stack CPG Growth Marketer</span>
-              </span>
-            </figcaption>
-          </figure>
-
-          <figure class="testimonial reveal d1">
-            <blockquote>
-              <p>I highly recommend Sviatoslav based on our collaboration during a recent client project where he excelled as the Technical Project Manager. He demonstrated exceptional problem-solving abilities, ensuring clear communication and alignment with project objectives.</p>
-              <p>I have full confidence in recommending Sviatoslav for roles that require strong technical acumen, management, and a commitment to delivering outstanding results. Beyond that he was an outstanding person to work with, bringing joy and smiles to the project.</p>
-            </blockquote>
-            <p class="meta">Source: LinkedIn recommendation</p>
-            <figcaption>
-              <span class="t-avatar" aria-hidden="true">MS</span>
-              <span>
-                <span class="t-name">Mathias Smed-Petersen</span>
-                <span class="t-role">Marketing, Project &amp; Client Management</span>
-              </span>
-            </figcaption>
-          </figure>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== LOOKING FORWARD ===== -->
-    <section class="section section--alt">
-      <div class="container">
-        <div class="lookahead reveal">
-          <div class="lookahead-media">
-            <img src="assets/img/binoculars.jpg" width="1000" height="667" loading="lazy" decoding="async"
-                 alt="Sviatoslav Foshchii sitting outdoors in Copenhagen, holding a pair of binoculars">
-          </div>
-          <div class="lookahead-copy">
-            <span class="eyebrow">Looking forward — literally</span>
-            <h2>Looking forward to working with you</h2>
-            <p>Whether it's Salesforce Marketing Cloud delivery, keeping a project on track, or building something new from scratch — I'd love to hear what you're working on and where I can help.</p>
-            <div class="hero-cta">
-              <a class="btn btn--accent" href="mailto:sviatoslav.foshchii@gmail.com?subject=Opportunity%20for%20Sviatoslav">Get in touch</a>
-              <a class="btn btn--ghost" href="contact.html#book" data-booking-dependent>Book a meeting</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ===== FOOTER ===== -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="footer-top">
-        <div class="footer-col">
-          <a class="brand" href="index.html"><span class="brand-mark">SF</span><span>Sviatoslav&nbsp;Foshchii</span></a>
-          <p>Application Consultant &amp; Technical Project Manager in Copenhagen — Salesforce Marketing Cloud, agile delivery and process improvement.</p>
-        </div>
-        <div class="footer-col">
-          <h4>Explore</h4>
-          <a href="index.html">Home</a>
-          <a href="about.html">About</a>
-          <a href="experience.html">Experience</a>
-          <a href="resume.html">Resume</a>
-        <a href="projects.html">Projects</a>
-          <a href="insights.html">Insights</a>
-          <a href="education.html">Education &amp; Certifications</a>
-          <a href="contact.html">Contact</a>
-        </div>
-        <div class="footer-col">
-          <h4>Get in touch</h4>
-          <a href="mailto:sviatoslav.foshchii@gmail.com">sviatoslav.foshchii@gmail.com</a>
-          <a href="tel:+4571636396">+45 71 63 63 96</a>
-          <a href="https://www.linkedin.com/in/sviatoslav-foshchii/" target="_blank" rel="noopener">LinkedIn ↗</a>
-          <a href="https://github.com/Foshchii" target="_blank" rel="noopener">GitHub ↗</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>© <span id="year">2026</span> Sviatoslav Foshchii. All rights reserved.</span>
-        <span>Built with HTML, CSS and JavaScript.</span>
-      </div>
-    </div>
-  </footer>
-
-  <script src="assets/js/main.js" defer></script>
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._pollId) clearTimeout(this._pollId);
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+</script>
 </body>
 </html>
-
-<!-- trigger deployment -->

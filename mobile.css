@@ -1,0 +1,140 @@
+/* mobile.css — phone/small-tablet overrides for the foshchii site.
+   Desktop is untouched: every rule lives behind the media query.
+   Elements are tagged in the templates:
+     data-m="nav"      sticky top nav row
+     data-m="navlinks" desktop link row (hidden on mobile; burger menu replaces it)
+     data-m="coords"   coordinates/clock (hidden on mobile)
+     data-m="pad"      any container using the 48px page gutter
+     data-m="burger"   menu button injected by alive.js
+     data-m="keepgrid" opt-out from the single-column grid collapse
+     data-m="grid2"    collapse to two columns instead of one */
+
+/* ---- global (all viewports) ---- */
+
+/* The 6-link nav + coords need ~1000px to sit on one row; below that the sticky
+   header wrapped to two rows and orphaned the coords under the logo. Coords are
+   decorative (already hidden on phones), so they drop out first. */
+@media (max-width: 1000px) {
+  [data-m="coords"] { display: none !important; }
+}
+
+/* Row-end arrow follows its parent row's hover (a descendant pseudo-state is the
+   one thing the inline style-hover attributes can't express). Both states live
+   here: an inline resting color would outrank the hover rule. */
+[data-m="rowarrow"] { color: #7E838F; }
+a:hover [data-m="rowarrow"] { transform: translateX(5px); color: #67E8F9; }
+a:hover [data-m="cardarrow"] { transform: translateX(4px); }
+
+/* Prev/next and inline links: the arrow already in the label slides on hover,
+   away from the reader for "next", back for "prev". */
+[data-m="linkarrow"] { display: inline-block; transition: transform .25s; }
+a:hover [data-m="linkarrow"] { transform: translateX(4px); }
+a:hover [data-m="linkarrow"][data-dir="back"] { transform: translateX(-4px); }
+
+/* Keyboard focus: the site styles hover only, so tabbing was invisible on dark. */
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid #67E8F9;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (max-width: 760px) {
+  body { overflow-x: hidden; }
+
+  /* page gutters: 48px -> 20px */
+  [data-m="pad"] { padding-left: 20px !important; padding-right: 20px !important; overflow-wrap: break-word; }
+  [data-m="nav"] { padding: 12px 20px !important; gap: 8px 16px !important; }
+
+  /* nav: hide link row + coords, show burger */
+  [data-m="navlinks"], [data-m="coords"] { display: none !important; }
+
+  [data-m="burger"] { display: inline-flex !important; }
+
+  /* type scale */
+  h1 { font-size: clamp(30px, 9.5vw, 40px) !important; line-height: 1.22 !important; }
+  h2 { font-size: 21px !important; }
+
+  /* grids collapse to a single column */
+  [style*="grid-template-columns"]:not([data-m="keepgrid"]):not([data-m="grid2"]) { grid-template-columns: 1fr !important; }
+  [data-m="grid2"] { grid-template-columns: 1fr 1fr !important; }
+
+  /* airy two-column layouts: reduce the huge gap once stacked */
+  [style*="grid-template-columns"][style*="gap: 72px"],
+  [style*="grid-template-columns"][style*="gap: 64px"],
+  [style*="grid-template-columns"][style*="gap: 56px"],
+  [style*="grid-template-columns"][style*="gap: 48px"] { gap: 28px !important; }
+  [style*="grid-template-columns"][style*="gap: 40px"] { gap: 24px !important; }
+
+  /* label+content rows (200/220/240/340px first column): tight gap once stacked */
+  [style*="grid-template-columns: 200px"], [style*="grid-template-columns: 220px"],
+  [style*="grid-template-columns: 240px"], [style*="grid-template-columns: 340px"] { gap: 12px !important; }
+
+  /* column dividers become row dividers inside collapsed grids */
+  [style*="grid-template-columns"]:not([data-m="keepgrid"]) > [style*="border-right"] {
+    border-right: none !important;
+    border-bottom: 1px solid #24262C !important;
+  }
+
+  /* flex rows may wrap on phones (inline flex-wrap, if set, still wins) */
+  [data-screen-label] [style*="display: flex"] { flex-wrap: wrap; }
+
+  /* media never overflows */
+  img, iframe, image-slot, video { max-width: 100%; }
+
+  /* vertical rhythm: desktop section paddings compress on phones */
+  [data-m="pad"][style*="padding: 48px"] { padding-top: 32px !important; }
+  [data-m="pad"][style*="padding: 56px"] { padding-top: 36px !important; }
+  [data-m="pad"][style*="padding: 64px"] { padding-top: 40px !important; }
+  [data-m="pad"][style*="padding: 72px"] { padding-top: 44px !important; }
+  [data-m="pad"][style*="padding: 80px"] { padding-top: 46px !important; }
+  [data-m="pad"][style*="padding: 88px"] { padding-top: 48px !important; }
+  [data-m="pad"][style*="padding: 96px"] { padding-top: 52px !important; }
+  [data-m="pad"][style*="margin-top: 88px"] { margin-top: 56px !important; }
+  [data-m="pad"][style*="margin-top: 96px"] { margin-top: 56px !important; }
+  [data-m="pad"][style*="margin-top: 64px"] { margin-top: 44px !important; }
+
+  /* footer: stack lines, hide dangling dot separators */
+  [data-m="sep"] { display: none !important; }
+
+  /* comments under articles: tighter gutters on phones */
+  [data-m="comments-wrap"] { display: block !important; padding-left: 20px !important; padding-right: 20px !important; }
+
+  /* row-end arrows are a desktop hover affordance; once the grid stacks they
+     dangle on a line of their own, so drop them on phones */
+  [data-m="rowarrow"] { display: none !important; }
+
+  /* article section numerals: narrower gutter, but never stacked */
+  h2[data-m="keepgrid"] { grid-template-columns: 30px 1fr !important; padding-top: 22px !important; }
+
+  /* touch feedback */
+  a:active, button:active { opacity: .65; }
+}
+
+/* vision hero: swapped at 900px — hero-desktop's photo column flexes
+   (minmax) so the two-column layout works from ~900px up; below that the
+   stacked hero-mobile layout takes over. */
+@media (max-width: 899px) {
+  [data-m="hero-desktop"] { display: none !important; }
+  [data-m="hero-mobile"] { display: block !important; }
+}
+@media (min-width: 900px) {
+  [data-m="hero-mobile"] { display: none !important; }
+}
+
+
+/* Home hero portrait: on small screens flow above the headline as a full-width, edge-faded block instead of an absolute right-side backdrop */
+@media (max-width: 760px) {
+  div[data-m="pad"]:has(> img[data-m="hero-portrait"]) { flex-direction: column !important; align-items: stretch !important; min-height: 0 !important; }
+  div[data-m="hero-portrait-scan"] { display: none !important; }
+  img[data-m="hero-portrait"] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 44vh;
+    object-fit: cover;
+    object-position: 36% 22% !important;
+    margin: -8px 0 6px;
+    -webkit-mask-image: radial-gradient(88% 92% at 42% 42%, #000 38%, transparent 97%) !important;
+    mask-image: radial-gradient(88% 92% at 42% 42%, #000 38%, transparent 97%) !important;
+  }
+}

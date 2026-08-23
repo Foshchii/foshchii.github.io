@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Field notes on martech delivery, platform migrations, CRM operations and AI-assisted work.">
+<title>~/foshchii · writing</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="Writing" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180"><a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a> <span style="color:#2E323D">/</span> writing</div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:56px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">00_writing</div>
+    <h1 style="margin:0; font:500 52px/1.18 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:1040px; animation:om-rise .6s ease-out .08s both">Field notes on martech delivery and AI.</h1>
+    <p style="margin:22px 0 0; font-size:16.5px; line-height:1.65; color:#A5A9B4; max-width:720px; animation:om-rise .6s ease-out .16s both">Practical thinking from my work with Salesforce, platform migrations, CRM operations and AI-assisted delivery.</p>
+  </div>
+
+  <!-- articles -->
+  <div data-m="pad" style="padding:64px 48px 0">
+    <div style="border-top:1px solid #24262C">
+      <a href="writing-sfmc-migration.html" data-article-row="writing-sfmc-migration" data-reveal="0" style="text-decoration:none; color:inherit; display:grid; grid-template-columns:240px 1fr 44px; gap:32px; padding:30px 0; border-bottom:1px solid #24262C; align-items:baseline; transition:all .25s; cursor:pointer" style-hover="background:#15161B; padding-left:14px">
+        <div style="font:400 12px/1.7 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F">the_migration<br><span style="color:#6B7180">7 min read</span></div>
+        <div>
+          <h3 style="margin:0; font:500 21px/1.35 'Space Grotesk',sans-serif; letter-spacing:-0.015em">The migration nobody wanted</h3>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:#7E838F; max-width:640px">A migration is less about moving templates and data than protecting marketing continuity while people learn a new operating model.</p>
+        </div>
+        <div data-m="rowarrow" aria-hidden="true" style="font:400 15px 'IBM Plex Mono',monospace; text-align:right; transition:transform .25s, color .25s">→</div>
+      </a>
+      <a href="writing-marketing-operations.html" data-article-row="writing-marketing-operations" data-reveal="0.08" style="text-decoration:none; color:inherit; display:grid; grid-template-columns:240px 1fr 44px; gap:32px; padding:30px 0; border-bottom:1px solid #24262C; align-items:baseline; transition:all .25s; cursor:pointer" style-hover="background:#15161B; padding-left:14px">
+        <div style="font:400 12px/1.7 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F">operations<br><span style="color:#6B7180">6 min read</span></div>
+        <div>
+          <h3 style="margin:0; font:500 21px/1.35 'Space Grotesk',sans-serif; letter-spacing:-0.015em">Keeping the lights on</h3>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:#7E838F; max-width:640px">The safest migration plan treats business-as-usual work as a first-class workstream, not an interruption.</p>
+        </div>
+        <div data-m="rowarrow" aria-hidden="true" style="font:400 15px 'IBM Plex Mono',monospace; text-align:right; transition:transform .25s, color .25s">→</div>
+      </a>
+      <a href="writing-ai-delivery-partner.html" data-article-row="writing-ai-delivery-partner" data-reveal="0.16" style="text-decoration:none; color:inherit; display:grid; grid-template-columns:240px 1fr 44px; gap:32px; padding:30px 0; border-bottom:1px solid #24262C; align-items:baseline; transition:all .25s; cursor:pointer" style-hover="background:#15161B; padding-left:14px">
+        <div style="font:400 12px/1.7 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F">ai_delivery<br><span style="color:#6B7180">6 min read</span></div>
+        <div>
+          <h3 style="margin:0; font:500 21px/1.35 'Space Grotesk',sans-serif; letter-spacing:-0.015em">AI as a delivery partner</h3>
+          <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:#7E838F; max-width:640px">AI is most useful when it speeds up framing, documentation and iteration while people still own judgement, risk and accountability.</p>
+        </div>
+        <div data-m="rowarrow" aria-hidden="true" style="font:400 15px 'IBM Plex Mono',monospace; text-align:right; transition:transform .25s, color .25s">→</div>
+      </a>
+    </div>
+  </div>
+
+  <!-- vision -->
+  <div data-m="pad" style="padding:72px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:8px">01_personal_direction</div>
+    <div data-reveal="0" style="margin-top:20px; max-width:760px">
+      <a href="writing-vision.html" data-article-row="writing-vision" style="display:block; text-decoration:none; color:inherit; cursor:pointer; border:1px solid #24262C; background:#15161B; padding:32px 34px; transition:all .3s" style-hover="border-color:#67E8F9; transform:translateY(-3px); box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <h2 style="margin:0; font:500 24px 'Space Grotesk',sans-serif; letter-spacing:-0.015em">My vision</h2>
+        <p style="margin:14px 0 0; font-size:15px; line-height:1.65; color:#A5A9B4">What I believe about marketing technology, delivery work and my own place in it.</p>
+        <div style="margin-top:20px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">read my vision <span data-m="cardarrow" style="display:inline-block; transition:transform .25s">→</span></div>
+      </a>
+    </div>
+  </div>
+
+  <!-- footer -->
+  <div data-m="pad" style="margin-top:88px; border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+</script>
+</body>
+</html>

@@ -30,68 +30,70 @@
 
   /* ---------- one-time styles (scoped under .sf-booking) ---------- */
   var CSS = `
-  .sf-booking{--sfb-accent:var(--brand,#4f46e5);--sfb-accent-ink:#fff;
+  .sf-booking{--sfb-accent:var(--brand,#4f46e5);--sfb-accent-ink:var(--brand-ink,#fff);
     --sfb-bg:var(--surface,#fff);--sfb-alt:var(--bg-alt,#f8fafc);
     --sfb-text:var(--text,#0f172a);--sfb-muted:var(--text-muted,#475569);
-    --sfb-border:var(--border,#e2e8f0);--sfb-radius:14px;
+    --sfb-border:var(--border,#e2e8f0);--sfb-radius:0;
     font-family:inherit;color:var(--sfb-text);background:var(--sfb-bg);
     border:1px solid var(--sfb-border);border-radius:var(--sfb-radius);
     overflow:hidden;box-shadow:0 4px 12px rgba(15,23,42,.06)}
   .sf-booking *{box-sizing:border-box}
   .sfb-grid{display:grid;grid-template-columns:1.15fr 1fr;min-height:440px}
+  .sfb-cal,.sfb-side{min-width:0;overflow:hidden}
+  .sfb-side{background:var(--sfb-bg);position:relative}
   .sfb-pane{padding:1.4rem 1.5rem}
   .sfb-cal{border-right:1px solid var(--sfb-border);background:var(--sfb-alt)}
   .sfb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
   .sfb-month{font-weight:700;font-size:1.02rem}
   .sfb-nav{display:flex;gap:.4rem}
   .sfb-ico{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--sfb-border);
-    background:var(--sfb-bg);border-radius:9px;cursor:pointer;color:var(--sfb-muted);font-size:1rem;line-height:1}
+    background:var(--sfb-bg);border-radius:0;cursor:pointer;color:var(--sfb-muted);font-size:1rem;line-height:1}
   .sfb-ico:hover:not([disabled]){color:var(--sfb-accent);border-color:var(--sfb-accent)}
   .sfb-ico[disabled]{opacity:.35;cursor:not-allowed}
-  .sfb-dow,.sfb-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .sfb-dow,.sfb-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
   .sfb-dow span{text-align:center;font-size:.72rem;font-weight:600;color:var(--sfb-muted);
     text-transform:uppercase;letter-spacing:.05em;padding:.3rem 0}
-  .sfb-day{aspect-ratio:1;display:grid;place-items:center;border:0;border-radius:9px;cursor:pointer;
+  .sfb-day{aspect-ratio:1;min-width:0;display:grid;place-items:center;border:0;border-radius:0;cursor:pointer;
     background:transparent;color:var(--sfb-text);font:inherit;font-size:.9rem;font-weight:500;position:relative}
   .sfb-day:hover:not([disabled]){background:var(--sfb-bg);box-shadow:inset 0 0 0 1px var(--sfb-accent)}
   .sfb-day[disabled]{color:var(--sfb-muted);opacity:.35;cursor:default}
   .sfb-day.is-today{box-shadow:inset 0 0 0 1px var(--sfb-border)}
   .sfb-day.is-active{background:var(--sfb-accent);color:var(--sfb-accent-ink)}
-  .sfb-day.has-slots::after{content:"";position:absolute;bottom:6px;width:4px;height:4px;border-radius:50%;background:var(--sfb-accent)}
-  .sfb-day.is-active.has-slots::after{background:#fff}
   .sfb-slots-title{font-weight:700;margin-bottom:.2rem}
   .sfb-tz{font-size:.78rem;color:var(--sfb-muted);margin-bottom:1rem}
   .sfb-durations{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
-  .sfb-dur{padding:.35rem .7rem;border:1px solid var(--sfb-border);background:var(--sfb-bg);border-radius:999px;
-    cursor:pointer;font:inherit;font-size:.82rem;color:var(--sfb-muted)}
+  .sfb-dur{padding:.35rem .7rem;border:1px solid var(--sfb-border);background:var(--sfb-bg);border-radius:0;
+    cursor:pointer;font:inherit;font-size:.82rem;color:var(--sfb-muted);white-space:nowrap}
   .sfb-dur.is-active{border-color:var(--sfb-accent);color:var(--sfb-accent);font-weight:600}
-  .sfb-slotlist{display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem;max-height:300px;overflow:auto;padding-right:2px}
-  .sfb-slot{padding:.6rem;border:1px solid var(--sfb-border);background:var(--sfb-bg);border-radius:10px;
-    cursor:pointer;font:inherit;font-weight:600;font-size:.9rem;color:var(--sfb-text);transition:.15s}
+  .sfb-slotlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.5rem;max-height:300px;overflow-y:auto;overflow-x:hidden;padding-right:2px}
+  .sfb-slot{padding:.6rem .5rem;border:1px solid var(--sfb-border);background:var(--sfb-bg);border-radius:0;
+    cursor:pointer;font:inherit;font-weight:600;font-size:.9rem;color:var(--sfb-text);transition:.15s;
+    white-space:nowrap;text-align:center;overflow:hidden;text-overflow:ellipsis}
   .sfb-slot:hover{border-color:var(--sfb-accent);color:var(--sfb-accent);transform:translateY(-1px)}
-  .sfb-empty,.sfb-loading{color:var(--sfb-muted);font-size:.9rem;padding:1.5rem 0;text-align:center}
-  .sfb-status{border:1px solid var(--sfb-border);border-radius:12px;padding:.85rem .95rem;margin:1rem 0;
+  .sfb-empty,.sfb-loading{color:var(--sfb-muted);font-size:.9rem;padding:1.25rem 0 0;text-align:left}
+  .sfb-slotlist-wrap{min-height:184px}
+  .sfb-status{border:1px solid var(--sfb-border);border-radius:0;padding:.85rem .95rem;margin:1rem 0;
     font-size:.88rem;line-height:1.45;background:var(--sfb-alt);color:var(--sfb-muted)}
   .sfb-status strong{display:block;color:var(--sfb-text);margin-bottom:.25rem}
   .sfb-status p{margin:.25rem 0;color:inherit}
-  .sfb-status--error{border-color:#fecaca;background:#fef2f2;color:#7f1d1d}
-  .sfb-status--error strong{color:#7f1d1d}
-  .sfb-status--warning{border-color:#fde68a;background:#fffbeb;color:#78350f}
-  .sfb-status--warning strong{color:#78350f}
+  .sfb-status--error{border-color:rgba(248,113,113,.35);background:rgba(248,113,113,.08);color:#FCA5A5}
+  .sfb-status--error strong{color:#FCA5A5}
+  .sfb-status--warning{border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08);color:#FCD34D}
+  .sfb-status--warning strong{color:#FCD34D}
   .sfb-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.75rem;align-items:center}
   .sfb-actions .sfb-btn,.sfb-actions .sfb-link{width:auto;margin:0;text-decoration:none}
   .sfb-actions .sfb-btn{display:inline-flex;align-items:center;justify-content:center;padding:.55rem .9rem}
-  .sfb-btn--secondary{background:var(--sfb-text);color:#fff}
+  .sfb-btn--secondary{background:var(--sfb-alt);color:var(--sfb-text);border:1px solid var(--sfb-border)}
   .sfb-field{margin-bottom:.85rem}
   .sfb-field label{display:block;font-size:.82rem;font-weight:600;margin-bottom:.3rem}
   .sfb-field input,.sfb-field textarea{width:100%;font:inherit;padding:.6rem .75rem;color:var(--sfb-text);
-    background:var(--sfb-bg);border:1px solid var(--sfb-border);border-radius:9px}
+    background:var(--sfb-bg);border:1px solid var(--sfb-border);border-radius:0}
   .sfb-field input:focus,.sfb-field textarea:focus{outline:none;border-color:var(--sfb-accent);
     box-shadow:0 0 0 3px color-mix(in srgb,var(--sfb-accent) 30%,transparent)}
-  .sfb-summary{background:var(--sfb-alt);border:1px solid var(--sfb-border);border-radius:10px;
+  .sfb-summary{background:var(--sfb-alt);border:1px solid var(--sfb-border);border-radius:0;
     padding:.75rem .9rem;font-size:.88rem;margin-bottom:1rem;display:flex;gap:.6rem;align-items:flex-start}
   .sfb-summary b{color:var(--sfb-text)}
-  .sfb-btn{width:100%;padding:.75rem 1rem;border:0;border-radius:999px;cursor:pointer;font:inherit;
+  .sfb-btn{width:100%;padding:.75rem 1rem;border:0;border-radius:0;cursor:pointer;font:inherit;
     font-weight:600;background:var(--sfb-accent);color:var(--sfb-accent-ink);transition:.15s}
   .sfb-btn:hover{filter:brightness(1.05);transform:translateY(-1px)}
   .sfb-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
@@ -362,8 +364,9 @@
       var side = el.querySelector(".sfb-side");
       if (!state.date) {
         side.innerHTML = '<div class="sfb-slots-title">Pick a day</div>' +
-          '<p class="sfb-empty">Select an available date on the left to see open times.</p>' +
-          durHTML();
+          '<div class="sfb-tz">Times shown in ' + visitorTz.replace(/_/g, " ") + '</div>' +
+          durHTML() +
+          '<div class="sfb-slotlist-wrap"><p class="sfb-empty">Select an available date to see open times.</p></div>';
         wireDurations(side);
         return;
       }

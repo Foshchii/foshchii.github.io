@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Using AI as a delivery partner: where it genuinely helps, and where judgment still has to win.">
+<title>~/foshchii · ai</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="AI as a delivery partner" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180">
+    <a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a>
+    <span style="color:#2E323D">/</span>
+    <a href="writing.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+    <span style="color:#2E323D">/</span> ai-delivery-partner
+  </div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:48px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">ai_delivery</div>
+    <h1 style="margin:0; font:500 42px/1.3 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:900px; animation:om-rise .6s ease-out .08s both">AI as a delivery partner.</h1>
+    <p style="margin:22px 0 0; font-size:17px; line-height:1.65; color:#A5A9B4; max-width:700px; animation:om-rise .6s ease-out .16s both">AI is most useful to me when it speeds up framing, documentation and iteration while people still own judgement, risk and accountability.</p>
+    <div style="margin-top:22px; display:flex; align-items:center; gap:12px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; animation:om-rise .6s ease-out .24s both">
+      <span style="white-space:nowrap">by sviatoslav foshchii</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">jun 28, 2026</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">6 min read</span>
+    </div>
+  </div>
+
+  <!-- body -->
+  <div data-reveal="0" data-m="pad" style="padding:48px 48px 0">
+    <div style="max-width:660px">
+      <p style="margin:0; font-size:17.5px; line-height:1.78; color:#C9CCD4">I use AI in two connected ways: in client delivery, where Salesforce AI, Einstein and Agentforce are becoming part of the martech stack; and in my own product work, where tools like Claude Code help me prototype, document and iterate faster.</p>
+
+      <div style="border-left:2px solid #67E8F9; padding-left:20px; margin:32px 0 0; font:500 21px/1.55 'Space Grotesk',sans-serif; color:#E8E9EC; max-width:620px; letter-spacing:-0.005em">AI is not a substitute for delivery judgement. It is a force multiplier for people who already know what good delivery looks like.</div>
+
+      <h2 data-m="keepgrid" style="margin:56px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">01</span><span>I use AI to sharpen the first draft</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Many project problems start with unclear language. A requirement is too broad, a risk is too vague, or a stakeholder update hides the actual decision needed. AI is useful for producing a first draft that can be challenged.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">I do not treat the first draft as correct. I treat it as material to edit. That saves time while still keeping responsibility with the person doing the work.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">02</span><span>I use AI for documentation structure</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Documentation often fails because people do not know where to start. AI can propose a structure for a runbook, QA checklist, operating procedure or stakeholder summary. Then the team fills it with real project context.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">This is especially helpful in migrations, where knowledge is spread across platforms, people and informal habits.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">03</span><span>I use AI to test my thinking</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">One of my favourite AI uses is asking for objections: what assumptions are weak, what risks are missing, what stakeholder questions might come later. The answers are not automatically right, but they often reveal a blind spot worth checking.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">For project delivery, this matters because hidden assumptions turn into late rework.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">04</span><span>I use AI for rapid product iteration</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Side projects like Keto Scanner help me stay close to how modern AI-assisted development feels in practice. The value is not only the app itself. The value is learning how quickly a person can test an idea when AI helps with implementation, interface options and debugging.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That experience makes AI more concrete. It is easier to advise teams on AI adoption when you have used the tools to ship something real.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">05</span><span>I keep accountability human</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">AI can suggest, summarize and generate. It cannot own the stakeholder relationship, decide acceptable risk, understand political context or be accountable for the outcome.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That is the line I try to keep clear: AI can accelerate the work, but people still own the decisions.</p>
+
+      <div style="margin-top:52px; border:1px solid #24262C; background:#15161B; padding:30px 32px; transition:all .3s" style-hover="border-color:#67E8F9; box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:12px">my_practical_takeaway</div>
+        <p style="margin:0; font-size:16px; line-height:1.65; color:#A5A9B4">The best use of AI in delivery is not replacing project discipline. It is making good discipline easier to apply: clearer documents, faster drafts, better questions and shorter feedback loops.</p>
+      </div>
+
+      <div style="margin-top:32px; display:flex; gap:28px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em">
+        <a href="experience.html#keto-scanner" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">see keto scanner</a>
+        <a href="experience.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">view experience</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- comments (mobile only for now) -->
+  <div data-m="comments-wrap" style="display:block; padding:56px 48px 0">
+    <div data-m="comments" data-key="ai-delivery-partner" style="max-width:700px"></div>
+  </div>
+
+  <!-- prev/next -->
+  <div data-reveal="0.05" data-m="pad" style="margin-top:64px; padding:24px 48px; border-top:1px solid #24262C; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; flex-wrap:wrap; gap:16px">
+    <a href="writing-marketing-operations.html" style="color:#7E838F; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9"><span data-m="linkarrow" data-dir="back">←</span> keeping the lights on</a>
+    <a href="writing-vision.html" style="color:#67E8F9; text-decoration:none; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">next: where this is heading <span data-m="linkarrow">→</span></a>
+  </div>
+
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+
+</script>
+</body>
+</html>

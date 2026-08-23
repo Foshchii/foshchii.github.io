@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Why business-as-usual work deserves to be a first-class workstream during a migration.">
+<title>~/foshchii · operations</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="Keeping the lights on" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180">
+    <a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a>
+    <span style="color:#2E323D">/</span>
+    <a href="writing.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+    <span style="color:#2E323D">/</span> migration-operations
+  </div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:48px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">operations</div>
+    <h1 style="margin:0; font:500 42px/1.3 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:900px; animation:om-rise .6s ease-out .08s both">Keeping the lights on.</h1>
+    <p style="margin:22px 0 0; font-size:17px; line-height:1.65; color:#A5A9B4; max-width:700px; animation:om-rise .6s ease-out .16s both">The safest migration plan treats day-to-day campaign work as a first-class delivery stream, not as noise around the project.</p>
+    <div style="margin-top:22px; display:flex; align-items:center; gap:12px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; animation:om-rise .6s ease-out .24s both">
+      <span style="white-space:nowrap">by sviatoslav foshchii</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">jun 28, 2026</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">6 min read</span>
+    </div>
+  </div>
+
+  <!-- body -->
+  <div data-reveal="0" data-m="pad" style="padding:48px 48px 0">
+    <div style="max-width:660px">
+      <p style="margin:0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Marketing teams rarely get a quiet quarter for a platform migration. Campaigns still need to launch, stakeholders still need answers and production issues still appear. That is why operational continuity has to be designed into the migration from the start.</p>
+
+      <div style="border-left:2px solid #67E8F9; padding-left:20px; margin:32px 0 0; font:500 21px/1.55 'Space Grotesk',sans-serif; color:#E8E9EC; max-width:620px; letter-spacing:-0.005em">Business-as-usual is not a distraction from a migration. It is the environment the migration has to survive.</div>
+
+      <h2 data-m="keepgrid" style="margin:56px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">01</span><span>Separate migration work from operations work</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">I like to make two lanes visible: migration delivery and live operations. The migration lane contains discovery, build, QA, data mapping, documentation and handover. The operations lane contains active campaigns, urgent fixes, stakeholder support, approvals and production monitoring.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">When both lanes are visible, the team can make better tradeoffs. When only migration tasks are visible, operations work becomes invisible pressure.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">02</span><span>Define what cannot break</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Not every campaign, automation or report carries the same risk. Before the migration gets busy, define the non-negotiables: critical customer journeys, revenue-sensitive sends, compliance-related communications, peak-season campaigns and escalation paths.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That list becomes a practical filter. It helps the team decide where to add extra QA, where to slow down and where a simpler temporary process is acceptable.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">03</span><span>Keep a shared decision log</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Migrations create hundreds of small decisions. If those decisions live only in meetings, the team will repeat conversations and rediscover old assumptions.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">A useful decision log is simple: date, topic, decision, owner, reason and follow-up. It does not need to be perfect. It needs to be searchable and trusted.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">04</span><span>Make QA boring and repeatable</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Good QA is not hero work. It is a repeatable checklist that reduces uncertainty: data source confirmed, audience logic reviewed, personalization tested, links checked, rendering reviewed, suppression logic confirmed, tracking validated and rollback path understood.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">When QA is consistent, stakeholders learn what “ready” means. That makes approvals faster and reduces subjective last-minute changes.</p>
+
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">05</span><span>Plan the handover before the end</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Handover should not wait until the last week. The receiving team needs time to absorb the new way of working, challenge unclear documentation and rehearse support scenarios.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">For me, a good handover includes ownership, known limitations, support routines, naming conventions, QA checklists and examples of common changes.</p>
+
+      <div style="margin-top:52px; border:1px solid #24262C; background:#15161B; padding:30px 32px; transition:all .3s" style-hover="border-color:#67E8F9; box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:12px">my_practical_takeaway</div>
+        <p style="margin:0; font-size:16px; line-height:1.65; color:#A5A9B4">The best way to protect marketing operations during a migration is to treat operational work as part of the plan. That sounds obvious, but it is where many migration plans become unrealistic.</p>
+      </div>
+
+      <div style="margin-top:32px; display:flex; gap:28px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em">
+        <a href="experience.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">see experience</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- comments (mobile only for now) -->
+  <div data-m="comments-wrap" style="display:block; padding:56px 48px 0">
+    <div data-m="comments" data-key="migration-operations" style="max-width:700px"></div>
+  </div>
+
+  <!-- prev/next -->
+  <div data-reveal="0.05" data-m="pad" style="margin-top:64px; padding:24px 48px; border-top:1px solid #24262C; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; flex-wrap:wrap; gap:16px">
+    <a href="writing-sfmc-migration.html" style="color:#7E838F; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9"><span data-m="linkarrow" data-dir="back">←</span> the migration nobody wanted</a>
+    <a href="writing-ai-delivery-partner.html" style="color:#67E8F9; text-decoration:none; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">next: AI as a delivery partner <span data-m="linkarrow">→</span></a>
+  </div>
+
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+
+</script>
+</body>
+</html>
