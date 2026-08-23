@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Moving email platforms resets your sending reputation: authentication, warm-up and the signals that actually matter.">
+<title>~/foshchii · deliverability</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="canonical" href="https://foshchii.com/writing-email-deliverability.html">
+<meta property="og:url" content="https://foshchii.com/writing-email-deliverability.html">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Sviatoslav Foshchii">
+<meta property="og:title" content="The inbox does not migrate with you — Sviatoslav Foshchii">
+<meta property="og:description" content="Moving email platforms resets your sending reputation: authentication, warm-up and the signals that actually matter.">
+<meta property="og:image" content="https://foshchii.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sviatoslav Foshchii — technical project manager, Copenhagen">
+<meta name="twitter:card" content="summary_large_image">
+<style>html,body{background:#101114}@view-transition{navigation:auto}::view-transition-old(root),::view-transition-new(root){animation-duration:.12s}@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}</style>
+<script>try{if(sessionStorage.getItem('om-warp-in')){var c=document.createElement('div');c.id='om-warp-cover';c.style.cssText='position:fixed;inset:0;z-index:2147483646;background:#101114;pointer-events:none';(document.body||document.documentElement).appendChild(c);}}catch(e){}</script>
+<script src="./support.js"></script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "The inbox does not migrate with you",
+  "description": "Moving email platforms resets your sending reputation: authentication, warm-up and the signals that actually matter.",
+  "url": "https://foshchii.com/writing-email-deliverability.html",
+  "datePublished": "2026-08-23",
+  "dateModified": "2026-08-23",
+  "author": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/"
+  },
+  "image": "https://foshchii.com/assets/og-image.png",
+  "inLanguage": "en",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://foshchii.com/writing-email-deliverability.html"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://foshchii.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Writing",
+      "item": "https://foshchii.com/writing.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "The inbox does not migrate with you",
+      "item": "https://foshchii.com/writing-email-deliverability.html"
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="mobile.css">
+  <script src="assets/js/page-boot.js"></script>
+  <style>
+    html { background: #101114; }
+    body { margin: 0; background: #101114; -webkit-font-smoothing: antialiased; }
+    @keyframes om-blink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+    @keyframes om-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+  <script type="module">
+    // preload shared behaviors + warp-arrival cover (see alive.js)
+    try {
+      if (sessionStorage.getItem('om-warp-in') && !document.getElementById('om-warp-cover')) {
+        const c = document.createElement('div');
+        c.id = 'om-warp-cover';
+        c.style.cssText = 'position:fixed;inset:0;z-index:9998;background:#101114;pointer-events:none';
+        (document.body || document.documentElement).appendChild(c);
+      }
+    } catch (e) {}
+    import('./alive.js').then((m) => { window.__aliveMod = m; }).catch(() => {});
+  </script>
+</helmet>
+
+<div data-screen-label="The inbox does not migrate with you" style="background:#101114; color:#E8E9EC; font-family:'Instrument Sans',sans-serif; min-height:100vh">
+
+  <a href="#main" style="position:fixed; left:-9999px; top:12px; z-index:200; font:400 12.5px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#101114; background:#67E8F9; padding:9px 14px; text-decoration:none" style-focus="left:12px">skip to content</a>
+
+  <!-- nav -->
+  <div data-m="nav" role="navigation" aria-label="Main navigation" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 28px; padding:16px 48px; border-bottom:1px solid #24262C; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; position:sticky; top:0; background:#101114; z-index:50">
+    <a href="index.html" style="color:#7E838F; text-decoration:none; display:flex; align-items:center; gap:3px; transition:color .2s" style-hover="color:#67E8F9"><span style="color:#67E8F9">~</span>/foshchii</a>
+    <div data-m="navlinks" style="display:flex; gap:24px">
+      <a href="index.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">home</a>
+      <a href="about.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">about</a>
+      <a href="experience.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">experience</a>
+      <a href="writing.html" aria-current="page" style="text-decoration:none; color:#E8E9EC; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+      <a href="education.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">education</a>
+      <a href="contact.html" style="text-decoration:none; color:#7E838F; cursor:pointer; transition:color .2s" style-hover="color:#67E8F9">contact</a>
+    </div>
+    <div data-m="coords" style="white-space:nowrap">55.676°N, 12.568°E — CPH</div>
+  </div>
+  <div id="main" tabindex="-1" style="scroll-margin-top:80px"></div>
+  <div data-m="pad" style="padding:14px 48px 0; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#6B7180">
+    <a href="index.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">~/foshchii</a>
+    <span style="color:#2E323D">/</span>
+    <a href="writing.html" style="color:#6B7180; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9">writing</a>
+    <span style="color:#2E323D">/</span> email-deliverability
+  </div>
+
+  <!-- hero -->
+  <div data-m="pad" style="padding:48px 48px 0">
+    <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:24px; animation:om-rise .6s ease-out both">deliverability</div>
+    <h1 style="margin:0; font:500 42px/1.3 'Space Grotesk',sans-serif; letter-spacing:-0.02em; max-width:900px; animation:om-rise .6s ease-out .08s both">The inbox does not migrate with you.</h1>
+    <p style="margin:22px 0 0; font-size:17px; line-height:1.65; color:#A5A9B4; max-width:700px; animation:om-rise .6s ease-out .16s both">Moving email platforms resets the sending reputation a marketing programme quietly depends on. Deliverability needs its own workstream, not a checklist line in the cutover plan.</p>
+    <div style="margin-top:22px; display:flex; align-items:center; gap:12px; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; animation:om-rise .6s ease-out .24s both">
+      <span style="white-space:nowrap">by sviatoslav foshchii</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">aug 23, 2026</span><span style="color:#2E323D">·</span><span style="white-space:nowrap">8 min read</span>
+    </div>
+  </div>
+
+  <!-- body -->
+  <div data-reveal="0" data-m="pad" style="padding:48px 48px 0">
+    <div style="max-width:660px">
+      <p style="margin:0; font-size:17.5px; line-height:1.78; color:#C9CCD4">When a marketing team changes email platform, the visible work gets the attention: templates, journeys, data extensions, integrations, reporting. Deliverability usually appears late in the plan, compressed into a single task called “set up authentication”.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">That is the item I would most want reviewed before a cutover date is agreed. Everything else fails loudly — a broken template is obvious the moment someone looks at it. Deliverability fails quietly, several weeks later, in numbers nobody was watching.</p>
+      <div style="border-left:2px solid #67E8F9; padding-left:20px; margin:32px 0 0; font:500 21px/1.55 'Space Grotesk',sans-serif; color:#E8E9EC; max-width:620px; letter-spacing:-0.005em">You do not move your sending reputation to the new platform. You rebuild it, in public, while the campaign calendar keeps running.</div>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">01</span><span>Sending reputation does not come with you</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Reputation is not stored in your account. Mailbox providers build it from observed behaviour tied to the infrastructure a message comes from: the sending IP addresses and the sending domain. A new platform usually means both change.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Years of careful list hygiene on the old platform buys nothing on the first send from the new one. To Gmail and Outlook, you are an unfamiliar sender asking for the benefit of the doubt, at whatever volume you happen to open with.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">This is the assumption worth correcting early with stakeholders. People hear “migration” and picture continuity. Deliverability is the part that genuinely starts from zero.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">02</span><span>Authentication has to be right before the first send</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Three records do the work, and all three have to be correct for the new platform, not the old one. SPF has to authorise the new sending infrastructure. DKIM needs its keys generated on the new platform and published in DNS. DMARC ties them together and tells mailbox providers what to do when a message fails.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Since February 2024, Google and Yahoo require all three from bulk senders — those sending roughly 5,000 messages a day or more to their users — along with one-click unsubscribe and a spam complaint rate kept below 0.3%. These are not best practices any more. They are entry conditions.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Two failure modes are worth checking by hand. SPF permits only ten DNS lookups, and adding a new platform to a record that already includes several services can quietly exceed it, which invalidates the whole record. And DNS changes need to have actually propagated before cutover, not merely been saved in the registrar.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">03</span><span>Warm up by engagement, not by volume</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">The instinct after cutover is to resume the normal calendar: the new platform is configured, so send the newsletter. That single decision causes most of the damage I have seen discussed in migration retrospectives.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">A warm-up starts with the recipients most likely to react well — people who opened or clicked recently — and grows volume over weeks. Early positive engagement is the evidence mailbox providers use to decide you are worth delivering. Starting with your least engaged segment teaches them the opposite.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">This has a scheduling consequence that belongs in the plan, not in the postmortem: for several weeks after cutover you cannot send at full volume. If the campaign calendar assumes you can, the calendar is wrong.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">04</span><span>Keep the old platform available longer than feels necessary</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Decommissioning is satisfying and it is usually premature. While reputation is still being established, the previous platform is both a fallback and a baseline — the only clean comparison for what engagement looked like before the move.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Licences cost money and there is always pressure to switch them off at cutover. It is worth arguing for a defined overlap period with an explicit end date, rather than discovering mid-recovery that the comparison is gone.</p>
+      <h2 data-m="keepgrid" style="margin:64px 0 0; padding-top:28px; border-top:1px solid #1E2027; display:grid; grid-template-columns:44px 1fr; align-items:baseline; font:500 26px/1.32 'Space Grotesk',sans-serif; letter-spacing:-0.012em"><span style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#67E8F9">05</span><span>Watch inbox placement, not delivery rate</span></h2>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Delivery rate is the most reassuring and least useful number in the reporting. It tells you a message was accepted, not where it landed. A campaign can report 99% delivered and still be routed almost entirely to spam.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">The signals that matter are inbox placement, complaint rate, engagement broken down by mailbox provider, and bounce reasons read by category rather than as a total. Google Postmaster Tools and Microsoft SNDS report on their own traffic for free, and they are where problems appear first.</p>
+      <p style="margin:24px 0 0; font-size:17.5px; line-height:1.78; color:#C9CCD4">Segmenting by provider matters more than teams expect. Gmail, Outlook and corporate filters reach different conclusions about the same sender, and an aggregate figure averages away exactly the problem you need to see.</p>
+
+      <div style="margin-top:52px; border:1px solid #24262C; background:#15161B; padding:30px 32px; transition:all .3s" style-hover="border-color:#67E8F9; box-shadow:0 20px 48px rgba(103,232,249,0.1)">
+        <div style="font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; margin-bottom:12px">my_practical_takeaway</div>
+        <p style="margin:0; font-size:16px; line-height:1.65; color:#A5A9B4">Give deliverability its own owner, its own timeline and its own exit criteria, agreed before the cutover date is fixed. It is the part of a platform migration whose consequences arrive after everyone has moved on to the next thing.</p>
+      </div>
+
+      <div style="margin-top:32px; display:flex; gap:28px; flex-wrap:wrap; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em">
+        <a href="writing-sfmc-migration.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">read the migration story</a>
+        <a href="contact.html" style="color:#67E8F9; text-decoration:none; cursor:pointer; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">contact me</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- comments (mobile only for now) -->
+  <div data-m="comments-wrap" style="display:block; padding:56px 48px 0">
+    <div data-m="comments" data-key="email-deliverability" style="max-width:700px"></div>
+  </div>
+
+  <!-- prev/next -->
+  <div data-reveal="0.05" data-m="pad" style="margin-top:64px; padding:24px 48px; border-top:1px solid #24262C; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; flex-wrap:wrap; gap:16px">
+    <a href="writing.html" style="color:#7E838F; text-decoration:none; transition:color .2s" style-hover="color:#67E8F9"><span data-m="linkarrow" data-dir="back">←</span> all writing</a>
+    <a href="writing-sfmc-migration.html" style="color:#67E8F9; text-decoration:none; border-bottom:1px solid rgba(103,232,249,0.4); padding-bottom:2px; transition:all .2s" style-hover="color:#A5F3FF; border-color:#A5F3FF">next: the migration nobody wanted <span data-m="linkarrow">→</span></a>
+  </div>
+  <!-- footer -->
+  <div data-m="pad" style="border-top:1px solid #24262C; padding:32px 48px; display:flex; justify-content:space-between; align-items:center; font:400 13px 'IBM Plex Mono',monospace; letter-spacing:0.03em; color:#7E838F; flex-wrap:wrap; gap:12px">
+    <div style="display:flex; flex-wrap:wrap; align-items:center; gap:4px 10px"><span style="white-space:nowrap"><span style="color:#67E8F9">~</span>/foshchii</span><span data-m="sep" style="color:#2E323D">·</span><span style="white-space:nowrap">sviatoslav@foshchii.com</span></div>
+    <div>© {{ copyrightYear }} · built with html/css/js + ai</div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  componentDidMount() {
+    const run = (m) => { this._alive = m.init(); };
+    if (window.__aliveMod) { run(window.__aliveMod); return; }
+    let tries = 0;
+    const poll = () => {
+      if (window.__aliveMod) return run(window.__aliveMod);
+      if (tries++ > 150) { import('./alive.js').then(run).catch((e) => console.warn('alive init failed', e)); return; }
+      this._pollId = setTimeout(poll, 20);
+    };
+    poll();
+  }
+  componentWillUnmount() {
+    if (this._alive) this._alive();
+  }
+  renderVals() {
+    return { copyrightYear: new Date().getFullYear() };
+  }
+}
+
+</script>
+</body>
+</html>
