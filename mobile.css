@@ -254,3 +254,132 @@ a:hover [data-m="linkarrow"][data-dir="back"] { transform: translateX(-4px); }
     max-width: clamp(1084px, 740.696px + 33.5258vw, 1344.16px) !important;
   }
 }
+
+
+/* ---- desktop type & measure scale (761px and up) ----
+   Every size in the templates is a hard px value, so above the phone
+   breakpoint the design used to freeze: 17.5px body copy and 13px mono
+   labels read the same on a 27" display as on a 13" laptop, and the
+   columns holding them stayed put while the viewport grew.
+
+   These rules re-key those px values to one linear ramp: 1.00x at 1024px
+   wide, 1.38x at 1800px, flat past that. The floor is the drawn value, so
+   nothing below 1024px moves. Selectors match the inline style text in
+   both forms it appears in — React re-serialises the templates
+   ("font: 400 13px ...") while alive.js injects its own markup verbatim
+   ("font:400 13px ..."). Line heights are all unitless and letter
+   spacing is in em, so both follow the font size on their own.
+
+   ramp: 1.00x @1024px  1.13x @1280px  1.24x @1512px  1.32x @1680px  1.38x @1800px */
+@media (min-width: 761px) {
+  /* type */
+  [style*="font: 400 10px"], [style*="font:400 10px"] { font-size: clamp(10px, 4.986px + 0.4897vw, 13.8px) !important; }
+  [style*="font: 400 10.5px"], [style*="font:400 10.5px"] { font-size: clamp(10.5px, 5.235px + 0.5142vw, 14.49px) !important; }
+  [style*="font: 400 11px"], [style*="font:400 11px"], [style*="font-size: 11px"],
+  [style*="font-size:11px"] { font-size: clamp(11px, 5.484px + 0.5387vw, 15.18px) !important; }
+  [style*="font: 400 11.5px"], [style*="font:400 11.5px"] { font-size: clamp(11.5px, 5.733px + 0.5631vw, 15.87px) !important; }
+  [style*="font: 400 12px"], [style*="font:400 12px"], [style*="font: 500 12px"],
+  [style*="font:500 12px"], [style*="font-size: 12px"], [style*="font-size:12px"] { font-size: clamp(12px, 5.983px + 0.5876vw, 16.56px) !important; }
+  [style*="font: 400 12.5px"], [style*="font:400 12.5px"], [style*="font: 600 12.5px"],
+  [style*="font:600 12.5px"], [style*="font-size: 12.5px"], [style*="font-size:12.5px"] { font-size: clamp(12.5px, 6.232px + 0.6121vw, 17.25px) !important; }
+  [style*="font: 400 13px"], [style*="font:400 13px"], [style*="font: 500 13px"],
+  [style*="font:500 13px"], [style*="font-size: 13px"], [style*="font-size:13px"] { font-size: clamp(13px, 6.481px + 0.6366vw, 17.94px) !important; }
+  [style*="font: 400 13.5px"], [style*="font:400 13.5px"], [style*="font-size: 13.5px"],
+  [style*="font-size:13.5px"] { font-size: clamp(13.5px, 6.731px + 0.6611vw, 18.63px) !important; }
+  [style*="font-size: 14px"], [style*="font-size:14px"] { font-size: clamp(14px, 6.98px + 0.6856vw, 19.32px) !important; }
+  [style*="font: 400 14.5px"], [style*="font:400 14.5px"], [style*="font-size: 14.5px"],
+  [style*="font-size:14.5px"] { font-size: clamp(14.5px, 7.229px + 0.7101vw, 20.01px) !important; }
+  [style*="font: 400 15px"], [style*="font:400 15px"], [style*="font: 500 15px"],
+  [style*="font:500 15px"], [style*="font-size: 15px"], [style*="font-size:15px"] { font-size: clamp(15px, 7.478px + 0.7345vw, 20.7px) !important; }
+  [style*="font: 500 15.5px"], [style*="font:500 15.5px"], [style*="font-size: 15.5px"],
+  [style*="font-size:15.5px"] { font-size: clamp(15.5px, 7.728px + 0.759vw, 21.39px) !important; }
+  [style*="font: 500 16px"], [style*="font:500 16px"], [style*="font-size: 16px"],
+  [style*="font-size:16px"] { font-size: clamp(16px, 7.977px + 0.7835vw, 22.08px) !important; }
+  [style*="font-size: 16.5px"], [style*="font-size:16.5px"] { font-size: clamp(16.5px, 8.226px + 0.808vw, 22.77px) !important; }
+  [style*="font-size: 17px"], [style*="font-size:17px"] { font-size: clamp(17px, 8.475px + 0.8325vw, 23.46px) !important; }
+  [style*="font: 400 17.5px"], [style*="font:400 17.5px"], [style*="font-size: 17.5px"],
+  [style*="font-size:17.5px"] { font-size: clamp(17.5px, 8.725px + 0.857vw, 24.15px) !important; }
+  [style*="font-size: 18px"], [style*="font-size:18px"] { font-size: clamp(18px, 8.974px + 0.8814vw, 24.84px) !important; }
+  [style*="font: 400 19px"], [style*="font:400 19px"], [style*="font: 500 19px"],
+  [style*="font:500 19px"] { font-size: clamp(19px, 9.473px + 0.9304vw, 26.22px) !important; }
+  [style*="font-size: 20px"], [style*="font-size:20px"] { font-size: clamp(20px, 9.971px + 0.9794vw, 27.6px) !important; }
+  [style*="font: 500 21px"], [style*="font:500 21px"] { font-size: clamp(21px, 10.47px + 1.0284vw, 28.98px) !important; }
+  [style*="font: 500 22px"], [style*="font:500 22px"], [style*="font-size: 22px"],
+  [style*="font-size:22px"] { font-size: clamp(22px, 10.968px + 1.0773vw, 30.36px) !important; }
+  [style*="font: 500 24px"], [style*="font:500 24px"] { font-size: clamp(24px, 11.965px + 1.1753vw, 33.12px) !important; }
+  [style*="font: 500 26px"], [style*="font:500 26px"] { font-size: clamp(26px, 12.962px + 1.2732vw, 35.88px) !important; }
+  [style*="font: 500 28px"], [style*="font:500 28px"] { font-size: clamp(28px, 13.96px + 1.3711vw, 38.64px) !important; }
+  [style*="font: 500 30px"], [style*="font:500 30px"] { font-size: clamp(30px, 14.957px + 1.4691vw, 41.4px) !important; }
+  [style*="font: 500 36px"], [style*="font:500 36px"] { font-size: clamp(36px, 17.948px + 1.7629vw, 49.68px) !important; }
+  [style*="font: 500 42px"], [style*="font:500 42px"] { font-size: clamp(42px, 20.939px + 2.0567vw, 57.96px) !important; }
+  [style*="font: 500 52px"], [style*="font:500 52px"] { font-size: clamp(52px, 25.925px + 2.5464vw, 71.76px) !important; }
+  [style*="font: 500 62px"], [style*="font:500 62px"] { font-size: clamp(62px, 30.911px + 3.0361vw, 85.56px) !important; }
+
+  /* reading measure and fixed grid tracks grow with the type, so a line
+     keeps the same character count and label columns keep their fit */
+  [style*="max-width: 520px"], [style*="max-width:520px"] { max-width: clamp(520px, 259.249px + 25.4639vw, 717.6px) !important; }
+  [style*="max-width: 560px"], [style*="max-width:560px"] { max-width: clamp(560px, 279.192px + 27.4227vw, 772.8px) !important; }
+  [style*="max-width: 620px"], [style*="max-width:620px"] { max-width: clamp(620px, 309.105px + 30.3608vw, 855.6px) !important; }
+  [style*="max-width: 640px"], [style*="max-width:640px"] { max-width: clamp(640px, 319.076px + 31.3402vw, 883.2px) !important; }
+  [style*="max-width: 660px"], [style*="max-width:660px"] { max-width: clamp(660px, 329.047px + 32.3196vw, 910.8px) !important; }
+  [style*="max-width: 680px"], [style*="max-width:680px"] { max-width: clamp(680px, 339.019px + 33.299vw, 938.4px) !important; }
+  [style*="max-width: 700px"], [style*="max-width:700px"] { max-width: clamp(700px, 348.99px + 34.2784vw, 966px) !important; }
+  [style*="max-width: 720px"], [style*="max-width:720px"] { max-width: clamp(720px, 358.961px + 35.2577vw, 993.6px) !important; }
+  [style*="max-width: 760px"], [style*="max-width:760px"] { max-width: clamp(760px, 378.903px + 37.2165vw, 1048.8px) !important; }
+  [style*="max-width: 800px"], [style*="max-width:800px"] { max-width: clamp(800px, 398.845px + 39.1753vw, 1104px) !important; }
+  [style*="max-width: 820px"], [style*="max-width:820px"] { max-width: clamp(820px, 408.816px + 40.1546vw, 1131.6px) !important; }
+  [style*="max-width: 880px"], [style*="max-width:880px"] { max-width: clamp(880px, 438.73px + 43.0928vw, 1214.4px) !important; }
+  [style*="max-width: 900px"], [style*="max-width:900px"] { max-width: clamp(900px, 448.701px + 44.0722vw, 1242px) !important; }
+  [style*="max-width: 920px"], [style*="max-width:920px"] { max-width: clamp(920px, 458.672px + 45.0515vw, 1269.6px) !important; }
+  [style*="max-width: 1020px"], [style*="max-width:1020px"] { max-width: clamp(1020px, 508.528px + 49.9485vw, 1407.6px) !important; }
+  [style*="max-width: 1040px"], [style*="max-width:1040px"] { max-width: clamp(1040px, 518.499px + 50.9278vw, 1435.2px) !important; }
+  [style*="grid-template-columns: 44px 1fr"], [style*="grid-template-columns:44px 1fr"] { grid-template-columns: clamp(44px, 21.936px + 2.1546vw, 60.72px) minmax(0, 1fr) !important; }
+  [style*="grid-template-columns: 220px 1fr"], [style*="grid-template-columns:220px 1fr"] { grid-template-columns: clamp(220px, 109.682px + 10.7732vw, 303.6px) minmax(0, 1fr) !important; }
+  [style*="grid-template-columns: 240px 1fr 44px"],
+  [style*="grid-template-columns:240px 1fr 44px"] { grid-template-columns: clamp(240px, 119.654px + 11.7526vw, 331.2px) minmax(0, 1fr) clamp(44px, 21.936px + 2.1546vw, 60.72px) !important; }
+
+  /* The booking widget (assets/js/booking-widget.js) sizes itself in rem —
+     type and spacing both — so it tracks the root rather than the px values
+     above. Moving the root by the same ramp keeps it in step, and picks up
+     any text that never set a size of its own. Stated in rem rather than px
+     so a reader who has raised their browser's default keeps it: on the root
+     element rem resolves against that default, so the ramp multiplies their
+     size instead of replacing it. */
+  html { font-size: clamp(1rem, 0.499rem + 0.7835vw, 1.38rem); }
+
+  /* Page gutters: every template but experience.html ran a flat 48px gutter,
+     so a wide display just kept stretching the sections — a 2560px nav, and
+     full-bleed rows with the headline stranded at one end. experience.html
+     already held its content to 1344px; this puts every section on that cap,
+     carried up the same ramp, so the gutter only starts growing once the
+     design has run out of width it can use. */
+  [data-m="nav"], [data-m="pad"] {
+    padding-left: max(48px, calc((100% - clamp(1344px, 670.06px + 65.8144vw, 1854.72px)) / 2)) !important;
+    padding-right: max(48px, calc((100% - clamp(1344px, 670.06px + 65.8144vw, 1854.72px)) / 2)) !important;
+  }
+
+  /* about: the transcript sat in a 1fr column capped at 680px next to a
+     fixed 340px sidebar, so the block stopped short of the page edge and
+     left a hole in the middle. The transcript now holds the measure and
+     case_notes takes whatever is left, so the two columns meet and the
+     block ends on the same right edge as the hero image above it. */
+  [data-m="keepgrid-wrap"][style*="1fr 340px"] {
+    grid-template-columns: min(clamp(680px, 339.019px + 33.299vw, 938.4px), 100% - clamp(340px, 169.509px + 16.6495vw, 469.2px) - clamp(64px, 31.908px + 3.134vw, 88.32px)) minmax(0, 1fr) !important;
+    gap: clamp(64px, 31.908px + 3.134vw, 88.32px) !important;
+  }
+
+  /* case_notes was a short sticky card beside a very long transcript, so
+     the column read as a hole below it. It now runs the full height of the
+     transcript as a hairline rail with the notes at its head. Only the
+     three other borders are dropped, so the rule is the card's own left
+     border and its hover colour still lights the full height. */
+  [data-m="keepgrid-wrap"][style*="1fr 340px"] > :last-child {
+    align-self: stretch !important;
+    position: static !important;
+    background: none !important;
+    border-top: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    padding: 2px 0 0 clamp(28px, 13.96px + 1.3711vw, 38.64px) !important;
+  }
+}
