@@ -20,6 +20,14 @@
   [data-m="coords"] { display: none !important; }
 }
 
+/* The sticky header was painted the same #101114 as the page, so scrolled
+   content slid under an invisible bar and only the hairline border said where
+   the page stopped and the nav began. #15161B is the surface colour the cards
+   and panels already use, so the bar now reads as the layer it is without
+   introducing a new colour. The mobile menu is a full-screen overlay with its
+   own background, so it is unaffected. */
+[data-m="nav"] { background: #15161B !important; }
+
 /* Row-end arrow follows its parent row's hover (a descendant pseudo-state is the
    one thing the inline style-hover attributes can't express). Both states live
    here: an inline resting color would outrank the hover rule. */
