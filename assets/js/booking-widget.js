@@ -154,6 +154,7 @@
     var msg = esc(err && err.message ? err.message : err || "calendar check failed");
     if (msg === "timeout") return "The calendar service did not answer in time.";
     if (msg === "network") return "The calendar service could not be reached.";
+    if (msg === "badresponse") return "The calendar service replied with something this page could not read — its deployment may need re-authorising.";
     return msg;
   }
 
@@ -164,14 +165,27 @@
     return new Promise(function (resolve, reject) {
       var cb = "sfb_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
       var s = document.createElement("script");
-      var timer = setTimeout(function () { cleanup(); reject(new Error("timeout")); }, timeoutMs || 20000);
+      var done = false;
+      var timer = setTimeout(function () { finish(new Error("timeout")); }, timeoutMs || 20000);
       function cleanup() {
         clearTimeout(timer);
         try { delete window[cb]; } catch (e) { window[cb] = undefined; }
         if (s && s.parentNode) s.parentNode.removeChild(s);
       }
-      window[cb] = function (data) { cleanup(); resolve(data); };
-      s.onerror = function () { cleanup(); reject(new Error("network")); };
+      function finish(err, data) {
+        if (done) return;
+        done = true;
+        cleanup();
+        if (err) reject(err); else resolve(data);
+      }
+      window[cb] = function (data) { finish(null, data); };
+      s.onerror = function () { finish(new Error("network")); };
+      // A <script> handed non-JS — an Apps Script sign-in or error page, served
+      // with a 200 — fires load, not error: it throws a SyntaxError and never
+      // calls back. Without this the widget just waits out the whole timeout.
+      // A real JSONP reply runs the callback during eval, so `done` is already
+      // set by the time load fires.
+      s.onload = function () { setTimeout(function () { finish(new Error("badresponse")); }, 0); };
       s.src = url + (url.indexOf("?") === -1 ? "?" : "&") + "callback=" + cb;
       document.head.appendChild(s);
     });
@@ -282,22 +296,62 @@
       });
     }
 
-    async function loadAvailability(date) {
+    async function loadAvailability(date, timeoutMs) {
       var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(date) +
               "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
-      var j = await jsonp(u, cfg.strictLive ? 10000 : 8000);
+      var j = await jsonp(u, timeoutMs || (cfg.strictLive ? 10000 : 8000));
       if (!j || j.ok === false) throw new Error(j && j.error ? j.error : "Calendar service did not confirm availability.");
       return parseLiveSlots(j.slots);
     }
 
+    // Transport failures only: the request went out and nothing readable came
+    // back, so the write may or may not have happened. An application error
+    // from the backend ("that time was just taken") is a definite answer and
+    // must never reach the re-check below — the slot would look taken and we
+    // would confirm a booking that was refused.
+    function lostReply(err) {
+      var m = err && err.message;
+      return m === "timeout" || m === "network" || m === "badresponse";
+    }
+
+    async function slotTaken(start) {
+      try {
+        // Deliberately brief: this runs after a call that already spent its
+        // own timeout, and the visitor is still staring at a disabled button.
+        var slots = await loadAvailability(start, 6000);
+        return !slots.some(function (s) { return s.getTime() === start.getTime(); });
+      } catch (e) {
+        return false; // can't tell — leave the booking unconfirmed
+      }
+    }
+
+    // Failure telemetry must not ride only the transport that just failed: if
+    // JSONP is what's broken, a JSONP-only report is never delivered and the
+    // outage stays invisible. Always surface the failure locally, then try the
+    // backend over JSONP, then over sendBeacon (a POST, so it survives the
+    // <script> path being blocked or served a non-JS page).
     function reportIssue(kind, message, extra) {
+      var detail = { kind: kind, message: message, source: "booking-widget", extra: extra || {} };
+      if (window.console && console.warn) console.warn("[sf-booking] " + kind + ": " + message, detail.extra);
+      try { document.dispatchEvent(new CustomEvent("sf-booking:issue", { detail: detail })); } catch (e) {}
       if (!cfg.api) return;
-      var u = cfg.api.replace(/\/$/, "") + "?action=issue" +
+
+      var qs = "action=issue" +
         "&kind=" + encodeURIComponent(kind) +
         "&message=" + encodeURIComponent(message) +
         "&page=" + encodeURIComponent(location.href) +
         "&extra=" + encodeURIComponent(JSON.stringify(extra || {}));
-      jsonp(u, 5000).catch(function () {});
+      var base = cfg.api.replace(/\/$/, "");
+      jsonp(base + "?" + qs, 5000).catch(function () { beaconIssue(base, qs); });
+    }
+
+    function beaconIssue(base, qs) {
+      try {
+        if (!navigator.sendBeacon) return;
+        // Form-encoded so Apps Script populates e.parameter and doPost can route
+        // on `action` without a CORS preflight.
+        navigator.sendBeacon(base, new Blob([qs], { type: "application/x-www-form-urlencoded" }));
+      } catch (e) {}
     }
 
     function quietUnavailable(message, extra) {
@@ -491,15 +545,35 @@
           "&start=" + encodeURIComponent(start.toISOString()) +
           "&end=" + encodeURIComponent(end.toISOString()) +
           "&duration=" + state.duration +
-          "&host=" + encodeURIComponent(cfg.email) +
+          // Single address: data-email may list several, but only the first is
+          // the calendar organiser. Sending the raw comma-joined string here
+          // hands the backend something it cannot use as one mailbox.
+          "&host=" + encodeURIComponent(cfg.organizer) +
           "&timezone=" + encodeURIComponent(cfg.tz);
         try {
-          var res = await jsonp(u);
+          // Booking writes the event and dispatches invites, so it is the
+          // slowest call the widget makes — give it longer than availability.
+          var res = await jsonp(u, 20000);
           if (!res || !res.booked) throw new Error(res && res.error ? res.error : "Booking failed");
           success(start, end, name, email, msg, true);
         } catch (e) {
-          btn.disabled = false; btn.textContent = "Confirm booking";
           var bookingMessage = readableError(e);
+          // Silence is not a refusal. When the reply is lost rather than
+          // returned, the backend may still have created the event — reporting
+          // that as a failure invites a retry that double-books. Re-check the
+          // day: if the slot we asked for is gone, the booking landed.
+          var lost = lostReply(e);
+          if (lost) btn.textContent = "Checking…";
+          if (lost && await slotTaken(start)) {
+            reportIssue("booking-late-ack", bookingMessage, {
+              start: start.toISOString(),
+              end: end.toISOString(),
+              duration: state.duration
+            });
+            success(start, end, name, email, msg, true, true);
+            return;
+          }
+          btn.disabled = false; btn.textContent = "Confirm booking";
           reportIssue("booking", bookingMessage, {
             start: start.toISOString(),
             end: end.toISOString(),
@@ -543,7 +617,10 @@
       var w = window.open(href, "_blank"); if (!w) location.href = href;
     }
 
-    function success(start, end, name, email, msg, live) {
+    // `late` marks a booking confirmed by re-checking availability rather than
+    // by the backend's own reply — the event is there, but say so plainly
+    // instead of implying a clean acknowledgement.
+    function success(start, end, name, email, msg, live, late) {
       el.innerHTML = '<div class="sfb-success">' +
         '<div class="sfb-check">✓</div>' +
         '<h3>' + (live ? "You're booked!" : "Booking requested!") + '</h3>' +
@@ -552,6 +629,10 @@
         '<p>' + (live
           ? "A calendar invite is on its way to " + esc(email) + "."
           : "Add it to your calendar below — " + esc(cfg.name) + " has been emailed to confirm.") + '</p>' +
+        (late
+          ? '<p>The confirmation came back late, so the slot is held but unacknowledged. If no invite reaches you within a few minutes, email ' +
+            html(cfg.organizer) + ' to check.</p>'
+          : "") +
         '<button class="sfb-btn" id="sfb-ics" style="max-width:260px;margin:1.2rem auto 0">Add to my calendar (.ics)</button>' +
         '<button class="sfb-link" id="sfb-again">Book another time</button>' +
       '</div>';
