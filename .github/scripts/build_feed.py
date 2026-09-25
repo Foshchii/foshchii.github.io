@@ -45,7 +45,8 @@ def article(page):
 
 
 def rfc822(day):
-    return format_datetime(datetime.fromisoformat(day).replace(tzinfo=timezone.utc))
+    when = datetime.fromisoformat(day)
+    return format_datetime(when if when.tzinfo else when.replace(tzinfo=timezone.utc))
 
 
 def render():
