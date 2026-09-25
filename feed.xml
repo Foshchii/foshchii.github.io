@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Writing — Sviatoslav Foshchii</title>
+    <link>https://foshchii.com/writing.html</link>
+    <description>Field notes on martech delivery, platform migrations, CRM operations and AI-assisted work.</description>
+    <language>en</language>
+    <lastBuildDate>Sun, 23 Aug 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://foshchii.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <item>
+      <title>Like for like is not a scope</title>
+      <link>https://foshchii.com/writing-like-for-like.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-like-for-like.html</guid>
+      <description>Rebuilding exactly what existed sounds like the safe option. It usually promotes old workarounds into new requirements.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Preview is not a test</title>
+      <link>https://foshchii.com/writing-preview-is-not-a-test.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-preview-is-not-a-test.html</guid>
+      <description>A preview tells you the template rendered. It says nothing about whether the journey fires, the data resolves, or the right person receives it.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>The data model decides</title>
+      <link>https://foshchii.com/writing-data-model.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-data-model.html</guid>
+      <description>Schema choices made in week three quietly determine which campaigns are possible in year two. They are strategy decisions wearing technical clothes.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Consent is a record, not a checkbox</title>
+      <link>https://foshchii.com/writing-consent-records.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-consent-records.html</guid>
+      <description>Migrating subscriber status is easy. Migrating the evidence behind it — timestamps, source, wording, suppression — is the part that gets left behind.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>The inbox does not migrate with you</title>
+      <link>https://foshchii.com/writing-email-deliverability.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-email-deliverability.html</guid>
+      <description>Moving email platforms resets your sending reputation: authentication, warm-up and the signals that actually matter.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>The migration nobody wanted</title>
+      <link>https://foshchii.com/writing-sfmc-migration.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-sfmc-migration.html</guid>
+      <description>Adobe Campaign to Salesforce Marketing Cloud: protecting marketing continuity through a migration.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>Keeping the lights on</title>
+      <link>https://foshchii.com/writing-marketing-operations.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-marketing-operations.html</guid>
+      <description>Why business-as-usual work deserves to be a first-class workstream during a migration.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>AI as a delivery partner</title>
+      <link>https://foshchii.com/writing-ai-delivery-partner.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-ai-delivery-partner.html</guid>
+      <description>Using AI as a delivery partner: where it genuinely helps, and where judgment still has to win.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+    <item>
+      <title>My vision</title>
+      <link>https://foshchii.com/writing-vision.html</link>
+      <guid isPermaLink="true">https://foshchii.com/writing-vision.html</guid>
+      <description>What I believe about martech delivery, and how I work in it.</description>
+      <dc:creator>Sviatoslav Foshchii</dc:creator>
+      <pubDate>Sun, 23 Aug 2026 00:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
