@@ -1,0 +1,30 @@
+# Checks the site for broken links and anchors, invalid structured data,
+# canonical/sitemap/feed mistakes and JavaScript syntax errors.
+# Runs on every pull request, and before every deploy (deploy-pages.yml calls
+# it), so a broken change never goes live.
+# Run the same checks locally with: python3 .github/scripts/check_site.py
+name: Check site
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # alive.js is an ES module; Node 22 detects that on its own when
+      # syntax-checking it.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Check site
+        run: python3 .github/scripts/check_site.py

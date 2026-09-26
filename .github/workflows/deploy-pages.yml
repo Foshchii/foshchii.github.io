@@ -18,7 +18,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Nothing is published unless the site checks pass (see check.yml).
+  check:
+    uses: ./.github/workflows/check.yml
+
   deploy:
+    needs: check
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
