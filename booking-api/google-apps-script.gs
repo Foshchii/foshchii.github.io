@@ -10,7 +10,7 @@
  * Endpoints (the widget calls these):
  *   GET .../exec?action=availability&date=YYYY-MM-DD&duration=30 → { ok, slots: [ISO,…] }
  *   GET .../exec?action=book&name=…&email=…&start=…&end=…       → { ok, booked }
- *   GET .../exec?action=health                                  → { ok, google, icloud }
+ *   GET .../exec?action=health                                  → { ok, version, google, icloud, mail }
  *   GET .../exec?action=issue&kind=…&message=…                  → sends an alert email
  *
  * WHY THIS DESIGN: Apps Script runs AS YOU (free Google calendar access, no API
@@ -43,6 +43,12 @@ var CONFIG = {
   daysAhead: 21,
   bufferMin: 60                 // don't offer slots within the next hour
 };
+
+/* Which copy of this file is deployed. action=health reports it, and a daily
+ * check compares it with the repo's copy, because the live web app runs
+ * whatever was last deployed, not what the repo says. Derived from the code:
+ * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
+var VERSION = "e6adb11a8d21";
 
 /* ----------------------------- routing ----------------------------- *
  * Browsers can't read a normal fetch() response from Apps Script (it sends no
@@ -188,6 +194,7 @@ function health() {
   var out = {
     ok: true,
     service: "SF Booking (Google + iCloud)",
+    version: VERSION,
     timezone: CONFIG.timezone,
     checkedAt: new Date().toISOString(),
     google: [],
