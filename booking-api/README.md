@@ -30,8 +30,8 @@ availability cannot be confirmed, this site quietly hides the booking block,
 booking CTAs and booking-related proof items for a few hours instead of showing
 possibly wrong slots. The backend also emails `CONFIG.notificationEmail` when
 availability, booking or health checks fail. If Apps Script itself is
-unreachable, the browser cannot send an automatic email, so the quiet site
-fallback is the guardrail.
+unreachable, neither the browser nor the script can send that email, so a
+[daily check](#daily-check) on GitHub looks for exactly that.
 
 > Why not pure CalDAV for iCloud? Apps Script can't send the `PROPFIND`/`REPORT`
 > methods CalDAV needs. The published-feed + guest-invite approach is the
@@ -91,7 +91,9 @@ issue alert email and the website widget will block live booking.
 > **Re-deploying after a code change.** Editing the script does **not** update
 > the live web app on its own. Go to **Deploy → Manage deployments →** (pencil
 > to edit the active one) **→ Version: New version → Deploy**. The `/exec` URL
-> stays the same, so you don't need to touch `contact.html` again.
+> stays the same, so you don't need to touch `contact.html` again. Make the
+> change in this repo first — see [Keep this file and the deployment in
+> sync](#keep-this-file-and-the-deployment-in-sync).
 
 > **Why JSONP / GET?** Browsers can't read a normal `fetch()` response from
 > Apps Script (it returns no CORS headers and 302-redirects). So the widget
@@ -140,11 +142,46 @@ booking.
 ### Keep this file and the deployment in sync
 
 The live `/exec` URL runs whatever was last pasted into the Apps Script editor
-and deployed as a new version — **not** what is in this repo. This source was
-restored from history after a site rebuild dropped it, so treat the editor and
-this file as two copies that drift: after changing either one, paste it across
-and re-deploy. `action=health` is the quickest proof they match — it reports
-`endpoints` and `mail`, both of which only exist in this version.
+and deployed as a new version — **not** what is in this repo, and the two have
+drifted before. So change the code here, never only in the editor, and after
+each change:
+
+1. Run `python3 .github/scripts/stamp_backend_version.py`. It sets `VERSION`
+   in the script from the code itself; the site check fails until you do.
+2. Paste the whole file into the editor, save, and run `testHealth` there,
+   approving any new permission it asks for.
+3. **Deploy → Manage deployments →** pencil on the site's deployment **→
+   Version: New version → Deploy**.
+
+`action=health` reports the deployed `version`, which must equal `VERSION` in
+this file. If it doesn't, or the reply has no `version` at all, the editor or
+the deployment is out of date. The daily check compares them for you.
+
+## Daily check
+
+`.github/workflows/booking-health.yml` runs `.github/scripts/check_booking.py`
+every morning at 06:17 UTC. It calls the backend in `contact.html`'s `data-api`
+the way the widget does, and fails when:
+
+- it doesn't answer, or answers with a Google sign-in, "Authorization needed" or
+  error page instead of data
+- `action=health` reports Google Calendar, the iCloud feed or mail as broken, or
+  iCloud as not connected
+- the deployed `version` differs from `VERSION` in this file
+- `action=availability` for the next working day returns no list of slots
+
+It tries three times over a minute first, so a blip is not reported as an
+outage. A failed run is GitHub's email to you, sent to the account that added
+or last changed the schedule (**Settings → Notifications → Actions** if it
+doesn't arrive); the run's log says what failed and what to do.
+
+Run it any time from **Actions → Check booking backend → Run workflow**, or
+locally with `python3 .github/scripts/check_booking.py`. Pass an `/exec` URL
+to check a deployment before pointing the site at it.
+
+GitHub pauses scheduled workflows in a public repository after 60 days without
+commits, and emails a warning first. The site keeps working; turn the check
+back on from the Actions tab.
 
 ---
 
@@ -173,13 +210,15 @@ The widget treats the booking as successful only when `booked` is `true`.
 **`GET {api}?action=health&callback=fn`**
 ```js
 fn({ "ok": true,
+     "version": "e6adb11a8d21",
      "google": [{ "id": "primary", "ok": true }],
      "icloud": { "configured": true, "ok": true },
      "mail":   { "ok": true, "remainingQuota": 97 } })
 ```
 `mail` is the one to read first when booking fails but availability works:
 invites and alerts both go out by mail, so a revoked scope or a spent quota
-takes out exactly those two paths.
+takes out exactly those two paths. `version` says which copy of the script is
+deployed; the daily check fails when it is not this repo's.
 
 **`GET {api}?action=issue&kind=availability&message=...&callback=fn`**
 ```js
@@ -205,7 +244,7 @@ defaults to `book`.
      data-strict-live="true"
      data-failure-mode="hide"
      data-api="https://script.google.com/macros/s/XXXX/exec"></div>
-<script src="https://foshchii.github.io/sv_resume/assets/js/booking-widget.js" defer></script>
+<script src="https://foshchii.com/assets/js/booking-widget.js" defer></script>
 ```
 
 One Apps Script backend can serve all of your sites.

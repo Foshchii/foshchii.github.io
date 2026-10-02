@@ -15,6 +15,7 @@ invisible until someone hits them on the live site:
   - pages missing from sitemap.xml, or sitemap and llms.txt entries that point
     at nothing
   - feed.xml out of date with the articles
+  - the booking backend's VERSION out of date with its code
   - JavaScript syntax errors
 """
 
@@ -31,6 +32,7 @@ from urllib.parse import unquote, urlsplit
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_feed  # noqa: E402
+import stamp_backend_version  # noqa: E402
 
 ROOT = build_feed.ROOT
 SITE = build_feed.SITE
@@ -199,6 +201,19 @@ def check_feed():
         fail("feed.xml", 1, "out of date with the articles; run: python3 .github/scripts/build_feed.py")
 
 
+def check_backend_version():
+    script = stamp_backend_version.SCRIPT
+    try:
+        text = stamp_backend_version.read()
+        m = stamp_backend_version.find(text)
+    except (OSError, ValueError) as e:
+        fail(script, 1, str(e))
+        return
+    if m.group(1) != stamp_backend_version.version(text):
+        fail(script, text[: m.start()].count("\n") + 1,
+             "VERSION is out of date with the code; run: python3 .github/scripts/stamp_backend_version.py")
+
+
 def check_js():
     node = shutil.which("node")
     if not node:
@@ -223,6 +238,7 @@ def main():
     check_sitemap(pages)
     check_llms()
     check_feed()
+    check_backend_version()
     scripts = check_js()
 
     annotate = os.environ.get("GITHUB_ACTIONS") == "true"
@@ -234,7 +250,7 @@ def main():
         print(f"\n{len(errors)} problem(s) found.")
         return 1
     print(f"ok: {len(pages)} pages, {refs} internal links, {blocks} JSON-LD blocks, "
-          f"{scripts} scripts, sitemap, llms.txt and feed all check out.")
+          f"{scripts} scripts, sitemap, llms.txt, feed and backend version all check out.")
     return 0
 
 

@@ -1,0 +1,39 @@
+# Checks every morning that the live booking backend (the Google Apps Script
+# web app in contact.html's data-api) answers, can read both calendars and send
+# mail, and runs the same code as booking-api/google-apps-script.gs.
+# Neither the site nor a broken backend can raise that alarm themselves, so
+# this runs on GitHub, and a failed run is GitHub's email to you.
+#
+# Run it now: Actions → Check booking backend → Run workflow.
+# Run it locally: python3 .github/scripts/check_booking.py
+#
+# GitHub pauses scheduled workflows in a public repository after 60 days
+# without commits, and emails a warning first. The site stays up either way;
+# re-enable this from the Actions tab.
+name: Check booking backend
+
+on:
+  schedule:
+    # 06:17 UTC: 08:17 in Copenhagen in summer, 07:17 in winter. Off the hour,
+    # when GitHub's scheduled runs are most often delayed.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  # Test changes to the check itself against the live backend.
+  pull_request:
+    paths:
+      - .github/workflows/booking-health.yml
+      - .github/scripts/check_booking.py
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check booking backend
+        run: python3 .github/scripts/check_booking.py
