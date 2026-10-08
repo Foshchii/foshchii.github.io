@@ -139,6 +139,34 @@ the day's availability before showing an error, so an event that was created
 server-side is not reported as a failure the visitor will retry into a double
 booking.
 
+### Slots are slow to appear, or time out on the first click
+
+This backend is not fast. It cold-starts like any Apps Script, and every
+availability call reads both calendars. A first request after an idle spell can
+take long enough that the browser gives up, while an identical second one
+returns instantly — which is what "did not answer in time" means when a retry
+then works.
+
+Three things now absorb that, so a visitor should not see it:
+
+- **The widget retries once by itself.** A read that comes back silent is
+  retried with a longer timeout, showing "the calendar service is waking up"
+  rather than an error. Only reads — `book` writes, so it is never retried;
+  a lost booking reply re-checks availability instead (above).
+- **The widget warms the backend on page load.** `action=health` fires when the
+  contact page mounts, so the instance is usually awake by the time someone
+  picks a day — and the iCloud cache is already primed.
+- **The iCloud feed is cached for `ICS_CACHE_SECONDS` (5 minutes).** It used to
+  be re-downloaded and re-parsed on *every* availability call, which was the
+  bulk of the latency. The trade: a slot can stay on offer for up to the TTL
+  after something lands on the iCloud calendar. Lower it if that matters more
+  than speed. A feed over 100KB exceeds what `CacheService` accepts and simply
+  stays uncached, logging a line rather than failing.
+
+If slots are still slow with all three in place, time `action=health` directly
+in a browser. Several seconds there means the calendars themselves are slow to
+read, not the widget.
+
 ### Keep this file and the deployment in sync
 
 The live `/exec` URL runs whatever was last pasted into the Apps Script editor
