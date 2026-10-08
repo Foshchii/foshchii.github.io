@@ -5,7 +5,8 @@
 > migrations, marketing operations continuity, and running delivery so that
 > business-as-usual work does not break while systems change underneath it.
 
-Goes by Sviat. Personal site. Static, no tracking. Contact: sviatoslav@foshchii.com
+Goes by Sviat. In Ukrainian: Святослав Фощій; in Russian: Святослав Фощий.
+Personal site. Static, no tracking. Contact: sviatoslav@foshchii.com
 
 ## Pages
 
