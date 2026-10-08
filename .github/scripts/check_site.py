@@ -12,6 +12,7 @@ invisible until someone hits them on the live site:
     silently ignore
   - a canonical or og:url that does not match the page, as happens when a new
     page is copied from an old one
+  - a <title> without the full name, which is what people search for
   - pages missing from sitemap.xml, or sitemap and llms.txt entries that point
     at nothing
   - feed.xml out of date with the articles
@@ -37,6 +38,7 @@ import stamp_backend_version  # noqa: E402
 ROOT = build_feed.ROOT
 SITE = build_feed.SITE
 NOT_INDEXED = {"404.html"}
+NAME = "Sviatoslav Foshchii"
 EXTERNAL = re.compile(r"^([a-z][a-z0-9+.-]*:|//)", re.I)
 
 errors = []
@@ -55,7 +57,9 @@ class Page(HTMLParser):
         self.jsonld = []     # (line, text)
         self.canonical = []
         self.og_url = []
+        self.title = []
         self._script = None  # (line, type, [chunks]) while inside <script>
+        self._in_title = False
 
     def handle_starttag(self, tag, attrs):
         line = self.getpos()[0]
@@ -75,12 +79,18 @@ class Page(HTMLParser):
             self.og_url.append(a.get("content"))
         if tag == "script":
             self._script = (line, a.get("type", ""), [])
+        if tag == "title":
+            self._in_title = True
 
     def handle_data(self, data):
         if self._script:
             self._script[2].append(data)
+        if self._in_title:
+            self.title.append(data)
 
     def handle_endtag(self, tag):
+        if tag == "title":
+            self._in_title = False
         if tag != "script" or not self._script:
             return
         line, kind, chunks = self._script
@@ -160,6 +170,12 @@ def check_canonical(pages):
                 fail(name, 1, f"{label} should be {want} (found: {found})")
 
 
+def check_titles(pages):
+    for name, page in pages.items():
+        if name not in NOT_INDEXED and NAME not in "".join(page.title):
+            fail(name, 1, f"<title> should include '{NAME}' (found: {''.join(page.title) or 'none'})")
+
+
 def check_sitemap(pages):
     try:
         root = ET.parse(ROOT / "sitemap.xml").getroot()
@@ -235,6 +251,7 @@ def main():
     refs = check_references(pages)
     blocks = check_jsonld(pages)
     check_canonical(pages)
+    check_titles(pages)
     check_sitemap(pages)
     check_llms()
     check_feed()
