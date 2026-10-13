@@ -48,7 +48,7 @@ var CONFIG = {
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "e6adb11a8d21";
+var VERSION = "2bbdb7a86caf";
 
 /* ----------------------------- routing ----------------------------- *
  * Browsers can't read a normal fetch() response from Apps Script (it sends no
@@ -257,10 +257,33 @@ function icloudBusy(start, end) {
   if (!url) return [];
   url = url.replace(/^webcal:/i, "https:");
   try {
-    var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
-    if (res.getResponseCode() >= 300) throw new Error("iCloud feed HTTP " + res.getResponseCode());
-    return parseIcsBusy(res.getContentText(), start, end);
+    return parseIcsBusy(icloudFeed(url), start, end);
   } catch (err) { throw new Error("iCloud availability unavailable: " + safeError(err)); }
+}
+
+/* Downloading and parsing the whole published feed on every availability call
+ * is the bulk of this script's latency, and why a first request could take
+ * long enough for the widget to give up on it. Cache the raw text briefly.
+ * The cost is that a slot can stay on offer for up to the TTL after something
+ * lands on the iCloud calendar; booking's own conflict check still catches the
+ * Google side, and the window is shorter than anyone's booking flow. */
+var ICS_CACHE_SECONDS = 300;
+
+function icloudFeed(url) {
+  var cache = CacheService.getScriptCache();
+  var key = "sfb_ics_" + Utilities.base64EncodeWebSafe(url).slice(0, 100);
+  var hit = cache.get(key);
+  if (hit) return hit;
+
+  var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+  if (res.getResponseCode() >= 300) throw new Error("iCloud feed HTTP " + res.getResponseCode());
+  var text = res.getContentText();
+  // CacheService refuses values over 100KB; a calendar that big simply keeps
+  // the old uncached behaviour rather than failing the request.
+  try { cache.put(key, text, ICS_CACHE_SECONDS); } catch (e) {
+    Logger.log("iCloud feed too large to cache (" + text.length + " chars)");
+  }
+  return text;
 }
 
 function parseIcsBusy(text, rangeStart, rangeEnd) {

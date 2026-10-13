@@ -304,6 +304,21 @@
       return parseLiveSlots(j.slots);
     }
 
+    // Apps Script cold-starts, and re-reads both calendars on every call, so a
+    // first request after an idle spell is routinely slow enough to time out
+    // while an identical second one succeeds — which is a visitor being shown
+    // an error and told to click "Try again". Do that retry for them.
+    // Only ever for reads: `book` writes, so retrying it could double-book.
+    async function loadAvailabilityRetrying(date, onRetry) {
+      try {
+        return await loadAvailability(date, cfg.strictLive ? 12000 : 9000);
+      } catch (e) {
+        if (!lostReply(e)) throw e;   // a real answer, not silence — don't repeat it
+        if (onRetry) onRetry();
+        return await loadAvailability(date, 20000);
+      }
+    }
+
     // Transport failures only: the request went out and nothing readable came
     // back, so the write may or may not have happened. An application error
     // from the backend ("that time was just taken") is a definite answer and
@@ -455,7 +470,9 @@
         var wrap = side.querySelector(".sfb-slotlist-wrap");
         if (wrap) wrap.innerHTML = '<p class="sfb-loading">Checking live calendar availability...</p>';
         try {
-          paintSlots(await loadAvailability(state.date));
+          paintSlots(await loadAvailabilityRetrying(state.date, function () {
+            if (wrap) wrap.innerHTML = '<p class="sfb-loading">Still checking — the calendar service is waking up...</p>';
+          }));
         } catch (e) {
           if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
           var strictMessage = readableError(e);
@@ -478,7 +495,7 @@
 
       if (cfg.api) {
         try {
-          paintSlots(await loadAvailability(state.date));
+          paintSlots(await loadAvailabilityRetrying(state.date));
         } catch (e) {
           var fallbackWrap = side.querySelector(".sfb-slotlist-wrap");
           var fallbackMessage = readableError(e);
@@ -640,7 +657,20 @@
       el.querySelector("#sfb-again").onclick = function () { state.date = null; state.slot = null; render(); };
     }
 
+    // The slow call is the first one after the backend has gone idle. The
+    // visitor spends seconds reading the page and picking a day before they
+    // click one, so spend that time waking the service up — and priming its
+    // calendar cache — rather than making them wait once they do. Best effort:
+    // a failure here is silent, because the real call reports properly.
+    // page-boot.js re-inits a wiped widget, so only warm once per page.
+    function warmBackend() {
+      if (!cfg.api || window.__sfbWarmed) return;
+      window.__sfbWarmed = true;
+      jsonp(cfg.api.replace(/\/$/, "") + "?action=health", 20000).catch(function () {});
+    }
+
     render();
+    warmBackend();
   }
 
   function initAll() {
