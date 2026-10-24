@@ -76,6 +76,8 @@ test alert email.
    ```html
    <div class="sf-booking" ... data-api="https://script.google.com/macros/s/XXXX/exec"></div>
    ```
+   `psychology/contact.html` books against the same backend (as a 20-minute
+   "First call … (counselling)"), so set the same URL there too.
 
 Done — the widget now merges both calendars and books into both.
 
