@@ -4,8 +4,9 @@ JavaScript syntax check.
 
     python3 .github/scripts/check_site.py
 
-Catches the mistakes that are easy to make when adding or editing a page and
-invisible until someone hits them on the live site:
+Covers every .html page, in subfolders (psychology/) as well as at the top
+level. Catches the mistakes that are easy to make when adding or editing a page
+and invisible until someone hits them on the live site:
   - links, images, scripts and stylesheets that point at a missing file, and
     #anchors that point at a missing id
   - structured data (JSON-LD) that is not valid JSON, which search engines
@@ -111,7 +112,22 @@ def parse(name):
 
 
 def url_for(page):
-    return SITE if page == "index.html" else SITE + page
+    """The public URL of a page: a folder's index.html is served as the folder."""
+    if page == "index.html" or page.endswith("/index.html"):
+        return SITE + page[: -len("index.html")]
+    return SITE + page
+
+
+def html_pages():
+    """Every .html file in the site, top level and subfolders (psychology/),
+    keyed by its path relative to ROOT. Hidden folders such as .git, and a local
+    node_modules, are skipped."""
+    found = []
+    for p in ROOT.rglob("*.html"):
+        rel = p.relative_to(ROOT)
+        if not any(part.startswith(".") or part == "node_modules" for part in rel.parts):
+            found.append(rel.as_posix())
+    return sorted(found)
 
 
 def page_for(url):
@@ -247,7 +263,7 @@ def check_js():
 
 
 def main():
-    pages = {p.name: parse(p.name) for p in sorted(ROOT.glob("*.html"))}
+    pages = {name: parse(name) for name in html_pages()}
     refs = check_references(pages)
     blocks = check_jsonld(pages)
     check_canonical(pages)
