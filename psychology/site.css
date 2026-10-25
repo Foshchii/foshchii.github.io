@@ -323,3 +323,15 @@ figure { margin: 0; }
   .letter { padding: 24px 22px; }
   .foot { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* small phones: a tighter header, so the brand and button still share
+   the first row and all four links fit on the second */
+@media (max-width: 370px) {
+  .brand-name { font-size: 16px; }
+  .nav-cta { padding: 10px 14px; font-size: 14px; }
+  .nav { gap: 6px 16px; }
+}
+@media (max-width: 340px) {
+  .nav { gap: 6px 12px; }
+  .nav a { font-size: 14px; }
+}
