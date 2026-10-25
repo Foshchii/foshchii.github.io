@@ -12,6 +12,7 @@
           data-workdays="1,2,3,4,5"      // 0=Sun … 6=Sat
           data-start="09:00" data-end="17:00"
           data-days-ahead="21"
+          data-message-label="…"         // optional: label for the free-text field
           data-api=""                    // optional backend base URL (see /booking-api)
           data-strict-live="true"        // connected mode blocks booking if live availability fails
           data-failure-mode="show">      // "show" displays an error; "hide" lets the site quietly remove booking
@@ -55,7 +56,7 @@
     text-transform:uppercase;letter-spacing:.05em;padding:.3rem 0}
   .sfb-day{aspect-ratio:1;min-width:0;display:grid;place-items:center;border:0;border-radius:0;cursor:pointer;
     background:transparent;color:var(--sfb-text);font:inherit;font-size:.9rem;font-weight:500;position:relative}
-  .sfb-day:hover:not([disabled]){background:var(--sfb-bg);box-shadow:inset 0 0 0 1px var(--sfb-accent)}
+  .sfb-day:hover:not([disabled]):not(.is-active){background:var(--sfb-bg);box-shadow:inset 0 0 0 1px var(--sfb-accent)}
   .sfb-day[disabled]{color:var(--sfb-muted);opacity:.35;cursor:default}
   .sfb-day.is-today{box-shadow:inset 0 0 0 1px var(--sfb-border)}
   .sfb-day.is-active{background:var(--sfb-accent);color:var(--sfb-accent-ink)}
@@ -204,6 +205,7 @@
       end: el.dataset.end || "17:00",
       step: parseInt(el.dataset.slotStep || "30", 10),
       daysAhead: parseInt(el.dataset.daysAhead || "21", 10),
+      messageLabel: el.dataset.messageLabel || "What's it about? (optional)",
       api: (el.dataset.api || "").trim(),
       strictLive: el.dataset.strictLive !== "false",
       failureMode: el.dataset.failureMode || "show"
@@ -510,9 +512,9 @@
       side.innerHTML =
         '<button class="sfb-link" style="text-align:left;width:auto;padding:.2rem 0;margin-bottom:.6rem">‹ Back to times</button>' +
         '<div class="sfb-summary"><span>📅</span><div><b>' + esc(cfg.title) + '</b><br>' + when + ' · ' + state.duration + ' min</div></div>' +
-        '<div class="sfb-field"><label>Your name</label><input id="sfb-n" autocomplete="name" required></div>' +
-        '<div class="sfb-field"><label>Your email</label><input id="sfb-e" type="email" autocomplete="email" required></div>' +
-        '<div class="sfb-field"><label>What\'s it about? (optional)</label><textarea id="sfb-m" rows="3"></textarea></div>' +
+        '<div class="sfb-field"><label for="sfb-n">Your name</label><input id="sfb-n" autocomplete="name" required></div>' +
+        '<div class="sfb-field"><label for="sfb-e">Your email</label><input id="sfb-e" type="email" autocomplete="email" required></div>' +
+        '<div class="sfb-field"><label for="sfb-m">' + html(cfg.messageLabel) + '</label><textarea id="sfb-m" rows="3"></textarea></div>' +
         '<button class="sfb-btn" id="sfb-go">Confirm booking</button>';
       side.querySelector(".sfb-link").onclick = renderSide;
       side.querySelector("#sfb-go").onclick = function () { submit(side, start, end); };
