@@ -212,6 +212,16 @@ figure { margin: 0; }
 .entry li + li { margin-top: 6px; }
 .entry li::marker { color: var(--accent); }
 .entry > div > p:not(.where) { max-width: 660px; }
+
+/* certificates: a scan on a soft mat, linking to the full-size image */
+.entry.with-cert { grid-template-columns: 200px minmax(0, 1fr) 260px; }
+.cert { display: block; align-self: start; text-decoration: none; }
+.cert-frame { position: relative; display: block; aspect-ratio: 3 / 2; background: var(--tint); border-radius: 14px; }
+.cert-frame img { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: calc(100% - 28px); max-height: calc(100% - 28px); box-shadow: 0 1px 3px rgba(16, 17, 20, .14), 0 8px 20px rgba(16, 17, 20, .08); transition: transform .2s ease; }
+.cert:hover .cert-frame img { transform: scale(1.03); }
+.cert-cap { display: inline-block; margin-top: 10px; font-size: 14.5px; font-weight: 500; color: var(--accent); }
+.cert:hover .cert-cap { text-decoration: underline; text-underline-offset: 3px; }
+.card .cert { margin-bottom: 22px; }
 .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .tag { background: var(--tint-2); color: var(--ink); font-size: 14px; font-weight: 500; padding: 7px 12px; border-radius: 999px; }
 
@@ -281,10 +291,11 @@ figure { margin: 0; }
 
 /* ---- motion ---- */
 @media (prefers-reduced-motion: reduce) {
-  .btn, .arrow, .faq summary::after { transition: none; }
+  .btn, .arrow, .faq summary::after, .cert-frame img { transition: none; }
 }
 @media (prefers-color-scheme: dark) {
   .photo, .hero-photo img { filter: brightness(0.92); }
+  .cert-frame img { filter: brightness(0.88); }
   /* on the dark page the mark and the footer need an edge to stand on */
   .mark { background: var(--night-2); box-shadow: inset 0 0 0 1px var(--night-line); }
   .site-footer { border-top: 1px solid var(--night-line); }
@@ -300,6 +311,9 @@ figure { margin: 0; }
   .sticky { position: static; }
   .foot { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .foot > div:first-child { grid-column: 1 / -1; }
+  /* the scan moves under the text */
+  .entry.with-cert { grid-template-columns: 200px minmax(0, 1fr); }
+  .entry.with-cert .cert { grid-column: 2; width: 100%; max-width: 340px; }
 }
 
 /* ---- phone ---- */
@@ -319,6 +333,8 @@ figure { margin: 0; }
   dl.facts { padding: 4px 20px; }
   dl.facts div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .entry { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 28px 0; }
+  .entry.with-cert { grid-template-columns: minmax(0, 1fr); }
+  .entry.with-cert .cert { grid-column: auto; max-width: 420px; margin-top: 10px; }
   .night-card { padding: 30px 22px; }
   .letter { padding: 24px 22px; }
   .foot { grid-template-columns: minmax(0, 1fr); }
