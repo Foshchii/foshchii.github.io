@@ -1,7 +1,8 @@
 Fonts in this folder, self-hosted so the site makes no third-party requests:
 
-Piazzolla: Copyright 2018 The Piazzolla Project Authors (https://github.com/huertatipografica/piazzolla)
-Commissioner: Copyright 2019 The Commissioner Project Authors (https://github.com/kosbarts/Commissioner)
+Space Grotesk: Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+Instrument Sans: Copyright 2022 The Instrument Sans Project Authors (https://github.com/Instrument/instrument-sans)
+IBM Plex Mono: Copyright 2017 IBM Corp. All rights reserved.
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
