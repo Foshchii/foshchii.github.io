@@ -18,6 +18,7 @@ and invisible until someone hits them on the live site:
     at nothing
   - feed.xml out of date with the articles
   - the booking backend's VERSION out of date with its code
+  - a security.txt that is missing, malformed or expired
   - JavaScript syntax errors
 """
 
@@ -28,6 +29,7 @@ import shutil
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -222,6 +224,50 @@ def check_llms():
                 fail("llms.txt", n, f"{url} points at {page_for(url)}, which does not exist")
 
 
+SECURITY_TXT = ".well-known/security.txt"
+
+
+def check_security_txt(now=None):
+    """RFC 9116: at least one Contact, exactly one Expires that is in the
+    future (and, as the RFC recommends, under a year away), and a Canonical
+    URL that points back at the file itself."""
+    path = ROOT / SECURITY_TXT
+    if not path.is_file():
+        fail(SECURITY_TXT, 1, "missing; it tells people how to report a security issue")
+        return
+    fields = {}
+    for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        name, sep, value = line.partition(":")
+        if not sep or not name.strip() or " " in name.strip():
+            fail(SECURITY_TXT, n, f"not a 'Field: value' line: {line.strip()}")
+            continue
+        fields.setdefault(name.strip().lower(), []).append((n, value.strip()))
+    if not fields.get("contact"):
+        fail(SECURITY_TXT, 1, "needs at least one Contact: line")
+    expires = fields.get("expires", [])
+    if len(expires) != 1:
+        fail(SECURITY_TXT, expires[1][0] if len(expires) > 1 else 1, "needs exactly one Expires: line")
+    else:
+        n, value = expires[0]
+        try:
+            when = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            when = None
+        now = now or datetime.now(timezone.utc)
+        if when is None or when.tzinfo is None:
+            fail(SECURITY_TXT, n, f"Expires must be a date and time with a zone, like 2027-10-01T00:00:00Z, not {value}")
+        elif when <= now:
+            fail(SECURITY_TXT, n, f"expired on {value}; set Expires to a date less than a year from today")
+        elif when > now + timedelta(days=366):
+            fail(SECURITY_TXT, n, f"Expires {value} is more than a year away; RFC 9116 recommends less than a year")
+    want = SITE + SECURITY_TXT
+    for n, value in fields.get("canonical", []):
+        if value != want:
+            fail(SECURITY_TXT, n, f"Canonical should be {want}, not {value}")
+
+
 def check_feed():
     try:
         want = build_feed.render()
@@ -270,6 +316,7 @@ def main():
     check_titles(pages)
     check_sitemap(pages)
     check_llms()
+    check_security_txt()
     check_feed()
     check_backend_version()
     scripts = check_js()
@@ -283,7 +330,7 @@ def main():
         print(f"\n{len(errors)} problem(s) found.")
         return 1
     print(f"ok: {len(pages)} pages, {refs} internal links, {blocks} JSON-LD blocks, "
-          f"{scripts} scripts, sitemap, llms.txt, feed and backend version all check out.")
+          f"{scripts} scripts, sitemap, llms.txt, security.txt, feed and backend version all check out.")
     return 0
 
 
