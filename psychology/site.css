@@ -73,6 +73,7 @@
   --r-card: 18px;
   --r-field: 12px;
   --section: clamp(80px, 9vw, 132px);
+  --header-h: 74px;          /* the sticky header's height; in-page links land just below it */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 @media (prefers-color-scheme: dark) {
@@ -118,7 +119,7 @@ img { display: block; max-width: 100%; height: auto; }
 figure { margin: 0; }
 :focus-visible { outline: 2.5px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
 #main:focus { outline: none; } /* skip-link target: the whole page, no ring around it */
-[id], .sfb-side { scroll-margin-top: 104px; } /* anchors land below the sticky header */
+[id], .sfb-side { scroll-margin-top: calc(var(--header-h) + 28px); } /* anchors land below the sticky header */
 ::selection { background: var(--selection); color: var(--ink); }
 
 .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding-left: max(var(--gutter), env(safe-area-inset-left, 0px)); padding-right: max(var(--gutter), env(safe-area-inset-right, 0px)); }
@@ -425,6 +426,13 @@ dl.facts dd { margin: 0; color: var(--ink); font-weight: 500; }
 @media (max-width: 980px) {
   :root { --gutter: 28px; }
   .cols, .split, .split.wide-left, .booking-grid { grid-template-columns: minmax(0, 1fr); gap: 44px; }
+  /* booking: the calendar comes straight after the heading, and the details
+     follow it, so "Book a first call" lands on something to tap */
+  .booking-grid { gap: 0; }
+  .booking-grid > div:first-child { display: contents; }
+  .booking-grid .sf-booking { order: 1; margin-top: 28px; }
+  .booking-grid dl.facts { order: 2; margin-top: 36px; }
+  .booking-grid .small { order: 3; }
   .cols-head, .sticky { position: static; }
   .cols-head p:not(.label) { max-width: 560px; }
   /* the hero stacks: words, then the portrait on the panel's bottom edge */
@@ -448,15 +456,22 @@ dl.facts dd { margin: 0; color: var(--ink); font-weight: 500; }
   .entry.with-cert .cert { grid-column: 2; width: 100%; max-width: 340px; }
 }
 
+/* ---- narrow tablets ---- */
+/* the brand and the button share the first row; the links take the second */
+@media (max-width: 800px) {
+  :root { --header-h: 126px; }
+  .nav { order: 3; width: 100%; }
+}
+
 /* ---- phone ---- */
 @media (max-width: 640px) {
   :root { --gutter: 20px; --edge: 8px; --r-panel: 22px; }
   body { font-size: 17px; }
-  /* brand and button share the first row; the links take the second */
+  :root { --header-h: 116px; }
   .bar { column-gap: 12px; padding-top: 12px; padding-bottom: 10px; }
   .brand-role { display: none; }
   .brand-name { font-size: 21px; }
-  .nav { order: 3; width: 100%; gap: 2px 22px; }
+  .nav { gap: 2px 22px; }
   .nav a { font-size: 15px; }
   .hero-copy { padding-top: 40px; }
   .hero .lead { margin-top: 22px; }

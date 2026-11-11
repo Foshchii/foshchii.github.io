@@ -36,11 +36,13 @@
       }
       if (waiting) return;
 
-      // First report for a block that isn't in view: is it on the screen's
-      // bottom edge or above the screen (leave it), or still below (hide it
-      // until it arrives)?
+      // First report for a block that isn't in view. Leave it alone if it has
+      // no box of its own (a wrapper laid out as display: contents), or if it
+      // is on the screen's bottom edge or above the screen. Otherwise it is
+      // still below: hide it until it arrives.
+      var box = entry.boundingClientRect;
       var screen = entry.rootBounds ? entry.rootBounds.height / (1 - EDGE) : window.innerHeight;
-      if (entry.boundingClientRect.top < screen) {
+      if ((box.width === 0 && box.height === 0) || box.top < screen) {
         observer.unobserve(el);
         return;
       }
