@@ -191,8 +191,9 @@ a:hover .arrow, .btn:hover .arrow { transform: translateX(4px); }
 .hero h1 { font-size: clamp(44px, 5.1vw, 72px); }
 .hero h1 em { display: block; } /* the opening phrase keeps a line to itself */
 .hero .lead { margin-top: 28px; max-width: 520px; }
-.trust { list-style: none; max-width: 590px; margin: 44px 0 0; padding: 24px 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px 28px; }
-.trust li { display: flex; align-items: center; gap: 9px; color: var(--body); font-size: 15.5px; font-weight: 500; }
+/* the rule and the three points stop short of the portrait at every width */
+.trust { list-style: none; max-width: min(560px, 100% - 32px); margin: 44px 0 0; padding: 24px 0 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px 24px; }
+.trust li { display: flex; align-items: center; gap: 8px; color: var(--body); font-size: 15px; font-weight: 500; }
 .trust svg { width: 17px; height: 17px; color: var(--accent); flex: none; }
 /* the portrait sits on the panel's bottom edge, as if in the room */
 .hero-figure { grid-column: 3 / 5; align-self: end; justify-self: end; margin-right: -32px; }
@@ -405,8 +406,8 @@ dl.facts dd { margin: 0; color: var(--ink); font-weight: 500; }
 
   /* further down, blocks rise once as they scroll into view; psy-reveal.js
      adds .reveal to blocks below the screen and .is-in when they arrive */
-  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
-  .reveal.is-in { opacity: 1; transform: none; }
+  .reveal { opacity: 0; transform: translateY(22px); }
+  .reveal.is-in { opacity: 1; transform: none; transition: opacity .7s var(--ease), transform .7s var(--ease); }
 }
 @media (prefers-reduced-motion: reduce) {
   .btn, .arrow, .textlink, .nav a::after, .faq summary::after, .cert-frame img, .site-footer li a { transition: none; }
