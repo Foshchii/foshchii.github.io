@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.">
+  <meta name="theme-color" content="#f5f1e8">
+  <title>Guitar Academy · Sviatoslav Foshchii</title>
+  <link rel="canonical" href="https://foshchii.com/guitar/">
+  <meta property="og:url" content="https://foshchii.com/guitar/">
+  <meta property="og:title" content="Guitar Academy · Classical guitar &amp; flamenco">
+  <meta property="og:image" content="https://foshchii.com/guitar/guitar.webp">
+  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
+  <link rel="stylesheet" href="academy.css">
+  <script type="module" src="academy.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="wordmark" href="#home">
+        <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        Guitar Academy
+      </a>
+      <nav aria-label="Main navigation" class="primary-nav">
+        <a href="#home" data-nav="home">Dashboard</a>
+        <a href="#course" data-nav="course">Curriculum</a>
+        <a href="#reading" data-nav="reading">Reading</a>
+        <a href="#technique" data-nav="technique">No nails</a>
+      </nav>
+      <a href="#journal" data-nav="journal" class="journal-link">Practice journal</a>
+    </div>
+  </header>
+  <main id="main" class="shell main" tabindex="-1">
+    <div hidden><span id="home"></span><span id="course"></span><span id="reading"></span><span id="technique"></span><span id="journal"></span><span id="repertoire"></span><span id="progress"></span><span id="settings"></span></div>
+    <div id="app"></div>
+    <noscript>Enable JavaScript to use the course and track your practice. <a href="reading-sheets.pdf">Open the reading sheets</a>.</noscript>
+  </main>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <a href="../">foshchii.com <span aria-hidden="true">↗</span></a>
+      <nav aria-label="More academy pages">
+        <a href="#repertoire">Repertoire</a>
+        <a href="#progress">Progress</a>
+        <a href="#settings">Settings</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
