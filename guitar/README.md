@@ -6,6 +6,7 @@ This static section is served at https://foshchii.com/guitar/ by the portfolio's
 
 - Edit the exported course object in course.js. Module IDs (M01–M12), lesson IDs (L01–L35 and S01–S03) and day numbers are also progress keys. Keep them stable when revising content or replacing a video. Adjust the video ID and the direct watch URL together.
 - The primary video sequence follows the order of Core entries. Supplemental entries appear under their module and in search. The roadmap links to the later alzapúa lesson.
+- Edit support-videos.js for the optional videos shown under technique cards, Music Reading Academy tabs and module learning goals. Add the YouTube ID and publisher metadata to supportVideos, then reference the ID under the appropriate key in supportTopics.
 - Lesson materials link to the instructor's published pages. The reading-sheets PDF contains the academy's original drills. The interactive staff uses treble-clef and rest outlines from Google's Noto Music font, licensed under the SIL Open Font License.
 - Progress, activity checks, and practice notes use localStorage. Settings exports and merges a version-1 JSON backup. Nothing in the app uploads these records. Third-party video loads when the learner selects Play video.
 

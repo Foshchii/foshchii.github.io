@@ -957,44 +957,49 @@ export const course = {
   ],
   "techniques": [
     {
-      "title": "---",
-      "body": "---"
-    },
-    {
       "title": "Free stroke, tirando",
-      "body": "Touch shallowly, release inward and clear the next string. Play string 1 while string 2 is already ringing. Both should ring afterward. Use this as the default for arpeggios and two voices."
+      "body": "Touch shallowly, release inward and clear the next string. Play string 1 while string 2 is already ringing. Both should ring afterward. Use this as the default for arpeggios and two voices.",
+      "id": "free-stroke"
     },
     {
       "title": "Rest stroke, apoyando",
-      "body": "Release through the string and let the finger come to rest against its thicker neighbor. On string 1, finish against string 2. Start with single-note melodies. A rest stroke can stop a neighboring note you want to sustain."
+      "body": "Release through the string and let the finger come to rest against its thicker neighbor. On string 1, finish against string 2. Start with single-note melodies. A rest stroke can stop a neighboring note you want to sustain.",
+      "id": "rest-stroke"
     },
     {
       "title": "Finger alternation and picado",
-      "body": "Alternate index and middle, first on one string with free stroke and later with rest stroke. Start each exercise once with each finger. For picado, use compact rest strokes and work toward even pairs of eighth notes. Expect a softer attack than a nail-led flamenco example."
+      "body": "Alternate index and middle, first on one string with free stroke and later with rest stroke. Start each exercise once with each finger. For picado, use compact rest strokes and work toward even pairs of eighth notes. Expect a softer attack than a nail-led flamenco example.",
+      "id": "picado"
     },
     {
       "title": "Thumb and arpeggios",
-      "body": "Use a small patch of thumb pad. Keep the thumb slightly ahead of the fingers so its path stays clear of the index. Pluck p–i–m–a quietly, one at a time, and let the strings ring. Compare evenness before adding volume or speed."
+      "body": "Use a small patch of thumb pad. Keep the thumb slightly ahead of the fingers so its path stays clear of the index. Pluck p–i–m–a quietly, one at a time, and let the strings ring. Compare evenness before adding volume or speed.",
+      "id": "arpeggios"
     },
     {
       "title": "Rasgueado",
-      "body": "Start with a single light outward index brush on muted strings using soft contact near the fingertip edge. Keep the wrist loose and extend the finger gently. A thumb-pad downstroke and index-pad upstroke give a usable softer accompaniment. The harder back-of-nail click and some multi-finger rolls have a different sound and feel."
+      "body": "Start with a single light outward index brush on muted strings using soft contact near the fingertip edge. Keep the wrist loose and extend the finger gently. A thumb-pad downstroke and index-pad upstroke give a usable softer accompaniment. The harder back-of-nail click and some multi-finger rolls have a different sound and feel.",
+      "id": "rasgueado"
     },
     {
       "title": "Rumba",
-      "body": "Start with alternating down and up brushes through a few strings. Use a gentle string mute for the percussive beat. Keep the hand moving through subdivisions even when it skips the strings. Learn one rhythm before layering more motions."
+      "body": "Start with alternating down and up brushes through a few strings. Use a gentle string mute for the percussive beat. Keep the hand moving through subdivisions even when it skips the strings. Learn one rhythm before layering more motions.",
+      "id": "rumba"
     },
     {
       "title": "Alzapúa",
-      "body": "Months 7–12 after the thumb control test. Isolate a bass note, then practise a tiny down/up thumb brush across two muted strings. Some players find a flesh-only upstroke catches the string. Reduce the contact area and release early. Use an isolated bass note followed by a thumb down and index up if that feels more controlled. That gives a similar rhythmic figure with a different technique."
+      "body": "Months 7–12 after the thumb control test. Isolate a bass note, then practise a tiny down/up thumb brush across two muted strings. Some players find a flesh-only upstroke catches the string. Reduce the contact area and release early. Use an isolated bass note followed by a thumb down and index up if that feels more controlled. That gives a similar rhythmic figure with a different technique.",
+      "id": "alzapua"
     },
     {
       "title": "Golpe",
-      "body": "Learn where the accent falls by clapping or by lightly muting the strings. Use that option on an unprotected guitar top. Traditional golpe commonly strikes a protected area of the soundboard. [Technique reference](https://tolgahancogulu.com/wp-content/uploads/2019/07/Makale3_compressed.pdf)"
+      "body": "Learn where the accent falls by clapping or by lightly muting the strings. Use that option on an unprotected guitar top. Traditional golpe commonly strikes a protected area of the soundboard. [Technique reference](https://tolgahancogulu.com/wp-content/uploads/2019/07/Makale3_compressed.pdf)",
+      "id": "golpe"
     },
     {
       "title": "Tremolo",
-      "body": "Months 7–12 after you can balance bass and treble. Try classical p–a–m–i on open strings, evenly and softly, in four-note groups. Compare two short recordings before increasing the speed. Flamenco five-note tremolo stays an optional later study."
+      "body": "Months 7–12 after you can balance bass and treble. Try classical p–a–m–i on open strings, evenly and softly, in four-note groups. Compare two short recordings before increasing the speed. Flamenco five-note tremolo stays an optional later study.",
+      "id": "tremolo"
     }
   ],
   "dayOne": [

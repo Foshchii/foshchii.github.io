@@ -118,6 +118,17 @@ input[type=checkbox] { width: 18px; height: 18px; margin: 3px 0 0; accent-color:
 .video iframe { width: 100%; height: 100%; border: 0; }
 .video .btn { background: #f0bf86; color: #25170f; }
 .vid-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-top: 10px; }
+.support-videos { margin-top: 20px; }
+.support-videos ul { list-style: none; padding: 0; margin: 7px 0 0; }
+.support-videos li { border-top: 1px solid var(--line); padding: 12px 0; }
+.support-videos li:last-child { padding-bottom: 0; }
+.support-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 10px; }
+.support-row .link { display: inline-block; line-height: 1.4; }
+.support-row p { margin: 4px 0 0; }
+.support-cue { line-height: 1.48; }
+.support-play { border: 1px solid var(--line); border-radius: 6px; min-height: 44px; padding: 5px 9px; background: transparent; color: var(--accent-dark); font-size: .84rem; font-weight: 700; white-space: nowrap; }
+.support-play:hover { background: #eee7d9; border-color: var(--accent); }
+.support-player { margin-top: 10px; }
 .checks { display: grid; gap: 10px; }
 .checks label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; }
 .checks label input { margin-top: 4px; }
@@ -169,5 +180,7 @@ input[type=checkbox] { width: 18px; height: 18px; margin: 3px 0 0; accent-color:
   .footer-inner a, .journal-link { font-size: .83rem; }
   .week-list { grid-template-columns: repeat(4, 1fr); }
   .panel-header h2 { font-size: 2.23rem; }
+  .support-row { grid-template-columns: 1fr; gap: 5px; }
+  .support-play { justify-self: start; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

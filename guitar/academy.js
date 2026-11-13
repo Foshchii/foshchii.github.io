@@ -1,4 +1,5 @@
 import { course } from "./course.js";
+import { supportTopics, supportVideos } from "./support-videos.js";
 import { dateKey, loadProgress, mergeProgress, readProgress, saveProgress } from "./progress.js";
 import { firstScore, newQuestion, readingLevels, readingModes } from "./reading.js";
 
@@ -38,6 +39,25 @@ const pill = (label, good = false) => `<span class="pill${good ? " done" : ""}">
 const panel = (heading, body) => `<section class="panel flow"><h2>${escape(heading)}</h2>${body}</section>`;
 const pdf = '<a class="link" href="reading-sheets.pdf" target="_blank" rel="noopener">Open the reading sheets (PDF) <span aria-hidden="true">↗</span></a>';
 const intro = (title, description = "", kicker = "") => `<div class="page-intro">${kicker ? `<span class="kicker">${escape(kicker)}</span>` : ""}<h1>${escape(title)}</h1>${description ? `<p>${escape(description)}</p>` : ""}</div>`;
+
+function supportingVideos(topic) {
+  const items = supportTopics[topic].map(([id, cue, technique]) => {
+    const video = supportVideos[id];
+    const source = `https://www.youtube.com/watch?v=${id}`;
+    const metadata = [video.channel, video.language, technique].filter(Boolean);
+    return `<li>
+      <div class="support-row">
+        <div>
+          ${ext(source, video.title)}
+          <p class="meta">${metadata.map(escape).join(" · ")}</p>
+          <p class="support-cue">${escape(cue)}</p>
+        </div>
+        <button class="support-play" type="button" data-support-video="${id}" aria-label="Play here: ${escape(video.title)}"><span aria-hidden="true">▶</span> Play here</button>
+      </div>
+    </li>`;
+  });
+  return `<div class="support-videos"><h3>Supporting videos</h3><ul>${items.join("")}</ul></div>`;
+}
 
 function status(module) {
   if (progress.assessments[module.id]) return ["Assessment passed", true];
@@ -192,7 +212,7 @@ function moduleView(module) {
       ${reviews.length ? panel("Optional reviews", lessonList(reviews)) : ""}
       ${panel("Practice", `<p>${rich(module.Play)}</p><p><strong>Common mistake</strong> · ${rich(module["Common error"])}</p>`)}
     </div><aside class="stack">
-      ${panel("Learning goals", `<p>${rich(module.Goal)}</p><p><strong>Prerequisite</strong> · ${rich(module.Prerequisite)}</p><span id="module-status">${pill(...status(module))}</span>`)}
+      ${panel("Learning goals", `<p>${rich(module.Goal)}</p><p><strong>Prerequisite</strong> · ${rich(module.Prerequisite)}</p><span id="module-status">${pill(...status(module))}</span>${supportingVideos(module.id)}`)}
       ${panel("Assessment", `<p>${rich(module.Pass)}</p><div class="callout"><strong>If you need more practice</strong><p>${rich(module.Repair)}</p></div>
         <div class="checks"><label><input type="checkbox" data-assessment="${module.id}"${progress.assessments[module.id] ? " checked" : ""}>Assessment passed</label></div>`)}
     </aside></div>`;
@@ -261,28 +281,34 @@ function dayView(day) {
 function techniqueView() {
   return intro("Playing Without Nails", "Use a small part of the fingertip pad near its edge. Try a slightly different angle if the string catches, then compare the sound at the same volume.") +
     `<div class="grid">
-      ${panel("Hand position and tone", "<p>Keep the wrist relaxed. Let the fingers release toward the palm and return easily. Move slightly toward the soundhole for a rounder tone or toward the bridge for a clearer attack.</p><p>Try four notes on open E at each position, then record both approaches and compare.</p>")}
-      ${panel("Speed and control", "<p>Use compact strokes. Begin with four notes at a time and stop before tension accumulates. Add a few beats per minute only when the movement stays easy.</p><p>When a note scratches, use less pad or change the release angle. When an arpeggio loses a note, check if a neighboring finger touched the string too early.</p>")}
-      ${course.techniques.map(technique => panel(technique.title, `<p>${rich(technique.body)}</p>`)).join("")}
-    </div><section class="panel block-gap"><h2>Technique lessons</h2>${lessonList(["L02", "L03", "L05", "L12", "L28", "L31", "L34", "L35"].map(id => lessons.get(id)))}</section>`;
+      ${panel("Hand position and tone", `<p>Keep the wrist relaxed. Let the fingers release toward the palm and return easily. Move slightly toward the soundhole for a rounder tone or toward the bridge for a clearer attack.</p><p>Try four notes on open E at each position, then record both approaches and compare.</p>${supportingVideos("hand-position")}`)}
+      ${panel("Speed and control", `<p>Use compact strokes. Begin with four notes at a time and stop before tension accumulates. Add a few beats per minute only when the movement stays easy.</p><p>When a note scratches, use less pad or change the release angle. When an arpeggio loses a note, check if a neighboring finger touched the string too early.</p>${supportingVideos("speed-control")}`)}
+      ${course.techniques.map(technique => panel(technique.title, `<p>${rich(technique.body)}</p>${supportingVideos(technique.id)}`)).join("")}
+    </div>`;
 }
 
-function readingView() {
+function readingQuestion() {
   const scored = Boolean(quiz.answers);
-  return intro("Music Reading Academy", "Read the written pitches on a guitar treble staff. Guitar sounds one octave below the written notes.") +
-    `<div class="split"><div class="stack">
-    <section class="panel flow"><h2>Practice</h2>
-      <div class="tabs" aria-label="Reading exercise">${readingModes.map(mode => `<button type="button" class="btn secondary" data-mode="${mode.id}" aria-pressed="${mode.id === reading.mode}">${mode.label}</button>`).join("")}</div>
-      ${["notes", "frets", "melody"].includes(reading.mode) ? `<label class="field">Note range<select id="reading-level">${readingLevels.map(level => `<option value="${level.id}"${level.id === reading.level ? " selected" : ""}>${level.label}</option>`).join("")}</select></label>` : ""}
-      <div id="reading-question" class="flow"><h3>${quiz.prompt}</h3>${quiz.html}
+  return `<h3>${quiz.prompt}</h3>${quiz.html}
       ${scored ? `<div class="answer-options">${quiz.answers.map((option, index) => {
         const chosen = answer === option;
         const correct = answer && quiz.correct.includes(option);
         return `<button type="button" class="btn secondary" data-answer="${index}"${answer ? " disabled" : ""}${correct ? ' data-correct="true"' : chosen ? ' data-wrong="true"' : ""}>${escape(option)}</button>`;
       }).join("")}</div>` : ""}
       ${scored ? `<div class="quiz-feedback" role="status">${answer ? (quiz.correct.includes(answer) ? "Correct." : "Answer: " + escape(quiz.correct[0]) + ".") : ""}</div>` : ""}
-      <div class="actions"><button type="button" class="btn" data-new-question>${scored ? "Next question" : "New score"}${arrow}</button>${scored ? `<span class="meta">${reading.correct} correct out of ${reading.attempts}</span>` : ""}</div></div>
+      <div class="actions"><button type="button" class="btn" data-new-question>${scored ? "Next question" : "New score"}${arrow}</button>${scored ? `<span class="meta">${reading.correct} correct out of ${reading.attempts}</span>` : ""}</div>`;
+}
+
+function readingView() {
+  const topic = readingModes.find(mode => mode.id === reading.mode);
+  return intro("Music Reading Academy", "Read the written pitches on a guitar treble staff. Guitar sounds one octave below the written notes.") +
+    `<div class="split"><div class="stack">
+    <section class="panel flow"><h2>Practice</h2>
+      <div class="tabs" aria-label="Reading exercise">${readingModes.map(mode => `<button type="button" class="btn secondary" data-mode="${mode.id}" aria-pressed="${mode.id === reading.mode}">${mode.label}</button>`).join("")}</div>
+      ${["notes", "frets", "melody"].includes(reading.mode) ? `<label class="field">Note range<select id="reading-level">${readingLevels.map(level => `<option value="${level.id}"${level.id === reading.level ? " selected" : ""}>${level.label}</option>`).join("")}</select></label>` : ""}
+      <div id="reading-question" class="flow">${readingQuestion()}</div>
     </section></div><aside class="stack">
+      ${panel(topic.label, supportingVideos(topic.id))}
       ${panel("Printed practice", `<p>Start with scores A–C and save score H for your first-take assessment.</p>${pdf}`)}
       ${panel("Open-string anchors", "<p>G is on the second line, B on the middle line and high E in the top space. On the guitar these are open strings 3, 2 and 1.</p>")}
     </aside></div>`;
@@ -430,24 +456,42 @@ function nextQuestion(reset = false) {
   if (reset) { reading.attempts = 0; reading.correct = 0; }
 }
 
-function rerenderReading(target) {
-  main.innerHTML = readingView();
+function rerenderReading(target, topicChanged = false) {
+  if (topicChanged) main.innerHTML = readingView();
+  else main.querySelector("#reading-question").innerHTML = readingQuestion();
   main.querySelector(target)?.focus({ preventScroll: true });
 }
 
-function playVideo(button) {
-  const lesson = lessons.get(button.dataset.video);
-  const embed = new URL("https://www.youtube-nocookie.com/embed/" + lesson.video);
+function videoFrame(id, title) {
+  const embed = new URL("https://www.youtube-nocookie.com/embed/" + id);
   embed.searchParams.set("autoplay", "1");
   embed.searchParams.set("playsinline", "1");
   const iframe = document.createElement("iframe");
   iframe.src = embed.href;
-  iframe.title = lesson.title;
+  iframe.title = title;
   iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
   iframe.allowFullscreen = true;
-  button.replaceWith(iframe);
-  iframe.focus();
+  return iframe;
+}
+
+function playVideo(button) {
+  const lesson = lessons.get(button.dataset.video);
+  const frame = videoFrame(lesson.video, lesson.title);
+  button.replaceWith(frame);
+  frame.focus();
+}
+
+function playSupportingVideo(button) {
+  const id = button.dataset.supportVideo;
+  const list = button.closest(".support-videos");
+  list.querySelector(".support-player")?.remove();
+  const frame = videoFrame(id, supportVideos[id].title);
+  const player = document.createElement("div");
+  player.className = "video support-player";
+  player.append(frame);
+  button.closest("li").append(player);
+  frame.focus();
 }
 
 function exportBackup() {
@@ -484,6 +528,7 @@ main.addEventListener("click", event => {
   const button = event.target.closest("button");
   if (!button) return;
   if (button.dataset.video) playVideo(button);
+  if (button.dataset.supportVideo) playSupportingVideo(button);
   if (button.dataset.minutes) {
     progress.minutes = Number(button.dataset.minutes);
     persist("Practice length updated.");
@@ -493,7 +538,7 @@ main.addEventListener("click", event => {
   if (button.dataset.mode) {
     reading.mode = button.dataset.mode;
     nextQuestion(true);
-    rerenderReading(`[data-mode="${reading.mode}"]`);
+    rerenderReading(`[data-mode="${reading.mode}"]`, true);
   }
   if ("answer" in button.dataset && !answer) {
     answer = quiz.answers[Number(button.dataset.answer)];
