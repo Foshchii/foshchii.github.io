@@ -32,6 +32,30 @@
   src: url("assets/fonts/instrument-sans-latin-wght-normal.woff2") format("woff2");
   font-weight: 400 700; font-display: swap;
 }
+/* While Newsreader loads, the home headline is set in the device's own serif,
+   scaled to Newsreader's width, so its lines break the same way and nothing
+   under it moves when the real font arrives. Georgia is on Apple and Windows
+   devices, Noto Serif on Android. */
+@font-face {
+  font-family: "Georgia as Newsreader";
+  src: local("Georgia");
+  font-weight: 400 600; font-style: normal; size-adjust: 93%;
+}
+@font-face {
+  font-family: "Georgia as Newsreader";
+  src: local("Georgia Italic"), local("Georgia-Italic");
+  font-weight: 400 600; font-style: italic; size-adjust: 84%;
+}
+@font-face {
+  font-family: "Noto Serif as Newsreader";
+  src: local("Noto Serif"), local("NotoSerif"), local("NotoSerif-Regular");
+  font-weight: 400 600; font-style: normal; size-adjust: 85%;
+}
+@font-face {
+  font-family: "Noto Serif as Newsreader";
+  src: local("Noto Serif Italic"), local("NotoSerif-Italic");
+  font-weight: 400 600; font-style: italic; size-adjust: 81%;
+}
 
 /* ---- tokens ---- */
 /* Every text/background pair clears WCAG AA (4.5:1) in both schemes. */
@@ -190,8 +214,9 @@ a:hover .arrow, .btn:hover .arrow { transform: translateX(4px); }
 .hero-panel { display: grid; grid-template-columns: minmax(calc(var(--gutter) - var(--edge)), 1fr) minmax(0, calc(var(--max) * 0.55)) minmax(0, calc(var(--max) * 0.45)) minmax(calc(var(--gutter) - var(--edge)), 1fr); min-height: clamp(580px, calc(100svh - 104px), 700px); background: radial-gradient(ellipse 46% 70% at 74% 58%, var(--deep-hi), transparent 72%), var(--deep); }
 .hero-copy { grid-column: 2; align-self: center; padding: 72px 24px 76px 0; }
 /* The headline is set so its first sentence fits on one line at every width,
-   and the second, in italics, starts a line of its own. */
-.hero h1 { font-size: clamp(40px, 4.3vw, 62px); }
+   and the second, in italics, starts a line of its own. Its stand-in fonts
+   (top of the file) keep those breaks while Newsreader loads. */
+.hero h1 { font-family: "Newsreader", "Georgia as Newsreader", "Noto Serif as Newsreader", Georgia, "Times New Roman", serif; font-size: clamp(40px, 4.3vw, 62px); }
 .hero h1 em { display: block; }
 .hero h1 .keep { display: inline-block; } /* a phrase that moves to the next line whole */
 .hero .lead { margin-top: 28px; max-width: 520px; }
