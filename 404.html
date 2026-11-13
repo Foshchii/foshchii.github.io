@@ -53,5 +53,27 @@ footer{padding:24px max(24px,calc((100% - 1440px)/2 + 48px)) 34px;font:400 12px 
   </nav>
 </main>
 <footer>Sviatoslav Foshchii · Copenhagen</footer>
+<script>
+// GitHub Pages has one 404 page for the whole domain. A missing page under
+// /psychology/ belongs to the counselling pages, so send those visitors back
+// there instead of to the consulting pages.
+(function () {
+  if (!/^\/psychology(\/|$)/.test(location.pathname)) return;
+  document.title = "Page not found — Sviatoslav Foshchii, Psychological counselling";
+  var home = document.querySelector("header a");
+  home.href = "/psychology/";
+  home.textContent = "Sviatoslav Foshchii · psychological counselling";
+  document.querySelector(".code").textContent = "page not found";
+  var links = [["/psychology/", "home"], ["/psychology/about.html", "about"], ["/psychology/approach.html", "approach"], ["/psychology/contact.html", "book a first call"]];
+  var nav = document.querySelector("main nav");
+  nav.textContent = "";
+  links.forEach(function (l) {
+    var a = document.createElement("a");
+    a.href = l[0]; a.textContent = l[1];
+    nav.appendChild(a);
+  });
+  document.querySelector("footer").textContent = "Sviatoslav Foshchii · online psychological counselling";
+})();
+</script>
 </body>
 </html>

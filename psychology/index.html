@@ -15,6 +15,7 @@
 <meta name="theme-color" content="#161412" media="(prefers-color-scheme: dark)">
 <meta property="og:url" content="https://foshchii.com/psychology/">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="en_GB">
 <meta property="og:site_name" content="Sviatoslav Foshchii — Psychology">
 <meta property="og:title" content="Online Psychological Counselling — Sviatoslav Foshchii">
 <meta property="og:description" content="A crisis will change you. Counselling helps you choose how. Online psychological counselling in English, Ukrainian or Russian.">
@@ -27,6 +28,7 @@
 {
   "@context": "https://schema.org",
   "@type": "Person",
+  "@id": "https://foshchii.com/psychology/#sviatoslav",
   "name": "Sviatoslav Foshchii",
   "alternateName": [
     "Sviat Foshchii",
@@ -78,6 +80,36 @@
   ]
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Service",
+  "name": "Online psychological counselling",
+  "serviceType": "Psychological counselling",
+  "description": "One-to-one online counselling for adults going through a crisis, a conflict, pressure at work or a fresh start in a new country.",
+  "url": "https://foshchii.com/psychology/",
+  "provider": {
+    "@id": "https://foshchii.com/psychology/#sviatoslav"
+  },
+  "areaServed": {
+    "@type": "Place",
+    "name": "Online"
+  },
+  "audience": {
+    "@type": "PeopleAudience",
+    "suggestedMinAge": 18
+  },
+  "availableChannel": {
+    "@type": "ServiceChannel",
+    "serviceUrl": "https://foshchii.com/psychology/contact.html",
+    "availableLanguage": [
+      "en",
+      "uk",
+      "ru"
+    ]
+  }
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -85,13 +117,19 @@
 <header class="site-header">
   <div class="wrap bar">
     <a class="brand" href="index.html" aria-current="page"><span class="brand-name">Sviatoslav Foshchii</span><span class="brand-role">Psychological counselling</span></a>
-    <nav class="nav" aria-label="Main">
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="menu-text">Menu</span><span class="menu-icon" aria-hidden="true"></span></button>
+    <nav class="nav" id="site-nav" aria-label="Main">
       <a href="about.html">About</a>
       <a href="approach.html">Approach</a>
       <a href="education.html">Background</a>
       <a href="training.html">Training</a>
+      <div class="nav-foot">
+        <p>Or write to <a href="mailto:sviatoslav@foshchii.com?subject=First%20conversation">sviatoslav@foshchii.com</a></p>
+        <p>Online sessions in English, Ukrainian or Russian</p>
+        <p class="nav-note"><b>Not for emergencies.</b> If you’re in danger, call <a href="tel:112"><b>112</b></a>.</p>
+      </div>
     </nav>
-    <a class="btn nav-cta" href="contact.html#book">Book a call</a>
+    <a class="btn nav-cta" href="contact.html#book">Book<span class="cta-more"> a call</span></a>
   </div>
 </header>
 
@@ -233,7 +271,7 @@
         <h2 id="cta-title">Ready when you are.</h2>
       </div>
       <div>
-        <p>The first call is twenty minutes by video, to see whether I’m the right person for what you’re dealing with.</p>
+        <p>The first call is twenty minutes by video, to see whether I’m the right person for what you’re dealing with. There’s no commitment.</p>
         <div class="actions">
           <a class="btn" href="contact.html#book">Book a first call <span class="arrow" aria-hidden="true">→</span></a>
           <a class="btn ghost" href="contact.html#write-title">Prefer to write?</a>
@@ -277,6 +315,6 @@
     <div class="foot-base"><span>© Sviatoslav Foshchii · Psychological counselling</span><span>No cookies, no tracking</span></div>
   </div>
 </footer>
-<script src="../assets/js/psy-reveal.js" defer></script>
+<script src="../assets/js/psy-site.js" defer></script>
 </body>
 </html>

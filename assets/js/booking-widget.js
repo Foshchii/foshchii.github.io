@@ -60,7 +60,9 @@
   .sfb-day[disabled]{color:var(--sfb-muted);opacity:.35;cursor:default}
   .sfb-day.is-today{box-shadow:inset 0 0 0 1px var(--sfb-border)}
   .sfb-day.is-active{background:var(--sfb-accent);color:var(--sfb-accent-ink)}
-  .sfb-slots-title{font-weight:700;margin-bottom:.2rem}
+  .sfb-slots-title{font-weight:700;font-size:1rem;margin:0 0 .2rem}
+  .sfb-slots-title:focus,.sfb-done:focus{outline:none}
+  .sfb-field input[aria-invalid="true"]{border-color:#c2410c}
   .sfb-tz{font-size:.78rem;color:var(--sfb-muted);margin-bottom:1rem}
   .sfb-durations{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem}
   .sfb-dur{padding:.35rem .7rem;border:1px solid var(--sfb-border);background:var(--sfb-bg);border-radius:0;
@@ -104,7 +106,7 @@
   .sfb-success{padding:2.5rem 1.5rem;text-align:center}
   .sfb-check{width:60px;height:60px;border-radius:50%;background:#22c55e;color:#fff;display:grid;place-items:center;
     margin:0 auto 1.1rem;font-size:1.8rem}
-  .sfb-success h3{margin:0 0 .4rem;font-size:1.25rem}
+  .sfb-success .sfb-done{margin:0 0 .4rem;font-size:1.25rem}
   .sfb-success p{color:var(--sfb-muted);margin:.2rem 0}
   @media(max-width:680px){.sfb-grid{grid-template-columns:1fr}.sfb-cal{border-right:0;border-bottom:1px solid var(--sfb-border)}.sfb-slotlist{max-height:220px}}
   @media(prefers-reduced-motion:reduce){.sf-booking *{transition:none!important}}
@@ -208,7 +210,10 @@
       messageLabel: el.dataset.messageLabel || "What's it about? (optional)",
       api: (el.dataset.api || "").trim(),
       strictLive: el.dataset.strictLive !== "false",
-      failureMode: el.dataset.failureMode || "show"
+      failureMode: el.dataset.failureMode || "show",
+      weekStart: el.dataset.weekStart === "1" ? 1 : 0,
+      // the level of the widget's own headings, so they fit the page's outline
+      hl: /^[2-6]$/.test(el.dataset.headingLevel || "") ? el.dataset.headingLevel : "3"
     };
     // data-email may be comma-separated: first = calendar organiser, all = notified.
     cfg.emails = cfg.email.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
@@ -368,32 +373,41 @@
     }
 
     /* ---- renderers ---- */
-    function render() {
+    // Redrawing replaces every button, which would drop keyboard focus to the
+    // top of the page. `focus` names what to focus once the new parts exist.
+    function render(focus) {
       injectStyles();
       el.innerHTML =
         '<div class="sfb-grid">' +
           '<div class="sfb-pane sfb-cal">' + calHTML() + '</div>' +
           '<div class="sfb-pane sfb-side"></div>' +
         '</div>';
-      el.querySelector(".sfb-prev").onclick = function () { shiftMonth(-1); };
-      el.querySelector(".sfb-next").onclick = function () { shiftMonth(1); };
+      el.querySelector(".sfb-prev").onclick = function () { shiftMonth(-1, ".sfb-prev"); };
+      el.querySelector(".sfb-next").onclick = function () { shiftMonth(1, ".sfb-next"); };
       el.querySelectorAll(".sfb-day[data-d]").forEach(function (b) {
         b.onclick = function () { pickDate(new Date(b.dataset.d)); };
       });
       renderSide();
+      if (focus) {
+        var target = el.querySelector(focus);
+        // a month button that is now disabled cannot take focus: use the other one
+        if (target && target.disabled) target = el.querySelector(".sfb-ico:not([disabled])");
+        if (target) target.focus({ preventScroll: true });
+      }
     }
 
     function calHTML() {
       var y = state.view.getFullYear(), m = state.view.getMonth();
-      var first = new Date(y, m, 1), startPad = first.getDay();
+      var first = new Date(y, m, 1), startPad = (first.getDay() - cfg.weekStart + 7) % 7;
+      var dow = DOW.slice(cfg.weekStart).concat(DOW.slice(0, cfg.weekStart));
       var days = new Date(y, m + 1, 0).getDate();
       var today = new Date(); today.setHours(0, 0, 0, 0);
       var minMonth = today.getFullYear() * 12 + today.getMonth();
-      var h = '<div class="sfb-head"><span class="sfb-month">' + MONTHS[m] + " " + y + '</span>' +
+      var h = '<div class="sfb-head"><span class="sfb-month" aria-live="polite">' + MONTHS[m] + " " + y + '</span>' +
         '<span class="sfb-nav">' +
-          '<button class="sfb-ico sfb-prev" aria-label="Previous month"' + ((y * 12 + m) <= minMonth ? " disabled" : "") + '>‹</button>' +
-          '<button class="sfb-ico sfb-next" aria-label="Next month">›</button>' +
-        '</span></div><div class="sfb-dow">' + DOW.map(function (d) { return "<span>" + d + "</span>"; }).join("") + '</div><div class="sfb-days">';
+          '<button type="button" class="sfb-ico sfb-prev" aria-label="Previous month"' + ((y * 12 + m) <= minMonth ? " disabled" : "") + '>‹</button>' +
+          '<button type="button" class="sfb-ico sfb-next" aria-label="Next month">›</button>' +
+        '</span></div><div class="sfb-dow">' + dow.map(function (d) { return '<span aria-hidden="true">' + d + "</span>"; }).join("") + '</div><div class="sfb-days">';
       for (var i = 0; i < startPad; i++) h += "<span></span>";
       for (var dnum = 1; dnum <= days; dnum++) {
         var d = new Date(y, m, dnum); d.setHours(0, 0, 0, 0);
@@ -401,14 +415,20 @@
         var cls = "sfb-day" + (ok ? " has-slots" : "") +
           (state.date && ymd(state.date) === ymd(d) ? " is-active" : "") +
           (ymd(d) === ymd(today) ? " is-today" : "");
-        h += '<button class="' + cls + '" data-d="' + d.toISOString() + '"' + (ok ? "" : " disabled") + ">" + dnum + "</button>";
+        var active = state.date && ymd(state.date) === ymd(d);
+        h += '<button type="button" class="' + cls + '" data-d="' + d.toISOString() + '"' +
+          ' aria-label="' + d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) + (ok ? "" : ", unavailable") + '"' +
+          (ok ? ' aria-pressed="' + (active ? "true" : "false") + '"' : " disabled") +
+          (ymd(d) === ymd(today) ? ' aria-current="date"' : "") + ">" + dnum + "</button>";
       }
       return h + "</div>";
     }
 
-    function shiftMonth(n) { state.view.setMonth(state.view.getMonth() + n); render(); }
+    function shiftMonth(n, focus) { state.view.setMonth(state.view.getMonth() + n); render(focus); }
     function pickDate(d) {
-      state.date = d; state.slot = null; render();
+      // focus moves to the day's heading, so a screen reader hears which day
+      // was picked, and the next Tab reaches its times
+      state.date = d; state.slot = null; render(".sfb-slots-title");
       // On narrow (single-column) layout, scroll the slot panel into view so the user sees it
       if (window.innerWidth <= 680) {
         var side = el.querySelector(".sfb-side");
@@ -419,7 +439,7 @@
     async function renderSide() {
       var side = el.querySelector(".sfb-side");
       if (!state.date) {
-        side.innerHTML = '<div class="sfb-slots-title">Pick a day</div>' +
+        side.innerHTML = '<h' + cfg.hl + ' class="sfb-slots-title" tabindex="-1">Pick a day</h' + cfg.hl + '>' +
           '<div class="sfb-tz">Times shown in ' + visitorTz.replace(/_/g, " ") + '</div>' +
           durHTML() +
           '<div class="sfb-slotlist-wrap"><p class="sfb-empty">Select an available date to see open times.</p></div>';
@@ -428,7 +448,7 @@
       }
       var capturedDate = state.date;
       var label = state.date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-      side.innerHTML = '<div class="sfb-slots-title">' + label + '</div>' +
+      side.innerHTML = '<h' + cfg.hl + ' class="sfb-slots-title" tabindex="-1">' + label + '</h' + cfg.hl + '>' +
         '<div class="sfb-tz">Times shown in ' + visitorTz.replace(/_/g, " ") + '</div>' +
         durHTML() + '<div class="sfb-slotlist-wrap"></div>';
       wireDurations(side);
@@ -443,7 +463,7 @@
         }
         var html = '<div class="sfb-slotlist">';
         slots.forEach(function (s, i) {
-          html += '<button class="sfb-slot" data-i="' + i + '">' +
+          html += '<button type="button" class="sfb-slot" data-i="' + i + '">' +
             s.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + "</button>";
         });
         html += "</div>";
@@ -455,7 +475,7 @@
 
       if (cfg.api && cfg.strictLive) {
         var wrap = side.querySelector(".sfb-slotlist-wrap");
-        if (wrap) wrap.innerHTML = '<p class="sfb-loading">Checking live calendar availability...</p>';
+        if (wrap) wrap.innerHTML = '<p class="sfb-loading" role="status">Checking live calendar availability…</p>';
         try {
           paintSlots(await loadAvailability(state.date));
         } catch (e) {
@@ -493,7 +513,7 @@
     function durHTML() {
       if (cfg.durations.length < 2) return "";
       return '<div class="sfb-durations">' + cfg.durations.map(function (d) {
-        return '<button class="sfb-dur' + (d === state.duration ? " is-active" : "") + '" data-dur="' + d + '">' + d + " min</button>";
+        return '<button type="button" class="sfb-dur' + (d === state.duration ? " is-active" : "") + '" data-dur="' + d + '">' + d + " min</button>";
       }).join("") + "</div>";
     }
     function wireDurations(scope) {
@@ -510,14 +530,26 @@
                  start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + "–" +
                  end.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       side.innerHTML =
-        '<button class="sfb-link" style="text-align:left;width:auto;padding:.2rem 0;margin-bottom:.6rem">‹ Back to times</button>' +
-        '<div class="sfb-summary"><span>📅</span><div><b>' + esc(cfg.title) + '</b><br>' + when + ' · ' + state.duration + ' min</div></div>' +
+        '<button type="button" class="sfb-link" style="text-align:left;width:auto;padding:.2rem 0;margin-bottom:.6rem">‹ Back to times</button>' +
+        '<div class="sfb-summary"><span aria-hidden="true">📅</span><div><b>' + esc(cfg.title) + '</b><br>' + when + ' · ' + state.duration + ' min</div></div>' +
+        '<form class="sfb-form" novalidate>' +
         '<div class="sfb-field"><label for="sfb-n">Your name</label><input id="sfb-n" autocomplete="name" required></div>' +
-        '<div class="sfb-field"><label for="sfb-e">Your email</label><input id="sfb-e" type="email" autocomplete="email" required></div>' +
+        '<div class="sfb-field"><label for="sfb-e">Your email</label><input id="sfb-e" type="email" autocomplete="email" inputmode="email" required></div>' +
         '<div class="sfb-field"><label for="sfb-m">' + html(cfg.messageLabel) + '</label><textarea id="sfb-m" rows="3"></textarea></div>' +
-        '<button class="sfb-btn" id="sfb-go">Confirm booking</button>';
-      side.querySelector(".sfb-link").onclick = renderSide;
-      side.querySelector("#sfb-go").onclick = function () { submit(side, start, end); };
+        '<button type="submit" class="sfb-btn" id="sfb-go">Confirm booking</button>' +
+        '</form>';
+      side.querySelector(".sfb-link").onclick = function () {
+        renderSide().then(function () {
+          var t = side.querySelector(".sfb-slot") || side.querySelector(".sfb-slots-title");
+          if (t) t.focus();
+        });
+      };
+      side.querySelector(".sfb-form").onsubmit = function (e) {
+        e.preventDefault();
+        var go = side.querySelector("#sfb-go");
+        if (!go.disabled) submit(side, start, end);
+      };
+      side.querySelector("#sfb-n").focus({ preventScroll: window.innerWidth > 680 });
     }
 
     async function submit(side, start, end) {
@@ -526,11 +558,15 @@
       var msg = side.querySelector("#sfb-m").value.trim();
       var oldError = side.querySelector(".sfb-booking-error");
       if (oldError) oldError.remove();
-      if (!name || !/.+@.+\..+/.test(email)) {
+      var nameOk = !!name, emailOk = /.+@.+\..+/.test(email);
+      side.querySelector("#sfb-n").setAttribute("aria-invalid", nameOk ? "false" : "true");
+      side.querySelector("#sfb-e").setAttribute("aria-invalid", emailOk ? "false" : "true");
+      if (!nameOk || !emailOk) {
         side.querySelector("#sfb-go").insertAdjacentHTML(
           "beforebegin",
           '<div class="sfb-status sfb-status--error sfb-booking-error" role="alert"><strong>Check the form</strong><p>Please enter your name and a valid email.</p></div>'
         );
+        side.querySelector(nameOk ? "#sfb-e" : "#sfb-n").focus();
         return;
       }
       var btn = side.querySelector("#sfb-go"); btn.disabled = true; btn.textContent = "Booking…";
@@ -624,8 +660,8 @@
     // instead of implying a clean acknowledgement.
     function success(start, end, name, email, msg, live, late) {
       el.innerHTML = '<div class="sfb-success">' +
-        '<div class="sfb-check">✓</div>' +
-        '<h3>' + (live ? "You're booked!" : "Booking requested!") + '</h3>' +
+        '<div class="sfb-check" aria-hidden="true">✓</div>' +
+        '<h' + cfg.hl + ' class="sfb-done" tabindex="-1">' + (live ? "You're booked!" : "Booking requested!") + '</h' + cfg.hl + '>' +
         '<p>' + start.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }) +
           " at " + start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) + '</p>' +
         '<p>' + (live
@@ -635,11 +671,12 @@
           ? '<p>The confirmation came back late, so the slot is held but unacknowledged. If no invite reaches you within a few minutes, email ' +
             html(cfg.organizer) + ' to check.</p>'
           : "") +
-        '<button class="sfb-btn" id="sfb-ics" style="max-width:260px;margin:1.2rem auto 0">Add to my calendar (.ics)</button>' +
-        '<button class="sfb-link" id="sfb-again">Book another time</button>' +
+        '<button type="button" class="sfb-btn" id="sfb-ics" style="max-width:260px;margin:1.2rem auto 0">Add to my calendar (.ics)</button>' +
+        '<button type="button" class="sfb-link" id="sfb-again">Book another time</button>' +
       '</div>';
       el.querySelector("#sfb-ics").onclick = function () { downloadICS(start, end, name, email, msg); };
-      el.querySelector("#sfb-again").onclick = function () { state.date = null; state.slot = null; render(); };
+      el.querySelector("#sfb-again").onclick = function () { state.date = null; state.slot = null; render(".sfb-day.has-slots"); };
+      el.querySelector(".sfb-done").focus();
     }
 
     render();

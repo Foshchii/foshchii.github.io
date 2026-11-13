@@ -15,6 +15,7 @@
 <meta name="theme-color" content="#161412" media="(prefers-color-scheme: dark)">
 <meta property="og:url" content="https://foshchii.com/psychology/contact.html">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="en_GB">
 <meta property="og:site_name" content="Sviatoslav Foshchii — Psychology">
 <meta property="og:title" content="Book a First Call — Sviatoslav Foshchii, Psychological Counselling">
 <meta property="og:description" content="Book a twenty-minute first call by video, or write. Online counselling in English, Ukrainian or Russian.">
@@ -23,6 +24,41 @@
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Sviatoslav Foshchii — online psychological counselling">
 <meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "url": "https://foshchii.com/psychology/contact.html",
+  "name": "Book a First Call — Sviatoslav Foshchii, Psychological Counselling",
+  "about": {
+    "@type": "Person",
+    "@id": "https://foshchii.com/psychology/#sviatoslav",
+    "name": "Sviatoslav Foshchii",
+    "url": "https://foshchii.com/psychology/",
+    "email": "mailto:sviatoslav@foshchii.com"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Psychological counselling",
+      "item": "https://foshchii.com/psychology/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Book a call",
+      "item": "https://foshchii.com/psychology/contact.html"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -30,31 +66,30 @@
 <header class="site-header">
   <div class="wrap bar">
     <a class="brand" href="index.html"><span class="brand-name">Sviatoslav Foshchii</span><span class="brand-role">Psychological counselling</span></a>
-    <nav class="nav" aria-label="Main">
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav"><span class="menu-text">Menu</span><span class="menu-icon" aria-hidden="true"></span></button>
+    <nav class="nav" id="site-nav" aria-label="Main">
       <a href="about.html">About</a>
       <a href="approach.html">Approach</a>
       <a href="education.html">Background</a>
       <a href="training.html">Training</a>
+      <div class="nav-foot">
+        <p>Or write to <a href="mailto:sviatoslav@foshchii.com?subject=First%20conversation">sviatoslav@foshchii.com</a></p>
+        <p>Online sessions in English, Ukrainian or Russian</p>
+        <p class="nav-note"><b>Not for emergencies.</b> If you’re in danger, call <a href="tel:112"><b>112</b></a>.</p>
+      </div>
     </nav>
-    <a class="btn nav-cta" href="contact.html#book" aria-current="page">Book a call</a>
+    <a class="btn nav-cta" href="contact.html#book" aria-current="page">Book<span class="cta-more"> a call</span></a>
   </div>
 </header>
 
 <main id="main" tabindex="-1">
 
-  <section class="page-hero">
-    <div class="wrap">
-      <p class="label">Book a call</p>
-      <h1>Book a first call.</h1>
-      <p class="lead">Twenty minutes by video to talk about what’s going on and whether I’m the right person. Pick a time below, and I’ll email you the video link.</p>
-    </div>
-  </section>
-
-  <section class="section flush booking" id="book" aria-labelledby="book-title">
+  <section class="booking-hero booking" id="book" aria-labelledby="book-title">
     <div class="wrap booking-grid">
-      <div>
-        <p class="label">First call</p>
-        <h2 id="book-title">Pick a time</h2>
+      <div class="booking-intro">
+        <p class="label">Book a call</p>
+        <h1 id="book-title">Book a first call.</h1>
+        <p class="lead">Twenty minutes by video, to talk about what’s going on and whether I’m the right person. Pick a time, and I’ll email you the video link. There’s no commitment.</p>
         <dl class="facts">
           <div><dt>Length</dt><dd>20 minutes</dd></div>
           <div><dt>How</dt><dd>By video</dd></div>
@@ -69,6 +104,8 @@
            data-title="First call with Sviatoslav (counselling)"
            data-durations="20"
            data-timezone="Europe/Copenhagen"
+           data-week-start="1"
+           data-heading-level="2"
            data-workdays="1,2,3,4,5"
            data-start="09:00"
            data-end="17:00"
@@ -118,7 +155,6 @@
     </div>
   </section>
 </main>
-<script src="../assets/js/booking-widget.js" defer></script>
 
 <footer class="site-footer plain">
   <div class="wrap">
@@ -149,6 +185,7 @@
     <div class="foot-base"><span>© Sviatoslav Foshchii · Psychological counselling</span><span>No cookies, no tracking</span></div>
   </div>
 </footer>
-<script src="../assets/js/psy-reveal.js" defer></script>
+<script src="../assets/js/booking-widget.js" defer></script>
+<script src="../assets/js/psy-site.js" defer></script>
 </body>
 </html>
