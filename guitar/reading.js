@@ -50,15 +50,15 @@ function note(pitch, beats, x, voice) {
   return ledger + `<ellipse cx="${x}" cy="${y}" rx="5.7" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "#fffdf9" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag;
 }
 
-export function score(bars, { meter = true, signature = [], label = "Guitar notation on a treble staff" } = {}) {
+export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff" } = {}) {
   const width = bars.length > 2 ? 610 : bars.length > 1 ? 430 : 260;
   const height = bars.some(bar => bar.some(event => event.bass)) ? 148 : 123;
   const end = width - 14;
-  const start = 55 + signature.length * 15 + (meter ? 25 : 0);
+  const start = 55 + signature.length * 15 + (timeSignature ? 25 : 0);
   const barWidth = (end - start) / bars.length;
   const lines = Array.from({ length: 5 }, (_, index) =>
     `<path d="M11 ${staffY(index * 2)}H${end}" stroke="currentColor" stroke-width=".8"/>`).join("");
-  const time = meter ? '<g fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="19"><text x="' + (start - 22) + '" y="55">4</text><text x="' + (start - 22) + '" y="75">4</text></g>' : "";
+  const time = timeSignature ? '<g fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="19"><text x="' + (start - 22) + '" y="55">4</text><text x="' + (start - 22) + '" y="75">4</text></g>' : "";
   const key = signature.map(({ symbol, step }, index) =>
     `<text x="${46 + index * 15}" y="${staffY(step) + 6}" fill="currentColor" font-size="23">${symbol}</text>`).join("");
   const music = bars.map((bar, index) => {
@@ -72,7 +72,7 @@ export function score(bars, { meter = true, signature = [], label = "Guitar nota
     }).join("");
     if (!meter) return content;
     const right = x0 + barWidth;
-    const closing = index === bars.length - 1
+    const closing = final && index === bars.length - 1
       ? `<path d="M${right - 4} 37v40" stroke="currentColor" stroke-width=".9"/>` : "";
     return content + closing + `<path d="M${right} 37v40" stroke="currentColor" stroke-width="${closing ? 2.2 : .9}"/>`;
   }).join("");
@@ -93,7 +93,7 @@ function positions(pitch) {
   });
 }
 
-export function newQuestion(mode, level, previous) {
+export function newQuestion(mode, level, previous, barCount = 2) {
   const group = groups[level] ?? groups.open;
   const pitch = pick(group.filter(note => note !== previous));
   const visual = () => score([[event(pitch, 1)]], { meter: false });
@@ -126,13 +126,24 @@ export function newQuestion(mode, level, previous) {
   if (mode === "melody" || mode === "voices") {
     const twoVoices = mode === "voices";
     const pitches = twoVoices ? groups.treble : group;
-    const bars = Array.from({ length: 2 }, () => {
+    const count = twoVoices ? 2 : barCount;
+    let available = shuffle(pitches);
+    const bars = Array.from({ length: count }, () => {
       const pattern = pick([[1, 1, 2], [2, 1, 1], [1, 1, 1, 1]]);
       const basses = ["E3", "A3", "D4"];
-      return pattern.map(beats => event(pick(pitches), beats, twoVoices ? pick(basses) : undefined));
+      return pattern.map(beats => {
+        if (!available.length) available = shuffle(pitches);
+        return event(available.pop(), beats, twoVoices ? pick(basses) : undefined);
+      });
     });
+    const label = lines => lines.map(bar => bar.map(({ pitch, beats, bass }) =>
+      [pitch, bass, beats === 2 ? "half note" : "quarter note"].filter(Boolean).join(" ")).join(", ")).join(". ");
+    const notation = bars.length === 4
+      ? score(bars.slice(0, 2), { label: label(bars.slice(0, 2)), final: false }) +
+        score(bars.slice(2), { label: label(bars.slice(2)), timeSignature: false })
+      : score(bars, { label: label(bars) });
     return { prompt: twoVoices ? "Play the upper voice, then the lower voice. Finally, combine them at 45–50 bpm."
-      : "Scan the two bars for 20 seconds, count four beats, then play them once at 45–50 bpm.", html: score(bars) };
+      : `Scan the ${count} bars for 20 seconds, count four beats, then play once at 45–50 bpm.`, html: notation };
   }
   return { key: pitch, prompt: "What is the note name?", html: visual(),
     answers: [...new Set(group.map(p => p[0]))].sort(), correct: [pitch[0]] };

@@ -1,4 +1,9 @@
 export const supportVideos = {
+  "GjNFvtRU4Jc": {
+    "title": "How to play classical guitar without nails",
+    "channel": "Brandon Acker",
+    "language": "English"
+  },
   "WB_NBJbYJZo": {
     "title": "Playing Classical Guitar Without Finger Nails",
     "channel": "Rob MacKillop",
@@ -99,6 +104,11 @@ export const supportVideos = {
     "channel": "Flamenco4U™",
     "language": "English"
   },
+  "E9_NxA0eu3g": {
+    "title": "Learn Flamenco Rumba on guitar — easy strumming in three steps",
+    "channel": "Carlo Espresso",
+    "language": "English"
+  },
   "4rGaGpIRYGg": {
     "title": "How to Play Alzapua | Flamenco Guitar",
     "channel": "Howcast",
@@ -122,6 +132,11 @@ export const supportVideos = {
   "G1LkPprsGkg": {
     "title": "Groovy Clave Flamenco Golpe Tutorial by Kai Narezo",
     "channel": "Flamenco Explained",
+    "language": "English"
+  },
+  "LRZZKfhDc_I": {
+    "title": "How to Play Golpe | Flamenco Guitar",
+    "channel": "Howcast",
     "language": "English"
   },
   "6rDTzdFUBz4": {
@@ -243,8 +258,8 @@ export const supportVideos = {
 
 export const supportTopics = {
   "hand-position": [
-    ["WB_NBJbYJZo", "Listen to the rounded attack and watch where the fingertip touches the string.", "Flesh only"],
-    ["ZC7tSW1s9tM", "Compare MacKillop’s hand angle and the point where the string releases.", "Flesh only"],
+    ["GjNFvtRU4Jc", "Watch the fingertip stroke demonstrated at 4:34.", "No-nails technique", 274],
+    ["WB_NBJbYJZo", "Listen for the warm attack of the fingertips as MacKillop plays.", "Optional listening"],
     ["3JMm6oiNdCI", "Compare plucking positions and tone. Use your fingertip pad for the same experiment.", "Adapt for no nails"],
   ],
   "speed-control": [
@@ -280,6 +295,7 @@ export const supportTopics = {
   "rumba": [
     ["dUz6ek0ggVg", "Pick one groove and count the subdivisions before adding a mute.", "Adapt for no nails"],
     ["u-hdNoQeGeM", "Watch a beginner strum from another angle. Replace soundboard taps with string mutes.", "Adapt for no nails"],
+    ["E9_NxA0eu3g", "Use the first step for a slow strumming loop. Add the accent once you can keep the pulse.", "Adapt for no nails"],
   ],
   "alzapua": [
     ["4rGaGpIRYGg", "Isolate the down and up thumb strokes before trying a rhythmic unit.", "Adapt for no nails"],
@@ -289,6 +305,7 @@ export const supportTopics = {
   "golpe": [
     ["7t-wwq10d2w", "Hear what a golpe adds to the rhythm. Clap its placement first.", "Rhythm reference"],
     ["G1LkPprsGkg", "Follow the clave rhythm on muted strings or with claps.", "Rhythm reference"],
+    ["LRZZKfhDc_I", "Hear where the accent fits between upstrokes. Rehearse the rhythm with string mutes or claps.", "Rhythm reference"],
   ],
   "tremolo": [
     ["6rDTzdFUBz4", "Practise the basic pattern in slow, even groups.", "Adapt for no nails"],
