@@ -28,7 +28,7 @@ iCloud address as a guest, so the event lands on your iCloud calendar too.
 When `data-api` is set, the widget runs in strict live mode by default. If live
 availability cannot be confirmed, this site quietly hides the booking block,
 booking CTAs and booking-related proof items for a few hours instead of showing
-possibly wrong slots. The backend also emails `CONFIG.notificationEmail` when
+possibly wrong slots. The backend also emails `NOTIFICATION_EMAIL` when
 availability, booking or health checks fail. If Apps Script itself is
 unreachable, neither the browser nor the script can send that email, so a
 [daily check](#daily-check) on GitHub looks for exactly that.
@@ -45,8 +45,7 @@ unreachable, neither the browser nor the script can send that email, so a
 2. Delete the sample code, paste all of `google-apps-script.gs`.
 3. **Project Settings** (⚙) → set the **time zone** to `Europe/Copenhagen`
    (must match `CONFIG.timezone`).
-4. Confirm `CONFIG.notificationEmail` is the inbox that should receive booking
-   widget issue alerts.
+4. In **Project Settings → Script properties**, set `NOTIFICATION_EMAIL` to the inbox that should receive booking widget issue alerts.
 
 ### 2. Connect iCloud (so its busy times are respected)
 1. On a Mac: **Calendar app → right-click the calendar → Share Calendar →
@@ -55,8 +54,7 @@ unreachable, neither the browser nor the script can send that email, so a
 2. In Apps Script: **Project Settings → Script properties → Add property**
    * Name: `ICLOUD_ICS_URL`
    * Value: the link you copied (the script auto-converts `webcal://` → `https://`).
-3. Open `CONFIG.icloudGuestEmail` in the script and confirm it's your iCloud
-   address (`sviatoslav.foshchii@icloud.com`) so bookings are pushed there.
+3. Set the `ICLOUD_GUEST_EMAIL` script property to your iCloud address so bookings are pushed there.
 
 > Privacy note: a published iCloud calendar is readable by anyone who has the
 > (long, unguessable) link. Consider publishing a dedicated "Availability"
@@ -130,7 +128,7 @@ Work through it in this order:
    giveaway: bookings fail *and* no "Booking widget issue" alert ever arrives.
 3. **Confirm the deployment is "Execute as: Me / Who has access: Anyone".**
    Anything narrower serves the sign-in page from step 1 to every visitor.
-4. **Check the alert inbox** (`CONFIG.notificationEmail`) for
+4. **Check the alert inbox** (`NOTIFICATION_EMAIL`) for
    `Booking widget issue: booking`. Its context JSON carries the slot and the
    widget's own message. No alert at all points back at step 2.
 
@@ -240,7 +238,6 @@ defaults to `book`.
 ```html
 <div class="sf-booking"
      data-name="Your Name"
-     data-email="you@gmail.com,you@icloud.com"
      data-title="Intro call" data-durations="30,45,60"
      data-timezone="Europe/Copenhagen"
      data-strict-live="true"

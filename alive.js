@@ -846,7 +846,7 @@ function setupMobileNav(root, disposers) {
 
     const foot = document.createElement('div');
     foot.style.cssText = 'margin-top:auto;padding-top:24px;font:400 11.5px "IBM Plex Mono",monospace;color:#4B4F5A;display:flex;flex-direction:column;gap:6px;';
-    foot.innerHTML = '<div>55.676°N, 12.568°E — CPH</div><div>sviatoslav.foshchii@gmail.com</div>';
+    foot.innerHTML = '<div>55.676°N, 12.568°E — CPH</div>';
     ov.appendChild(foot);
 
     document.body.appendChild(ov);

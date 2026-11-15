@@ -25,16 +25,14 @@
  *      copy the link. Project Settings → Script properties:
  *         ICLOUD_ICS_URL = https://pXX-caldav.icloud.com/published/2/XXXX
  *      (Leave it unset to run Google-only.)
- *   4) Confirm CONFIG.notificationEmail points to the address that should
- *      receive guardrail alerts.
+ *   4) Set NOTIFICATION_EMAIL and, if needed, ICLOUD_GUEST_EMAIL in Script
+ *      properties to keep the recipient addresses on the server.
  *   5) Deploy → New deployment → Web app → Execute as: Me, Access: Anyone.
  *   6) Copy the /exec URL into contact.html  →  data-api="…".
  */
 
 var CONFIG = {
   googleCalendarIds: ["primary"],                    // add more IDs to merge them
-  icloudGuestEmail:  "sviatoslav.foshchii@icloud.com", // invited so it lands on iCloud
-  notificationEmail: "sviatoslav.foshchii@gmail.com",  // alerts when availability/booking checks fail
   timezone:  "Europe/Copenhagen",
   workdays:  [1, 2, 3, 4, 5],   // 0=Sun … 6=Sat
   startHour: 9,                 // 09:00
@@ -48,7 +46,7 @@ var CONFIG = {
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "e6adb11a8d21";
+var VERSION = "014d5b363b3c";
 
 /* ----------------------------- routing ----------------------------- *
  * Browsers can't read a normal fetch() response from Apps Script (it sends no
@@ -156,7 +154,8 @@ function book(b) {
   }
 
   var guests = [b.email];
-  if (CONFIG.icloudGuestEmail) guests.push(CONFIG.icloudGuestEmail);
+  var iCloudGuestEmail = PropertiesService.getScriptProperties().getProperty("ICLOUD_GUEST_EMAIL");
+  if (iCloudGuestEmail) guests.push(iCloudGuestEmail);
 
   cal.createEvent(
     (b.title || "Meeting") + " — " + (b.name || "Guest"),
@@ -348,7 +347,8 @@ function notifyIssueSafe(kind, err, context) {
   catch (notifyErr) { Logger.log("Issue notification failed: " + safeError(notifyErr)); }
 }
 function notifyIssue(kind, message, context) {
-  if (!CONFIG.notificationEmail) return;
+  var notificationEmail = PropertiesService.getScriptProperties().getProperty("NOTIFICATION_EMAIL");
+  if (!notificationEmail) return;
 
   var cache = CacheService.getScriptCache();
   var key = "sfb_issue_" + Utilities.base64EncodeWebSafe(kind + ":" + message).slice(0, 80);
@@ -366,7 +366,7 @@ function notifyIssue(kind, message, context) {
     JSON.stringify(context || {}, null, 2)
   ].join("\n");
 
-  MailApp.sendEmail(CONFIG.notificationEmail, "Booking widget issue: " + kind, body);
+  MailApp.sendEmail(notificationEmail, "Booking widget issue: " + kind, body);
 }
 function json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);

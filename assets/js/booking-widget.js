@@ -5,7 +5,7 @@
    USAGE (drop into any page):
      <div class="sf-booking"
           data-name="Sviatoslav Foshchii"
-          data-email="you@example.com"
+          data-email=""                   // required only for standalone bookings
           data-title="Intro call"
           data-durations="30,45,60"      // minutes, first is default
           data-timezone="Europe/Copenhagen"
@@ -215,6 +215,10 @@
       // the level of the widget's own headings, so they fit the page's outline
       hl: /^[2-6]$/.test(el.dataset.headingLevel || "") ? el.dataset.headingLevel : "3"
     };
+    if (!cfg.api && !cfg.email.trim()) {
+      el.textContent = "Booking is currently unavailable.";
+      return;
+    }
     // data-email may be comma-separated: first = calendar organiser, all = notified.
     cfg.emails = cfg.email.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
     cfg.organizer = cfg.emails[0] || cfg.email;
@@ -268,9 +272,8 @@
       return '<div class="sfb-status sfb-status--error" role="alert">' +
         '<strong>Calendar connection needs attention</strong>' +
         '<p>' + html(message) + '</p>' +
-        '<p>Please email ' + html(cfg.organizer) + ' directly so no meeting is booked against the wrong availability.</p>' +
         '<div class="sfb-actions">' +
-          '<a class="sfb-btn sfb-btn--secondary" href="' + fallbackMailHref(message) + '">Email directly</a>' +
+          (cfg.organizer ? '<a class="sfb-btn sfb-btn--secondary" href="' + fallbackMailHref(message) + '">Email directly</a>' : "") +
           '<button class="sfb-link sfb-retry" type="button">Try again</button>' +
         '</div>' +
       '</div>';
@@ -287,10 +290,10 @@
       return '<div class="sfb-status sfb-status--error sfb-booking-error" role="alert">' +
         '<strong>Booking was not confirmed</strong>' +
         '<p>' + html(message) + '</p>' +
-        '<p>Please try another time or email ' + html(cfg.organizer) + ' directly.</p>' +
-        '<div class="sfb-actions">' +
+        '<p>Please try another time.</p>' +
+        (cfg.organizer ? '<div class="sfb-actions">' +
           '<a class="sfb-btn sfb-btn--secondary" href="' + bookingMailHref(start, end, name, email, msg, message) + '">Email this request</a>' +
-        '</div>' +
+        '</div>' : "") +
       '</div>';
     }
 
@@ -586,7 +589,7 @@
           // Single address: data-email may list several, but only the first is
           // the calendar organiser. Sending the raw comma-joined string here
           // hands the backend something it cannot use as one mailbox.
-          "&host=" + encodeURIComponent(cfg.organizer) +
+          (cfg.organizer ? "&host=" + encodeURIComponent(cfg.organizer) : "") +
           "&timezone=" + encodeURIComponent(cfg.tz);
         try {
           // Booking writes the event and dispatches invites, so it is the
@@ -627,13 +630,15 @@
     }
 
     function buildICS(start, end, name, email, msg) {
-      return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//SF Booking//EN","CALSCALE:GREGORIAN","METHOD:REQUEST",
+      return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//SF Booking//EN","CALSCALE:GREGORIAN","METHOD:" + (cfg.organizer ? "REQUEST" : "PUBLISH"),
         "BEGIN:VEVENT","UID:" + Date.now() + "@sf-booking","DTSTAMP:" + icsStamp(new Date()),
         "DTSTART:" + icsStamp(start),"DTEND:" + icsStamp(end),
         "SUMMARY:" + esc(cfg.title) + " — " + esc(name),
         "DESCRIPTION:" + esc(msg ? msg.replace(/\n/g, "\\n") : "Booked via website"),
-        "ORGANIZER;CN=" + esc(cfg.name) + ":mailto:" + esc(cfg.organizer),
-        "ATTENDEE;CN=" + esc(name) + ";RSVP=TRUE:mailto:" + esc(email),
+        ...(cfg.organizer ? [
+          "ORGANIZER;CN=" + esc(cfg.name) + ":mailto:" + esc(cfg.organizer),
+          "ATTENDEE;CN=" + esc(name) + ";RSVP=TRUE:mailto:" + esc(email)
+        ] : []),
         "STATUS:CONFIRMED","END:VEVENT","END:VCALENDAR"].join("\r\n");
     }
     function downloadICS(start, end, name, email, msg) {
@@ -668,8 +673,7 @@
           ? "A calendar invite is on its way to " + esc(email) + "."
           : "Add it to your calendar below — " + esc(cfg.name) + " has been emailed to confirm.") + '</p>' +
         (late
-          ? '<p>The confirmation came back late, so the slot is held but unacknowledged. If no invite reaches you within a few minutes, email ' +
-            html(cfg.organizer) + ' to check.</p>'
+          ? '<p>The confirmation came back late, but your time is held. If the invite hasn’t arrived in a few minutes, check your spam folder.</p>'
           : "") +
         '<button type="button" class="sfb-btn" id="sfb-ics" style="max-width:260px;margin:1.2rem auto 0">Add to my calendar (.ics)</button>' +
         '<button type="button" class="sfb-link" id="sfb-again">Book another time</button>' +

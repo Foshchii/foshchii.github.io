@@ -1,6 +1,6 @@
-# Please report security issues with foshchii.com by email.
+# Please report security issues with foshchii.com through the contact page.
 # Format: RFC 9116 (https://www.rfc-editor.org/rfc/rfc9116).
-Contact: mailto:sviatoslav@foshchii.com
+Contact: https://foshchii.com/contact.html
 Expires: 2027-10-01T00:00:00Z
 Preferred-Languages: en, uk, ru
 Canonical: https://foshchii.com/.well-known/security.txt
