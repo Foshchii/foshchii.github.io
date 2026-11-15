@@ -40,7 +40,8 @@ import stamp_backend_version  # noqa: E402
 
 ROOT = build_feed.ROOT
 SITE = build_feed.SITE
-NOT_INDEXED = {"404.html"}
+# The practice lab has a robots noindex directive and is intentionally omitted from the sitemap.
+NOT_INDEXED = {"404.html", "ad0-e606/index.html"}
 NAME = "Sviatoslav Foshchii"
 EXTERNAL = re.compile(r"^([a-z][a-z0-9+.-]*:|//)", re.I)
 
