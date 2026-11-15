@@ -1,5 +1,7 @@
 import { course } from "./course.js";
 import { estasDrills, estasPieces, estasVideos } from "./estas-guide.js";
+import { guidedCoreLessons, guidedDays, guidedTheory } from "./guided-lessons.js";
+import { mountGuidedPractice } from "./guided-practice.js";
 import { dailyExercises, estasDrillVideos, estasStepVideos, extraVideos, lessonPracticeVideos, lessonStepVideos, modulePracticeVideos, roadmapPracticeVideos } from "./practice-videos.js";
 import { supportTopics, supportVideos } from "./support-videos.js";
 import { dateKey, loadProgress, mergeProgress, readProgress, saveProgress } from "./progress.js";
@@ -10,31 +12,6 @@ const announcement = document.querySelector("#announcement");
 const modules = new Map(course.modules.map(item => [item.id, item]));
 const lessons = new Map(course.lessons.map(item => [item.id, item]));
 const core = course.lessons.filter(item => item.kind === "Core");
-const method = "https://www.thisisclassicalguitar.com/free-classical-guitar-method-book-pdf/";
-const methodPdf = "https://www.thisisclassicalguitar.com/wp-content/uploads/2024/11/Classical-Guitar-Method-Vol1-Werner.pdf";
-const methodPagesByDay = {
-  1: [[12, "Find and name the three open notes"]],
-  3: [[13, "Count and clap open-string rhythms"]],
-  4: [[12, "Review the open notes"], [13, "Practise note lengths"]],
-  5: [[14, "Etude No. 1"]],
-  7: [[16, "Nocturne"]],
-  8: [[15, "Etude No. 2"]],
-  9: [[15, "Etude No. 2"]],
-  11: [[16, "Nocturne student part"]],
-  12: [[14, "Choose an unfamiliar line"]],
-  15: [[17, "Find your first fretted A"]],
-  16: [[18, "Read G and A alongside open B and E"]],
-  17: [[19, "Moderato"]],
-  18: [[20, "A Fairy Tale"]],
-  19: [[21, "Find B, C and D on string 2"]],
-  20: [[21, "Find E, F and G on string 1"]],
-  21: [[22, "Review the names, strings and frets"]],
-  22: [[23, "Read notes across strings"]],
-  23: [[24, "Five Melodies"]],
-  24: [[26, "Ode to Joy student part"]],
-  25: [[26, "Ode to Joy duet"]],
-  26: [[23, "Choose an unfamiliar line"]],
-};
 const statusLabels = { watched: "Video watched", practised: "Exercise practised", mastered: "Skill mastered" };
 let progress = loadProgress();
 let storageOk = saveProgress(progress);
@@ -42,6 +19,7 @@ let importPending;
 let reading = { mode: "notes", level: "open", bars: 2, attempts: 0, correct: 0 };
 let quiz = newQuestion(reading.mode, reading.level);
 let answer;
+let unmountGuided = () => {};
 
 const escape = value => String(value ?? "").replace(/[&<>"']/g, char => ({
   "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
@@ -66,11 +44,7 @@ const panel = (heading, body) => `<section class="panel flow"><h2>${escape(headi
 const pdf = '<a class="link" href="reading-sheets.pdf" target="_blank" rel="noopener">Open the reading sheets (PDF) <span aria-hidden="true">↗</span></a>';
 const intro = (title, description = "", kicker = "") => `<div class="page-intro">${kicker ? `<span class="kicker">${escape(kicker)}</span>` : ""}<h1>${escape(title)}</h1>${description ? `<p>${escape(description)}</p>` : ""}</div>`;
 
-function methodLinks(pages) {
-  if (!pages?.length) return "";
-  return `<div class="callout flow"><p class="meta">Bradford Werner · ${ext(method, "Classical Guitar Method, Volume 1")}</p>
-    ${pages.map(([page, label]) => `<p>${ext(`${methodPdf}#page=${page}`, `${label} · p. ${page}`)}</p>`).join("")}</div>`;
-}
+const guidedPanel = '<section class="panel" data-guided-practice></section>';
 
 const primaryVideos = new Map(course.lessons.map(lesson => [lesson.video, { ...lesson, title: lesson.videoTitle ?? lesson.title }]));
 const videoInfo = id => estasVideos[id] ?? supportVideos[id] ?? extraVideos[id] ?? primaryVideos.get(id);
@@ -321,6 +295,7 @@ function lessonView(lesson) {
     : `<section class="panel">${video(lesson)}</section>`;
   return back(related, text) + intro(lesson.title, "", `${lesson.kind === "Core" ? "Lesson " + id.slice(1) : lesson.kind} · ${lesson.language} · ${module ? level(module.id) : "Intermediate"}`) +
     `<div class="split"><div class="stack">
+      ${guidedCoreLessons[id] ? guidedPanel : ""}
       ${lesson.steps || lesson.mediaLabel ? practicePanel + videoPanel : videoPanel + practicePanel}
       <nav class="actions" aria-label="Lesson navigation">
         ${index > 0 ? btn("#lesson/" + core[index - 1].id, "Previous lesson", true) : ""}
@@ -346,18 +321,18 @@ function dayView(day) {
   const module = course.modules[day.id <= 14 ? 0 : 1];
   const exercises = dailyExercises[day.id].map(([title, body, videos, sheet, link], index) => `<li>
     <h3>${escape(title)}</h3><p>${rich(body)}</p>
-    ${first && index === 2 ? openNoteMap() + methodLinks(methodPagesByDay[1]) : ""}
+    ${first && index === 2 ? openNoteMap() : ""}
     ${videoResources(videos, "Video for this exercise", first)}
     ${link ? `<a class="link" href="${link[0]}">${escape(link[1])}${arrow}</a>` : ""}
     ${sheet ? scoreDemo(sheet) : ""}
   </li>`).join("");
   const relevant = dayLessons(day);
-  const plan = panel(restDay(day) ? "Rest or review" : "Your practice plan", `${first ? "" : methodLinks(methodPagesByDay[day.id])}
+  const plan = `<details class="panel"><summary>Videos and extra practice</summary>
     <ol class="day-steps daily-exercises">${exercises}</ol>
-    ${!first && relevant.length ? `<details><summary>Related lessons</summary>${lessonList(relevant)}</details>` : ""}`);
+    ${!first && relevant.length ? `<details><summary>Related lessons</summary>${lessonList(relevant)}</details>` : ""}</details>`;
   return back("#days", "First 28 days") + intro("Day " + day.id, first ? "Start with three open strings. Learn to recognize each note on the page, find its string and play it with your fingertip pad." : "", module.title) +
     `<div class="split"><div class="stack">
-      ${plan}
+      ${guidedPanel}${plan}
       <nav class="actions" aria-label="Practice day navigation">
       ${day.id > 1 ? btn("#day/" + (day.id - 1), "Previous day", true) : ""}
       ${day.id < course.days.length ? btn("#day/" + (day.id + 1), "Next day") : btn("#module/M03", "Open the next module")}
@@ -366,7 +341,7 @@ function dayView(day) {
       ${panel(first ? "Day 1 checkpoint" : restDay(day) ? "Log the rest day" : "Check your work", `<p>${first ? rich(course.dayOneTest) : restDay(day) ? "Mark this day when you’re ready to move to the next plan." : "Try the assignment and make a note of what to repeat."}</p>
         <div class="checks"><label><input type="checkbox" data-day="${day.id}"${progress.days[day.id] ? " checked" : ""}>Day complete</label></div>
         <a class="link" href="#module/${module.id}">Module and assessment${arrow}</a>`)}
-      ${panel("Reading resources", `<p>${pdf}</p><p>${ext(method, "Werner’s free method")}</p><a class="link" href="#reading">Music Reading Academy${arrow}</a>`)}
+      ${panel("Reading resources", `<a class="link" href="#reading/guided">Guided notes and fretboard${arrow}</a><p>${pdf}</p>`)}
     </aside></div>`;
 }
 
@@ -396,7 +371,7 @@ function readingQuestion() {
 function readingView() {
   const topic = readingModes.find(mode => mode.id === reading.mode);
   return intro("Music Reading Academy", "Find the note on the staff, name it, then play it on the guitar. Start with the three open strings.") +
-    `<div class="split"><div class="stack">
+    `<div class="actions block-gap">${btn("#reading/guided", "Learn the fretboard step by step")}</div><div class="split"><div class="stack">
     <section class="panel flow"><h2>Practice</h2>
       <div class="tabs" aria-label="Reading exercise">${readingModes.map(mode => `<button type="button" class="btn secondary" data-mode="${mode.id}" aria-pressed="${mode.id === reading.mode}">${mode.label}</button>`).join("")}</div>
       ${["notes", "frets", "melody"].includes(reading.mode) ? `<label class="field">Note range<select id="reading-level">${readingLevels.map(level => `<option value="${level.id}"${level.id === reading.level ? " selected" : ""}>${level.label}</option>`).join("")}</select></label>` : ""}
@@ -405,8 +380,7 @@ function readingView() {
     </section></div><aside class="stack">
       ${panel(topic.label, videoResources(supportTopics[topic.id], "Watch before trying the exercise", true))}
       ${panel("Find notes on the guitar", `<p>Count staff lines and spaces from the bottom. String 1 is the thinnest. Fret 0 means open.</p>${openNoteMap()}
-        <details><summary>Show all first-position natural notes</summary><p class="meta">Octave numbers refer to the notes as written. The guitar sounds one octave lower.</p>${noteMap(firstPosition.map(note => note.pitch), true)}</details>
-        ${methodLinks([[10, "The treble clef and the small 8"], [66, "Sharps, flats and naturals"], [101, "First-position note reference"]])}`)}
+        <details><summary>Show all first-position natural notes</summary><p class="meta">Octave numbers refer to the notes as written. The guitar sounds one octave lower.</p>${noteMap(firstPosition.map(note => note.pitch), true)}</details>`)}
       ${panel("Printed practice", `<p>Start with scores A–C and save Score H for your first-take assessment.</p>${pdf}
         <details><summary>Watch a printed exercise at 48 bpm</summary><div class="score-index">${[..."ABCDEFGH"].map(letter => `<a class="link" href="media/score-${letter.toLowerCase()}.mp4">Score ${letter}</a>`).join("")}</div></details>`)}
     </aside></div>`;
@@ -516,6 +490,8 @@ function render({ focus = true } = {}) {
   const [page, id] = (hash.slice(1) || "home").split("/");
   let nav = page;
   let html;
+  let guided;
+  let guidedOptions;
   switch (page) {
     case "home": html = home(); break;
     case "course": html = courseView(); break;
@@ -525,13 +501,24 @@ function render({ focus = true } = {}) {
       if (lessons.has(id)) {
         if (progress.lastLesson !== id) { progress.lastLesson = id; persist(); }
         html = lessonView(lessons.get(id));
+        guided = guidedCoreLessons[id];
       } else html = missingView();
       break;
     case "days": nav = "course"; html = daysView(); break;
-    case "day":
+    case "day": {
       nav = "course";
-      html = course.days.some(day => String(day.id) === id) ? dayView(course.days[Number(id) - 1]) : missingView();
+      const day = course.days.find(item => String(item.id) === id);
+      if (day) {
+        html = dayView(day);
+        guided = guidedDays[id];
+        guidedOptions = { optional: restDay(day), markComplete: () => {
+          setCheck(progress.days, id, true);
+          main.querySelector(`[data-day="${id}"]`).checked = true;
+          persist("Day marked complete.");
+        } };
+      } else html = missingView();
       break;
+    }
     case "technique": html = techniqueView(); break;
     case "estas": {
       const piece = estasPieces.find(item => item.id === id);
@@ -539,6 +526,12 @@ function render({ focus = true } = {}) {
       break;
     }
     case "reading":
+      if (id === "guided") {
+        html = back("#reading", "Music Reading Academy") + intro("Read a note and find its fret", "Match staff positions to the guitar, then hear what changes when you move a fret or an octave.") +
+          `<div class="split"><div class="stack">${guidedPanel}</div><aside class="stack">${panel("Open-string reference", openNoteMap())}</aside></div>`;
+        guided = guidedTheory;
+        break;
+      }
       if (["assessment", "notes", "open-melody"].includes(id)) {
         Object.assign(reading, { mode: id === "notes" ? "notes" : "melody", level: id === "assessment" ? "treble" : "open", bars: id === "assessment" ? 4 : 2 });
         nextQuestion(true);
@@ -552,7 +545,9 @@ function render({ focus = true } = {}) {
     case "roadmap": nav = "course"; html = roadmapView(); break;
     default: html = missingView();
   }
+  unmountGuided();
   main.innerHTML = html;
+  unmountGuided = mountGuidedPractice(main.querySelector("[data-guided-practice]"), guided, guidedOptions);
   document.title = `${main.querySelector("h1")?.textContent.replace(/\s+/g, " ").trim() || "Dashboard"} · Guitar Academy`;
   for (const item of document.querySelectorAll("[data-nav]")) {
     if (item.dataset.nav === nav) item.setAttribute("aria-current", "page");

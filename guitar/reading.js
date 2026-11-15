@@ -6,6 +6,18 @@ const notes = {
   A4: [3, 69], B4: [4, 71], C5: [5, 72], D5: [6, 74], E5: [7, 76],
   F5: [8, 77], G5: [9, 79]
 };
+const accidentals = { "C#4": [-2, 61, "♯"], Db4: [-1, 61, "♭"] };
+const pitchData = pitch => notes[pitch] ?? accidentals[pitch];
+export const soundingMidi = pitch => pitchData(pitch)[1] - 12;
+export const openStrings = [64, 59, 55, 50, 45, 40];
+
+export function fretPositions(pitch, frets = 4) {
+  const midi = soundingMidi(pitch);
+  return openStrings.flatMap((open, index) => {
+    const fret = midi - open;
+    return fret >= 0 && fret <= frets ? [{ string: index + 1, fret }] : [];
+  });
+}
 const groups = {
   open: ["G4", "B4", "E5"],
   treble: ["G4", "A4", "B4", "C5", "D5", "E5", "F5", "G5"],
@@ -33,7 +45,7 @@ function glyph(name, x, top, height) {
 }
 
 function note(pitch, beats, x, voice) {
-  const [step] = notes[pitch];
+  const [step, , accidental] = pitchData(pitch);
   const y = staffY(step);
   const up = voice ? voice === "high" : step < 4;
   let ledger = "";
@@ -44,13 +56,15 @@ function note(pitch, beats, x, voice) {
   }
   const xStem = x + (up ? 5 : -5);
   const yTip = y + (up ? -28 : 28);
-  const stem = `<path d="M${xStem} ${y}V${yTip}" stroke="currentColor" stroke-width="1.25"/>`;
+  const stem = beats === 4 ? "" : `<path d="M${xStem} ${y}V${yTip}" stroke="currentColor" stroke-width="1.25"/>`;
   const flag = beats === 0.5
     ? `<path d="M${xStem} ${yTip}q10 ${up ? 9 : -9} 7 ${up ? 18 : -18}q-1 ${up ? -8 : 8} -7 ${up ? -10 : 10}z" fill="currentColor"/>` : "";
-  return ledger + `<ellipse cx="${x}" cy="${y}" rx="5.7" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "#fffdf9" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag;
+  const mark = accidental ? `<text x="${x - 19}" y="${y + 6}" fill="currentColor" font-size="20">${accidental}</text>` : "";
+  const dot = beats === 1.5 ? `<circle cx="${x + 9}" cy="${y - (step % 2 === 0 ? 4 : 0)}" r="1.5" fill="currentColor"/>` : "";
+  return ledger + mark + `<ellipse cx="${x}" cy="${y}" rx="${beats === 4 ? 7.4 : 5.7}" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "#fffdf9" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag + dot;
 }
 
-export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff", compact = false } = {}) {
+export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff", compact = false, beatsPerBar = 4, eventOffset = 0 } = {}) {
   const width = compact ? 110 : bars.length > 2 ? 610 : bars.length > 1 ? 430 : 260;
   const height = bars.some(bar => bar.some(event => event.bass)) ? 148 : 123;
   const end = width - 14;
@@ -58,17 +72,18 @@ export function score(bars, { meter = true, timeSignature = meter, final = true,
   const barWidth = (end - start) / bars.length;
   const lines = Array.from({ length: 5 }, (_, index) =>
     `<path d="M11 ${staffY(index * 2)}H${end}" stroke="currentColor" stroke-width=".8"/>`).join("");
-  const time = timeSignature ? '<g fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="19"><text x="' + (start - 22) + '" y="55">4</text><text x="' + (start - 22) + '" y="75">4</text></g>' : "";
+  const time = timeSignature ? `<g fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="19"><text x="${start - 22}" y="55">${beatsPerBar}</text><text x="${start - 22}" y="75">4</text></g>` : "";
   const key = signature.map(({ symbol, step }, index) =>
     `<text x="${46 + index * 15}" y="${staffY(step) + 6}" fill="currentColor" font-size="23">${symbol}</text>`).join("");
   const music = bars.map((bar, index) => {
     let beat = 0;
     const x0 = start + index * barWidth;
     const content = bar.map(({ pitch, beats, bass }) => {
-      const x = x0 + 10 + beat * (barWidth - 12) / 4;
+      const x = x0 + 10 + beat * (barWidth - 12) / beatsPerBar;
       beat += beats;
-      if (!pitch) return glyph("rest", x - 4, 44, 29);
-      return bass ? note(pitch, beats, x, "high") + note(bass, beats, x, "low") : note(pitch, beats, x);
+      const symbol = !pitch ? glyph("rest", x - 4, 44, 29)
+        : bass ? note(pitch, beats, x, "high") + note(bass, beats, x, "low") : note(pitch, beats, x);
+      return `<g data-score-event="${eventOffset++}">${symbol}</g>`;
     }).join("");
     if (!meter) return content;
     const right = x0 + barWidth;
@@ -85,12 +100,8 @@ export function firstScore() {
     { label: "Exercise A. Four-four time. G quarter, B quarter, high E half. High E quarter, B quarter, G half." });
 }
 
-const openMidi = [76, 71, 67, 62, 57, 52];
 function positions(pitch) {
-  return openMidi.flatMap((open, index) => {
-    const fret = notes[pitch][1] - open;
-    return fret >= 0 && fret <= 4 ? [`String ${index + 1}, ${fret === 0 ? "open" : `fret ${fret}`}`] : [];
-  });
+  return fretPositions(pitch).map(({ string, fret }) => `String ${string}, ${fret === 0 ? "open" : `fret ${fret}`}`);
 }
 
 export const firstPosition = Object.keys(notes).map(pitch => {
