@@ -117,8 +117,10 @@ input[type=checkbox] { width: 18px; height: 18px; margin: 3px 0 0; accent-color:
 .video { display: grid; align-items: center; justify-items: center; aspect-ratio: 16 / 9; background: radial-gradient(ellipse at 65% 20%, #573721, #221811 68%); border-radius: 13px; overflow: hidden; }
 .video iframe { width: 100%; height: 100%; border: 0; }
 .video .btn { background: #f0bf86; color: #25170f; }
+.video-unloaded { margin-bottom: 8px; }
 .vid-caption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-top: 10px; }
 .support-videos { margin-top: 20px; }
+.support-videos summary { font-weight: 700; color: var(--accent-dark); }
 .support-videos ul { list-style: none; padding: 0; margin: 7px 0 0; }
 .support-videos li { border-top: 1px solid var(--line); padding: 12px 0; }
 .support-videos li:last-child { padding-bottom: 0; }
@@ -134,8 +136,19 @@ input[type=checkbox] { width: 18px; height: 18px; margin: 3px 0 0; accent-color:
 .checks label input { margin-top: 4px; }
 .callout { background: #f1e6d7; border-left: 3px solid #a25f40; padding: 13px 15px; border-radius: 3px 9px 9px 3px; }
 .day-steps { margin: 0; padding: 0; list-style: none; }
-.day-steps li { border-top: 1px solid var(--line); padding: 13px 0; }
+.day-steps > li { border-top: 1px solid var(--line); padding: 16px 0; }
 .day-steps p { margin-top: 4px; }
+.daily-exercises > li > .link { display: inline-block; margin-top: 10px; }
+.daily-exercises > li > .support-videos { margin-top: 10px; }
+.note-map { border-collapse: collapse; width: 100%; margin-top: 12px; text-align: left; }
+.note-map th, .note-map td { padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.note-map thead th, .note-map small { font-size: .82rem; color: var(--muted); }
+.note-map .score { width: min(86px, 100%); padding: 0; border: 0; background: transparent; }
+.note-map .score svg { max-height: 68px; }
+.note-map small { display: block; }
+.score-demo { padding-top: 15px; }
+.score-demo video { display: block; width: 100%; aspect-ratio: 720 / 362; border-radius: 8px; background: var(--paper); }
+.score-index { display: flex; gap: 8px 14px; flex-wrap: wrap; margin-top: 8px; }
 .tabs { display: flex; flex-wrap: wrap; gap: 6px; }
 .tabs button { min-height: 42px; }
 .tabs button[aria-pressed=true] { background: var(--ink); color: #fffdf8; border-color: var(--ink); }

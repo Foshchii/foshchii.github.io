@@ -50,8 +50,8 @@ function note(pitch, beats, x, voice) {
   return ledger + `<ellipse cx="${x}" cy="${y}" rx="5.7" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "#fffdf9" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag;
 }
 
-export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff" } = {}) {
-  const width = bars.length > 2 ? 610 : bars.length > 1 ? 430 : 260;
+export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff", compact = false } = {}) {
+  const width = compact ? 110 : bars.length > 2 ? 610 : bars.length > 1 ? 430 : 260;
   const height = bars.some(bar => bar.some(event => event.bass)) ? 148 : 123;
   const end = width - 14;
   const start = 55 + signature.length * 15 + (timeSignature ? 25 : 0);
@@ -93,6 +93,18 @@ function positions(pitch) {
   });
 }
 
+export const firstPosition = Object.keys(notes).map(pitch => {
+  const step = notes[pitch][0];
+  const item = positions(pitch)[0];
+  const staff = step < 0
+    ? (step % 2 === 0 ? `Ledger line ${-step / 2} below` : `Space ${Math.ceil(-step / 2)} below`)
+    : step > 8 ? (step === 9 ? "Space above the staff" : "First ledger line above")
+      : step % 2 === 0 ? `Line ${step / 2 + 1}` : `Space ${(step + 1) / 2}`;
+  return { pitch, staff, position: item, example: score([[event(pitch, 1)]], { meter: false, compact: true, label: `${pitch[0]} on the staff` }) };
+});
+
+export const noteLocation = pitch => `${pitch[0]} · ${positions(pitch)[0]}`;
+
 export function newQuestion(mode, level, previous, barCount = 2) {
   const group = groups[level] ?? groups.open;
   const pitch = pick(group.filter(note => note !== previous));
@@ -102,14 +114,15 @@ export function newQuestion(mode, level, previous, barCount = 2) {
     const correct = positions(pitch);
     const other = shuffle([...new Set(group.flatMap(positions))].filter(option => !correct.includes(option)));
     return { key: pitch, prompt: "Where can you play this written note in first position?", html: visual(),
-      answers: shuffle([pick(correct), ...other.slice(0, 3)]), correct };
+      answers: shuffle([pick(correct), ...other.slice(0, 3)]), correct, explanation: noteLocation(pitch) };
   }
   if (mode === "rhythm") {
     const choices = [event("B4", .5), event("B4", 1), event("B4", 2), event(null, 1)];
     const value = pick(choices.filter(item => `${item.pitch}/${item.beats}` !== previous));
     const correct = !value.pitch ? "Quarter rest" : { .5: "Eighth note", 1: "Quarter note", 2: "Half note" }[value.beats];
     return { key: `${value.pitch}/${value.beats}`, prompt: "Which duration is shown?", html: score([[value]], { meter: false }),
-      answers: ["Eighth note", "Quarter note", "Half note", "Quarter rest"], correct: [correct] };
+      answers: ["Eighth note", "Quarter note", "Half note", "Quarter rest"], correct: [correct],
+      explanation: { "Eighth note": "Play for half a beat.", "Quarter note": "Play for one beat.", "Half note": "Play once and let the note ring for two beats.", "Quarter rest": "Keep counting for one silent beat." }[correct] };
   }
   if (mode === "keys") {
     const sharp = "♯", flat = "♭";
@@ -143,8 +156,8 @@ export function newQuestion(mode, level, previous, barCount = 2) {
         score(bars.slice(2), { label: label(bars.slice(2)), timeSignature: false })
       : score(bars, { label: label(bars) });
     return { prompt: twoVoices ? "Play the upper voice, then the lower voice. Finally, combine them at 45–50 bpm."
-      : `Scan the ${count} bars for 20 seconds, count four beats, then play once at 45–50 bpm.`, html: notation };
+      : `Scan the ${count} bars for 20 seconds, count four beats, then play once at 45–50 bpm.`, html: notation, bars };
   }
   return { key: pitch, prompt: "What is the note name?", html: visual(),
-    answers: [...new Set(group.map(p => p[0]))].sort(), correct: [pitch[0]] };
+    answers: [...new Set(group.map(p => p[0]))].sort(), correct: [pitch[0]], explanation: noteLocation(pitch) };
 }

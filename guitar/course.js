@@ -810,8 +810,8 @@ export const course = {
   "days": [
     {
       "id": 1,
-      "watch": "L01, 0:51–5:00. Use score A on sheet 1.",
-      "practice": "Tune and set the guitar. Locate open G, B and high E on the staff. Pluck eight unhurried open E notes with index. Count and play score A twice."
+      "watch": "Follow the short setup, reading and fingertip clips on Day 1.",
+      "practice": "Find open G, B and high E on your guitar. Name them from the staff, then clap and play Score A with the slow demonstration."
     },
     {
       "id": 2,
@@ -1028,27 +1028,5 @@ export const course = {
       "id": "tremolo"
     }
   ],
-  "dayOne": [
-    {
-      "title": "3 minutes — Set up and tune.",
-      "body": "Sit on a steady chair. Support the guitar so you can briefly float both hands. Start with the neck angled upward and shoulders easy. Check the six open strings from low E to high E. [Tuning guide](https://www.thisisclassicalguitar.com/tuning-the-classical-guitar/)"
-    },
-    {
-      "title": "5 minutes — Set up with the video.",
-      "body": "Watch 0:51–5:00 of Bradford Werner’s posture lesson. Pause to set up your own guitar and check whether you can reach string 1 without raising your shoulder."
-    },
-    {
-      "title": "5 minutes — Read score A.",
-      "body": "Count four beats before starting. Point to each staff note and say its name, then say its string number. G is on line 2, B is on line 3 and high E is in the top space. Clap the score. A filled quarter note lasts one beat. A hollow half note with a stem lasts two."
-    },
-    {
-      "title": "7 minutes — Pluck with flesh.",
-      "body": "Near the soundhole, touch the thinnest string with the edge of your index fingertip pad. Move the finger a little toward your palm and clear the neighboring string. Play four quiet notes with a short pause between strokes. Try the same on strings 2 and 3 if your hand stays relaxed."
-    },
-    {
-      "title": "5 minutes — Make music.",
-      "body": "Set the metronome around 45–50 bpm. Count in, play score A with your index finger, and let the half notes ring for two beats. Repeat once and keep looking at the score. Write one sentence about which finger contact sounded cleanest."
-    }
-  ],
-  "dayOneTest": "Name the three written notes and their open strings twice, then play both bars with at most one pitch slip, a steady count and a relaxed shoulder. If the rhythm slips, clap it and try again on open E only before restoring the written pitches."
+  "dayOneTest": "Point to G, B and high E on the staff, then find each string without the table. Play both bars with a steady count. If you get stuck, clap the first bar or play its rhythm on open high E, then add the other strings."
 };

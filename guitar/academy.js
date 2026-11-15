@@ -1,8 +1,9 @@
 import { course } from "./course.js";
 import { estasDrills, estasPieces, estasVideos } from "./estas-guide.js";
+import { dailyExercises, estasDrillVideos, estasStepVideos, extraVideos, lessonPracticeVideos, lessonStepVideos, modulePracticeVideos, roadmapPracticeVideos } from "./practice-videos.js";
 import { supportTopics, supportVideos } from "./support-videos.js";
 import { dateKey, loadProgress, mergeProgress, readProgress, saveProgress } from "./progress.js";
-import { firstScore, newQuestion, readingLevels, readingModes, score } from "./reading.js";
+import { firstPosition, firstScore, newQuestion, noteLocation, readingLevels, readingModes, score } from "./reading.js";
 
 const main = document.querySelector("#app");
 const announcement = document.querySelector("#announcement");
@@ -41,12 +42,13 @@ const panel = (heading, body) => `<section class="panel flow"><h2>${escape(headi
 const pdf = '<a class="link" href="reading-sheets.pdf" target="_blank" rel="noopener">Open the reading sheets (PDF) <span aria-hidden="true">↗</span></a>';
 const intro = (title, description = "", kicker = "") => `<div class="page-intro">${kicker ? `<span class="kicker">${escape(kicker)}</span>` : ""}<h1>${escape(title)}</h1>${description ? `<p>${escape(description)}</p>` : ""}</div>`;
 
-const videoInfo = id => estasVideos[id] ?? supportVideos[id];
+const primaryVideos = new Map(course.lessons.map(lesson => [lesson.video, { ...lesson, title: lesson.videoTitle ?? lesson.title }]));
+const videoInfo = id => estasVideos[id] ?? supportVideos[id] ?? extraVideos[id] ?? primaryVideos.get(id);
 const videoUrl = (url, start) => start ? `${url}&t=${start}s` : url;
 
-function videoResources(resources, heading = "Supporting videos") {
+function videoResources(resources, heading = "Supporting videos", open = false) {
   if (!resources?.length) return "";
-  const items = resources.map(([id, cue, technique, start]) => {
+  const items = resources.map(([id, cue, technique, start, end]) => {
     const video = videoInfo(id);
     const source = videoUrl("https://www.youtube.com/watch?v=" + id, start);
     const metadata = [video.channel, video.language, video.duration, technique].filter(Boolean);
@@ -57,15 +59,30 @@ function videoResources(resources, heading = "Supporting videos") {
           <p class="meta">${metadata.map(escape).join(" · ")}</p>
           <p class="support-cue">${escape(cue)}</p>
         </div>
-        <button class="support-play" type="button" data-support-video="${id}" data-start="${start ?? ""}" aria-label="Play here: ${escape(video.title)}"><span aria-hidden="true">▶</span> Play here</button>
+        <button class="support-play" type="button" data-support-video="${id}" data-start="${start ?? ""}" data-end="${end ?? ""}" aria-label="Play here: ${escape(video.title)}"><span aria-hidden="true">▶</span> Play here</button>
       </div>
     </li>`;
   });
-  return `<div class="support-videos"><h3>${escape(heading)}</h3><ul>${items.join("")}</ul></div>`;
+  return `<details class="support-videos"${open ? " open" : ""}><summary>${escape(heading)} <span class="meta">(${resources.length})</span></summary><ul>${items.join("")}</ul></details>`;
 }
 
 const supportingVideos = topic => videoResources(supportTopics[topic]);
-const stepsList = steps => `<ol class="day-steps">${steps.map(([title, body]) => `<li><strong>${escape(title)}</strong><p>${rich(body)}</p></li>`).join("")}</ol>`;
+const stepsList = (steps, videos) => `<ol class="day-steps">${steps.map(([title, body], index) => `<li><h3>${escape(title)}</h3><p>${rich(body)}</p>${videoResources(videos?.[index], "Video for this exercise")}</li>`).join("")}</ol>`;
+
+function noteMap(pitches, showOctaves = false) {
+  const entries = pitches.map(pitch => firstPosition.find(item => item.pitch === pitch));
+  return `<table class="note-map"><thead><tr><th scope="col">On the staff</th><th scope="col">Note</th><th scope="col">On the guitar</th></tr></thead><tbody>${entries.map(({ pitch, staff, position, example }) => `<tr><td>${example}<small>${staff}</small></td><th scope="row">${showOctaves ? pitch : pitch === "E5" ? "High E" : pitch[0]}</th><td>${position}</td></tr>`).join("")}</tbody></table>`;
+}
+
+const openNoteMap = () => noteMap(["G4", "B4", "E5"]);
+
+function scoreDemo(letter) {
+  const videoPath = `media/score-${letter.toLowerCase()}.mp4`;
+  const scoreA = letter === "A" ? `<p><strong>Bar 1</strong> &nbsp; G (3) · B (2) · high E (1, hold through 4).<br><strong>Bar 2</strong> &nbsp; High E (1) · B (2) · G (3, hold through 4).</p><p class="meta">Numbers in brackets are string numbers. All notes use fret 0.</p>${firstScore()}` : "";
+  const video = `<video controls playsinline preload="${letter === "H" ? "none" : "metadata"}" aria-label="Score ${letter} play-along"><source src="${videoPath}" type="video/mp4"></video>`;
+  return `<div class="score-demo flow"><h3>Score ${letter} play-along</h3>${scoreA}
+    ${letter === "H" ? `${pdf}<details><summary>Watch the answer after your first take</summary>${video}</details>` : `<p>Follow the highlighted note. The video shows the string, fret and count at 48 bpm.</p>${video}${pdf}`}</div>`;
+}
 
 function status(module) {
   if (progress.assessments[module.id]) return ["Assessment passed", true];
@@ -242,16 +259,17 @@ function moduleView(module) {
     `<div class="split"><div class="stack">
       ${panel("Lessons", lessonList(items))}
       ${reviews.length ? panel("Optional reviews", lessonList(reviews)) : ""}
-      ${panel("Practice", `<p>${rich(module.Play)}</p><p><strong>Common mistake</strong> · ${rich(module["Common error"])}</p>${module.id === "M12" ? '<a class="link" href="#estas/spirit-of-time">Spirit of Time improvisation study →</a>' : ""}`)}
+      ${panel("Practice", `<p>${rich(module.Play)}</p>${videoResources(modulePracticeVideos[module.id], "Videos for this practice")}
+        <p><strong>Common mistake</strong> · ${rich(module["Common error"])}</p>${module.id === "M12" ? '<a class="link" href="#estas/spirit-of-time">Spirit of Time improvisation study →</a>' : ""}`)}
     </div><aside class="stack">
       ${panel("Learning goals", `<p>${rich(module.Goal)}</p><p><strong>Prerequisite</strong> · ${rich(module.Prerequisite)}</p><span id="module-status">${pill(...status(module))}</span>${supportingVideos(module.id)}`)}
-      ${panel("Assessment", `<p>${rich(module.Pass)}</p><div class="callout"><strong>If you need more practice</strong><p>${rich(module.Repair)}</p></div>
+      ${panel("Assessment", `<p>${rich(module.Pass)}</p><div class="callout"><strong>If you need more practice</strong><p>${rich(module.Repair)}</p>${videoResources(modulePracticeVideos[module.id], "Videos to review before trying again")}</div>
         <div class="checks"><label><input type="checkbox" data-assessment="${module.id}"${progress.assessments[module.id] ? " checked" : ""}>Assessment passed</label></div>`)}
     </aside></div>`;
 }
 
 function video(lesson) {
-  return `<div class="video"><button class="btn" type="button" data-video="${lesson.id}"><span aria-hidden="true">▶</span> Play ${lesson.start ? "chapter" : "video"}</button></div>
+  return `<div class="video-unloaded"><button class="btn" type="button" data-video="${lesson.id}"><span aria-hidden="true">▶</span> Play ${lesson.start ? "chapter" : "video"}</button></div>
     <div class="vid-caption"><span class="meta">${escape(lesson.channel)}${lesson.duration ? " · " + escape(lesson.duration) : ""}</span>${ext(videoUrl(lesson.url, lesson.start), "Watch on YouTube")}</div>`;
 }
 
@@ -265,7 +283,7 @@ function lessonView(lesson) {
   const prereq = rich(lesson.prerequisite ?? (module ? module.Prerequisite : "First clap the Bulerías example in time, then revisit thumb control in Module 5."));
   const mistake = lesson.mistake;
   const practice = ["L01", "L02"].includes(id) ? `<a class="link" href="#day/${Number(id.slice(1))}">Open the Day ${Number(id.slice(1))} plan →</a>` : "";
-  const practicePanel = panel("Practise", `${lesson.steps ? stepsList(lesson.steps) : ""}<p>${escape(lesson.drill)}</p>${practice}
+  const practicePanel = panel("Practise", `${lesson.steps ? stepsList(lesson.steps, lessonStepVideos[id]) : ""}<p>${escape(lesson.drill)}</p>${videoResources(lessonPracticeVideos[id], "Video for this drill")}${practice}
     ${mistake ? `<p><strong>Common mistake</strong> · ${rich(mistake)}</p>` : ""}
     <p>${ext(lesson.material, lesson.materialLabel ?? "Lesson materials")}${!lesson.steps ? ` · ${pdf}` : ""}</p>`);
   const videoPanel = lesson.watch
@@ -296,12 +314,19 @@ function daysView() {
 function dayView(day) {
   const first = day.id === 1;
   const module = course.modules[day.id <= 14 ? 0 : 1];
-  return back("#days", "First 28 days") + intro("Day " + day.id, first ? "Your first 25 minutes with the guitar and the staff." : "", module.title) +
+  const exercises = dailyExercises[day.id].map(([title, body, videos, sheet, link], index) => `<li>
+    <h3>${escape(title)}</h3><p>${rich(body)}</p>
+    ${first && index === 2 ? openNoteMap() : ""}
+    ${videoResources(videos, "Video for this exercise", first)}
+    ${link ? `<a class="link" href="${link[0]}">${escape(link[1])}${arrow}</a>` : ""}
+    ${sheet ? scoreDemo(sheet) : ""}
+  </li>`).join("");
+  const relevant = dayLessons(day);
+  const plan = panel(restDay(day) ? "Rest or review" : "Your practice plan", `<ol class="day-steps daily-exercises">${exercises}</ol>
+    ${!first && relevant.length ? `<details><summary>Related lessons</summary>${lessonList(relevant)}</details>` : ""}`);
+  return back("#days", "First 28 days") + intro("Day " + day.id, first ? "Start with three open strings. Learn to recognize each note on the page, find its string and play it with your fingertip pad." : "", module.title) +
     `<div class="split"><div class="stack">
-      ${first ? `<section class="panel">${video(lessons.get("L01"))}</section>
-        ${panel("Your practice plan", `<ol class="day-steps">${course.dayOne.map(step => `<li><strong>${escape(step.title)}</strong><p>${rich(step.body)}</p></li>`).join("")}</ol>`)}
-        ${panel("Score A", firstScore() + pdf)}`
-      : panel("Your practice plan", `<h3>${restDay(day) ? "Rest or review" : "Watch or read"}</h3><p>${rich(day.watch)}</p><h3>${restDay(day) ? "Optional" : "Try it"}</h3><p>${rich(day.practice)}</p>${dayLessons(day).length ? lessonList(dayLessons(day)) : ""}${day.id === 13 ? '<a class="link" href="#reading/notes">Practise open-string note names →</a>' : ""}${day.id === 27 ? '<a class="link" href="#reading/assessment">Generate four bars for your assessment →</a>' : ""}`)}
+      ${plan}
       <nav class="actions" aria-label="Practice day navigation">
       ${day.id > 1 ? btn("#day/" + (day.id - 1), "Previous day", true) : ""}
       ${day.id < course.days.length ? btn("#day/" + (day.id + 1), "Next day") : btn("#module/M03", "Open the next module")}
@@ -325,19 +350,21 @@ function techniqueView() {
 
 function readingQuestion() {
   const scored = Boolean(quiz.answers);
+  const solution = quiz.bars?.map((bar, index) => `<li><strong>Bar ${index + 1}</strong><ul>${bar.map(({ pitch, beats, bass }) => `<li>${escape(noteLocation(pitch))}${bass ? ` with bass ${escape(noteLocation(bass))}` : ""} · ${beats} ${beats === 1 ? "beat" : "beats"}</li>`).join("")}</ul></li>`).join("");
   return `<h3>${quiz.prompt}</h3>${quiz.html}
       ${scored ? `<div class="answer-options">${quiz.answers.map((option, index) => {
         const chosen = answer === option;
         const correct = answer && quiz.correct.includes(option);
         return `<button type="button" class="btn secondary" data-answer="${index}"${answer ? " disabled" : ""}${correct ? ' data-correct="true"' : chosen ? ' data-wrong="true"' : ""}>${escape(option)}</button>`;
       }).join("")}</div>` : ""}
-      ${scored ? `<div class="quiz-feedback" role="status">${answer ? (quiz.correct.includes(answer) ? "Correct." : "Answer: " + escape(quiz.correct[0]) + ".") : ""}</div>` : ""}
+      ${scored ? `<div class="quiz-feedback" role="status">${answer ? (quiz.correct.includes(answer) ? "Correct." : "Answer: " + escape(quiz.correct[0]) + ".") + (quiz.explanation ? ` <span class="meta">${escape(quiz.explanation)}</span>` : "") : ""}</div>` : ""}
+      ${solution ? `<details><summary>Show strings and frets after your first take</summary><ul>${solution}</ul></details>` : ""}
       <div class="actions"><button type="button" class="btn" data-new-question${scored && !answer ? " disabled" : ""}>${scored ? "Next question" : "New score"}${arrow}</button>${scored ? `<span class="meta">${reading.correct} correct out of ${reading.attempts}</span>` : ""}</div>`;
 }
 
 function readingView() {
   const topic = readingModes.find(mode => mode.id === reading.mode);
-  return intro("Music Reading Academy", "Read the written pitches on a guitar treble staff. Guitar sounds one octave below the written notes.") +
+  return intro("Music Reading Academy", "Find the note on the staff, name it, then play it on the guitar. Start with the three open strings.") +
     `<div class="split"><div class="stack">
     <section class="panel flow"><h2>Practice</h2>
       <div class="tabs" aria-label="Reading exercise">${readingModes.map(mode => `<button type="button" class="btn secondary" data-mode="${mode.id}" aria-pressed="${mode.id === reading.mode}">${mode.label}</button>`).join("")}</div>
@@ -345,9 +372,11 @@ function readingView() {
       ${reading.mode === "melody" ? `<label class="field">Length<select id="reading-bars">${[2, 4].map(bars => `<option value="${bars}"${bars === reading.bars ? " selected" : ""}>${bars} bars</option>`).join("")}</select></label>` : ""}
       <div id="reading-question" class="flow">${readingQuestion()}</div>
     </section></div><aside class="stack">
-      ${panel(topic.label, supportingVideos(topic.id))}
-      ${panel("Printed practice", `<p>Start with scores A–C and save score H for your first-take assessment.</p>${pdf}`)}
-      ${panel("Open-string anchors", "<p>G is on the second line, B on the middle line and high E in the top space. On the guitar these are open strings 3, 2 and 1.</p>")}
+      ${panel(topic.label, videoResources(supportTopics[topic.id], "Watch before trying the exercise", true))}
+      ${panel("Find notes on the guitar", `<p>Count staff lines and spaces from the bottom. String 1 is the thinnest. Fret 0 means open.</p>${openNoteMap()}
+        <details><summary>Show all first-position natural notes</summary><p class="meta">Octave numbers refer to the notes as written. The guitar sounds one octave lower.</p>${noteMap(firstPosition.map(note => note.pitch), true)}</details>`)}
+      ${panel("Printed practice", `<p>Start with scores A–C and save Score H for your first-take assessment.</p>${pdf}
+        <details><summary>Watch a printed exercise at 48 bpm</summary><div class="score-index">${[..."ABCDEFGH"].map(letter => `<a class="link" href="media/score-${letter.toLowerCase()}.mp4">Score ${letter}</a>`).join("")}</div></details>`)}
     </aside></div>`;
 }
 
@@ -371,7 +400,7 @@ function repertoireView() {
 function estasView(piece) {
   if (piece) return back("#estas", "Estas Tonne guide") + intro(piece.title, piece.intro, piece.level) +
     `<div class="split"><div class="stack">
-      ${panel("Practise the passage", stepsList(piece.steps))}
+      ${panel("Practise the passage", stepsList(piece.steps, estasStepVideos[piece.id]))}
       ${panel("Checkpoint", `<p>${escape(piece.checkpoint)}</p><a class="link" href="#journal">Log a practice take${arrow}</a>`)}
     </div><aside class="stack">
       ${panel("What to watch", videoResources(piece.videos, "Performances and lessons"))}
@@ -382,14 +411,14 @@ function estasView(piece) {
     <div class="grid block-gap">${estasPieces.map(item => panel(item.title, `<p>${escape(item.skill)}</p><p class="meta">${escape(item.level)}</p><a class="link" href="#estas/${item.id}">${escape(item.start)}${arrow}</a>`)).join("")}</div>
     <section class="block-gap flow"><h2>Read and play</h2>
       <p>These original exercises build the thumb pulse and phrasing used in the studies. Right-hand finger names are p (thumb), i (index), m (middle) and a (ring).</p>
-      <div class="grid">${estasDrills.map(drill => panel(drill.title, `${score(drill.bars, { label: drill.label })}<p>${escape(drill.focus)}</p>`)).join("")}</div>
+      <div class="grid">${estasDrills.map((drill, index) => panel(drill.title, `${score(drill.bars, { label: drill.label })}<p>${escape(drill.focus)}</p>${videoResources(estasDrillVideos[index], "Video for this exercise")}`)).join("")}</div>
     </section>
     <p class="block-gap">${ext("https://www.estastonne.com/faq/", "Estas Tonne’s FAQ on recordings and sheet music")}</p>`;
 }
 
 function roadmapView() {
   return back("#course", "Curriculum") + intro("Months 7–12", "Continue when the foundations feel steady. Use the milestones to guide the next six months.") +
-    `<div class="grid">${course.roadmap.map(item => panel("Month " + item.month, `<p>${rich(item.focus)}</p><p><strong>Milestone</strong> · ${rich(item.milestone)}</p>
+    `<div class="grid">${course.roadmap.map(item => panel("Month " + item.month, `<p>${rich(item.focus)}</p><p><strong>Milestone</strong> · ${rich(item.milestone)}</p>${videoResources(roadmapPracticeVideos[item.month], "Videos for this practice")}
       ${item.month === 10 ? '<a class="link" href="#lesson/L35">Alzapúa lesson →</a>' : ""}`)).join("")}</div>`;
 }
 
@@ -478,8 +507,8 @@ function render({ focus = true } = {}) {
       break;
     }
     case "reading":
-      if (id === "assessment" || id === "notes") {
-        Object.assign(reading, id === "assessment" ? { mode: "melody", level: "treble", bars: 4 } : { mode: "notes", level: "open" });
+      if (["assessment", "notes", "open-melody"].includes(id)) {
+        Object.assign(reading, { mode: id === "notes" ? "notes" : "melody", level: id === "assessment" ? "treble" : "open", bars: id === "assessment" ? 4 : 2 });
         nextQuestion(true);
       }
       html = readingView();
@@ -547,6 +576,8 @@ function videoFrame(id, title, start, end) {
 function playVideo(button) {
   const lesson = lessons.get(button.dataset.video);
   const frame = videoFrame(lesson.video, lesson.videoTitle ?? lesson.title, lesson.start, lesson.end);
+  const player = button.parentElement;
+  player.classList.replace("video-unloaded", "video");
   button.replaceWith(frame);
   frame.focus();
 }
@@ -555,7 +586,7 @@ function playSupportingVideo(button) {
   const id = button.dataset.supportVideo;
   const list = button.closest(".support-videos");
   list.querySelector(".support-player")?.remove();
-  const frame = videoFrame(id, videoInfo(id).title, button.dataset.start);
+  const frame = videoFrame(id, videoInfo(id).title, button.dataset.start, button.dataset.end);
   const player = document.createElement("div");
   player.className = "video support-player";
   player.append(frame);
