@@ -11,6 +11,30 @@ const modules = new Map(course.modules.map(item => [item.id, item]));
 const lessons = new Map(course.lessons.map(item => [item.id, item]));
 const core = course.lessons.filter(item => item.kind === "Core");
 const method = "https://www.thisisclassicalguitar.com/free-classical-guitar-method-book-pdf/";
+const methodPdf = "https://www.thisisclassicalguitar.com/wp-content/uploads/2024/11/Classical-Guitar-Method-Vol1-Werner.pdf";
+const methodPagesByDay = {
+  1: [[12, "Find and name the three open notes"]],
+  3: [[13, "Count and clap open-string rhythms"]],
+  4: [[12, "Review the open notes"], [13, "Practise note lengths"]],
+  5: [[14, "Etude No. 1"]],
+  7: [[16, "Nocturne"]],
+  8: [[15, "Etude No. 2"]],
+  9: [[15, "Etude No. 2"]],
+  11: [[16, "Nocturne student part"]],
+  12: [[14, "Choose an unfamiliar line"]],
+  15: [[17, "Find your first fretted A"]],
+  16: [[18, "Read G and A alongside open B and E"]],
+  17: [[19, "Moderato"]],
+  18: [[20, "A Fairy Tale"]],
+  19: [[21, "Find B, C and D on string 2"]],
+  20: [[21, "Find E, F and G on string 1"]],
+  21: [[22, "Review the names, strings and frets"]],
+  22: [[23, "Read notes across strings"]],
+  23: [[24, "Five Melodies"]],
+  24: [[26, "Ode to Joy student part"]],
+  25: [[26, "Ode to Joy duet"]],
+  26: [[23, "Choose an unfamiliar line"]],
+};
 const statusLabels = { watched: "Video watched", practised: "Exercise practised", mastered: "Skill mastered" };
 let progress = loadProgress();
 let storageOk = saveProgress(progress);
@@ -41,6 +65,12 @@ const pill = (label, good = false) => `<span class="pill${good ? " done" : ""}">
 const panel = (heading, body) => `<section class="panel flow"><h2>${escape(heading)}</h2>${body}</section>`;
 const pdf = '<a class="link" href="reading-sheets.pdf" target="_blank" rel="noopener">Open the reading sheets (PDF) <span aria-hidden="true">↗</span></a>';
 const intro = (title, description = "", kicker = "") => `<div class="page-intro">${kicker ? `<span class="kicker">${escape(kicker)}</span>` : ""}<h1>${escape(title)}</h1>${description ? `<p>${escape(description)}</p>` : ""}</div>`;
+
+function methodLinks(pages) {
+  if (!pages?.length) return "";
+  return `<div class="callout flow"><p class="meta">Bradford Werner · ${ext(method, "Classical Guitar Method, Volume 1")}</p>
+    ${pages.map(([page, label]) => `<p>${ext(`${methodPdf}#page=${page}`, `${label} · p. ${page}`)}</p>`).join("")}</div>`;
+}
 
 const primaryVideos = new Map(course.lessons.map(lesson => [lesson.video, { ...lesson, title: lesson.videoTitle ?? lesson.title }]));
 const videoInfo = id => estasVideos[id] ?? supportVideos[id] ?? extraVideos[id] ?? primaryVideos.get(id);
@@ -316,13 +346,14 @@ function dayView(day) {
   const module = course.modules[day.id <= 14 ? 0 : 1];
   const exercises = dailyExercises[day.id].map(([title, body, videos, sheet, link], index) => `<li>
     <h3>${escape(title)}</h3><p>${rich(body)}</p>
-    ${first && index === 2 ? openNoteMap() : ""}
+    ${first && index === 2 ? openNoteMap() + methodLinks(methodPagesByDay[1]) : ""}
     ${videoResources(videos, "Video for this exercise", first)}
     ${link ? `<a class="link" href="${link[0]}">${escape(link[1])}${arrow}</a>` : ""}
     ${sheet ? scoreDemo(sheet) : ""}
   </li>`).join("");
   const relevant = dayLessons(day);
-  const plan = panel(restDay(day) ? "Rest or review" : "Your practice plan", `<ol class="day-steps daily-exercises">${exercises}</ol>
+  const plan = panel(restDay(day) ? "Rest or review" : "Your practice plan", `${first ? "" : methodLinks(methodPagesByDay[day.id])}
+    <ol class="day-steps daily-exercises">${exercises}</ol>
     ${!first && relevant.length ? `<details><summary>Related lessons</summary>${lessonList(relevant)}</details>` : ""}`);
   return back("#days", "First 28 days") + intro("Day " + day.id, first ? "Start with three open strings. Learn to recognize each note on the page, find its string and play it with your fingertip pad." : "", module.title) +
     `<div class="split"><div class="stack">
@@ -374,7 +405,8 @@ function readingView() {
     </section></div><aside class="stack">
       ${panel(topic.label, videoResources(supportTopics[topic.id], "Watch before trying the exercise", true))}
       ${panel("Find notes on the guitar", `<p>Count staff lines and spaces from the bottom. String 1 is the thinnest. Fret 0 means open.</p>${openNoteMap()}
-        <details><summary>Show all first-position natural notes</summary><p class="meta">Octave numbers refer to the notes as written. The guitar sounds one octave lower.</p>${noteMap(firstPosition.map(note => note.pitch), true)}</details>`)}
+        <details><summary>Show all first-position natural notes</summary><p class="meta">Octave numbers refer to the notes as written. The guitar sounds one octave lower.</p>${noteMap(firstPosition.map(note => note.pitch), true)}</details>
+        ${methodLinks([[10, "The treble clef and the small 8"], [66, "Sharps, flats and naturals"], [101, "First-position note reference"]])}`)}
       ${panel("Printed practice", `<p>Start with scores A–C and save Score H for your first-take assessment.</p>${pdf}
         <details><summary>Watch a printed exercise at 48 bpm</summary><div class="score-index">${[..."ABCDEFGH"].map(letter => `<a class="link" href="media/score-${letter.toLowerCase()}.mp4">Score ${letter}</a>`).join("")}</div></details>`)}
     </aside></div>`;
