@@ -1,4 +1,7 @@
 import { symbols } from "./notation-symbols.js";
+import { accidentals as accidentalOutlines } from "./notation-accidentals.js";
+
+const outlines = { ...symbols, ...accidentalOutlines };
 
 const notes = {
   E3: [-7, 52], F3: [-6, 53], G3: [-5, 55], A3: [-4, 57], B3: [-3, 59],
@@ -39,7 +42,7 @@ function shuffle(array) {
 
 const staffY = step => 77 - step * 5;
 function glyph(name, x, top, height) {
-  const [path, [xmin, ymin, , ymax]] = symbols[name];
+  const [path, [xmin, ymin, , ymax]] = outlines[name];
   const scale = height / (ymax - ymin);
   return `<path d="${path}" transform="translate(${x - xmin * scale} ${top + ymax * scale}) scale(${scale} ${-scale})" fill="currentColor"/>`;
 }
@@ -59,9 +62,9 @@ function note(pitch, beats, x, voice) {
   const stem = beats === 4 ? "" : `<path d="M${xStem} ${y}V${yTip}" stroke="currentColor" stroke-width="1.25"/>`;
   const flag = beats === 0.5
     ? `<path d="M${xStem} ${yTip}q10 ${up ? 9 : -9} 7 ${up ? 18 : -18}q-1 ${up ? -8 : 8} -7 ${up ? -10 : 10}z" fill="currentColor"/>` : "";
-  const mark = accidental ? `<text x="${x - 19}" y="${y + 6}" fill="currentColor" font-size="20">${accidental}</text>` : "";
+  const mark = !accidental ? "" : accidental === "♯" ? glyph("sharp", x - 19, y - 13, 26) : glyph("flat", x - 18, y - 18, 24);
   const dot = beats === 1.5 ? `<circle cx="${x + 9}" cy="${y - (step % 2 === 0 ? 4 : 0)}" r="1.5" fill="currentColor"/>` : "";
-  return ledger + mark + `<ellipse cx="${x}" cy="${y}" rx="${beats === 4 ? 7.4 : 5.7}" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "#fffdf9" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag + dot;
+  return ledger + mark + `<ellipse cx="${x}" cy="${y}" rx="${beats === 4 ? 7.4 : 5.7}" ry="3.5" transform="rotate(-19 ${x} ${y})" fill="${beats >= 2 ? "none" : "currentColor"}" stroke="currentColor" stroke-width="1.35"/>` + stem + flag + dot;
 }
 
 export function score(bars, { meter = true, timeSignature = meter, final = true, signature = [], label = "Guitar notation on a treble staff", compact = false, beatsPerBar = 4, eventOffset = 0 } = {}) {
@@ -73,8 +76,10 @@ export function score(bars, { meter = true, timeSignature = meter, final = true,
   const lines = Array.from({ length: 5 }, (_, index) =>
     `<path d="M11 ${staffY(index * 2)}H${end}" stroke="currentColor" stroke-width=".8"/>`).join("");
   const time = timeSignature ? `<g fill="currentColor" font-family="Georgia, serif" font-weight="bold" font-size="19"><text x="${start - 22}" y="55">${beatsPerBar}</text><text x="${start - 22}" y="75">4</text></g>` : "";
-  const key = signature.map(({ symbol, step }, index) =>
-    `<text x="${46 + index * 15}" y="${staffY(step) + 6}" fill="currentColor" font-size="23">${symbol}</text>`).join("");
+  // A sharp is centred on its line or space; a flat sits with its bowl there and its stem above.
+  const key = signature.map(({ symbol, step }, index) => symbol === "♯"
+    ? glyph("sharp", 47 + index * 14, staffY(step) - 14, 28)
+    : glyph("flat", 47 + index * 14, staffY(step) - 19, 25.5)).join("");
   const music = bars.map((bar, index) => {
     let beat = 0;
     const x0 = start + index * barWidth;
@@ -116,10 +121,23 @@ export const firstPosition = Object.keys(notes).map(pitch => {
 
 export const noteLocation = pitch => `${pitch[0]} · ${positions(pitch)[0]}`;
 
+// Where a note sits, in words: the question can then be answered without seeing the staff,
+// and the words do not give the answer away.
+function place(pitch) {
+  const [step] = pitchData(pitch);
+  const ordinal = ["first", "second", "third", "fourth", "fifth"];
+  if (step >= 0 && step <= 8) {
+    return step % 2 ? `in the ${ordinal[(step - 1) / 2]} space from the bottom` : `on the ${ordinal[step / 2]} line from the bottom`;
+  }
+  if (step === 9) return "just above the top line";
+  const ledgers = Math.floor(-step / 2);
+  return step % 2 ? `just below ${ledgers ? `ledger line ${ledgers} under the staff` : "the bottom line"}` : `on ledger line ${ledgers} under the staff`;
+}
+
 export function newQuestion(mode, level, previous, barCount = 2) {
   const group = groups[level] ?? groups.open;
   const pitch = pick(group.filter(note => note !== previous));
-  const visual = () => score([[event(pitch, 1)]], { meter: false });
+  const visual = () => score([[event(pitch, 1)]], { meter: false, label: `Treble staff with one note ${place(pitch)}.` });
 
   if (mode === "frets") {
     const correct = positions(pitch);
@@ -131,7 +149,8 @@ export function newQuestion(mode, level, previous, barCount = 2) {
     const choices = [event("B4", .5), event("B4", 1), event("B4", 2), event(null, 1)];
     const value = pick(choices.filter(item => `${item.pitch}/${item.beats}` !== previous));
     const correct = !value.pitch ? "Quarter rest" : { .5: "Eighth note", 1: "Quarter note", 2: "Half note" }[value.beats];
-    return { key: `${value.pitch}/${value.beats}`, prompt: "Which duration is shown?", html: score([[value]], { meter: false }),
+    const shape = !value.pitch ? "a rest: a slanted zigzag stroke" : { .5: "a filled note head with a stem and one flag", 1: "a filled note head with a stem", 2: "a hollow note head with a stem" }[value.beats];
+    return { key: `${value.pitch}/${value.beats}`, prompt: "Which duration is shown?", html: score([[value]], { meter: false, label: `Treble staff with ${shape}.` }),
       answers: ["Eighth note", "Quarter note", "Half note", "Quarter rest"], correct: [correct],
       explanation: { "Eighth note": "Play for half a beat.", "Quarter note": "Play for one beat.", "Half note": "Play once and let the note ring for two beats.", "Quarter rest": "Keep counting for one silent beat." }[correct] };
   }
@@ -144,7 +163,9 @@ export function newQuestion(mode, level, previous, barCount = 2) {
       ["B♭ major", [{ symbol: flat, step: 4 }, { symbol: flat, step: 7 }]]
     ];
     const [name, signature] = pick(signatures.filter(([name]) => name !== previous));
-    return { key: name, prompt: "Which major key matches this signature?", html: score([[]], { meter: false, signature }),
+    const kind = signature[0]?.symbol === sharp ? "sharp" : "flat";
+    const label = signature.length ? `Key signature with ${signature.length} ${kind}${signature.length > 1 ? "s" : ""}.` : "Key signature with no sharps or flats.";
+    return { key: name, prompt: "Which major key matches this signature?", html: score([[]], { meter: false, signature, label }),
       answers: signatures.map(([name]) => name), correct: [name] };
   }
   if (mode === "melody" || mode === "voices") {

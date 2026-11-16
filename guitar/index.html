@@ -1,55 +1,196 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-router="hash">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Guitar Academy: classical guitar &amp; flamenco without nails · Sviatoslav Foshchii</title>
   <meta name="description" content="Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.">
-  <meta name="theme-color" content="#f5f1e8">
-  <title>Guitar Academy · Sviatoslav Foshchii</title>
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f6f1e8" data-auto="#f6f1e8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#16110d" data-auto="#16110d" media="(prefers-color-scheme: dark)">
   <link rel="canonical" href="https://foshchii.com/guitar/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Guitar Academy">
   <meta property="og:url" content="https://foshchii.com/guitar/">
   <meta property="og:title" content="Guitar Academy · Classical guitar &amp; flamenco">
-  <meta property="og:image" content="https://foshchii.com/guitar/guitar.webp">
-  <link rel="icon" href="../assets/favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
-  <link rel="stylesheet" href="academy.css">
-  <script type="module" src="academy.js"></script>
+  <meta property="og:description" content="Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.">
+  <meta property="og:image" content="https://foshchii.com/guitar/img/share.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Guitar Academy: classical guitar and flamenco, a no-nails course. A classical guitar seen close up.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/commissioner-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="academy.css?v=3">
+  <script>
+    // Before first paint: apply a saved theme, and note who the first-visit page below is not for,
+    // so returning learners and deep links never see it flash by.
+    (function () {
+      var root = document.documentElement, saved;
+      try {
+        saved = localStorage.getItem("guitar-academy.theme");
+        if (saved === "light" || saved === "dark") root.dataset.theme = saved;
+        saved = localStorage.getItem("guitar-academy.progress");
+        if (saved && /"lastLesson":"|"journal":\[\{|"(?:lessons|assessments|days|activities)":\{"/.test(saved)) root.classList.add("returning");
+      } catch (error) {}
+      if (/^#(?!home$|main$)./.test(location.hash)) root.classList.add("deep");
+    })();
+  </script>
+  <link rel="modulepreload" href="views.js">
+  <link rel="modulepreload" href="course.js">
+  <link rel="modulepreload" href="estas-guide.js">
+  <link rel="modulepreload" href="support-videos.js">
+  <link rel="modulepreload" href="progress.js">
+  <link rel="modulepreload" href="reading.js">
+  <link rel="modulepreload" href="notation-symbols.js">
+  <link rel="modulepreload" href="notation-accidentals.js">
+  <script type="module" src="academy.js?v=3" onerror="document.documentElement.classList.remove('deep', 'returning')"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": ["WebApplication", "LearningResource"],
+    "name": "Guitar Academy",
+    "url": "https://foshchii.com/guitar/",
+    "description": "Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.",
+    "image": "https://foshchii.com/guitar/img/share.jpg",
+    "inLanguage": "en",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "isAccessibleForFree": true,
+    "learningResourceType": "Course",
+    "educationalLevel": "Beginner",
+    "teaches": [
+      "Classical guitar technique without fingernails",
+      "Reading standard notation on the guitar",
+      "Flamenco rhythm and right-hand technique"
+    ],
+    "publisher": { "@type": "Person", "name": "Sviatoslav Foshchii", "url": "https://foshchii.com/" }
+  }
+  </script>
 </head>
 <body>
+  <svg class="sr-only" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24"><path d="M7 17 17 7M8.5 7H17v8.5"/></symbol>
+    <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.5 5.8v12.4a.6.6 0 0 0 .9.5l10-6.2a.6.6 0 0 0 0-1l-10-6.2a.6.6 0 0 0-.9.5Z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.6C10.2 5.3 7.6 4.7 4 4.9v13.2c3.6-.2 6.2.4 8 1.7 1.8-1.3 4.4-1.9 8-1.7V4.9c-3.6-.2-6.2.4-8 1.7ZM12 6.6v13.2"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><ellipse cx="8.2" cy="17.4" rx="3.2" ry="2.4" transform="rotate(-20 8.2 17.4)" fill="currentColor" stroke="none"/><path d="M11.2 16.6V4.5c1 2.8 5.3 3.3 5.3 7.4"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M3 12c1.5-5 3-7.5 4.5-7.5S10.5 7 12 12s3 7.5 4.5 7.5S19.5 17 21 12"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 4.2 2.3 4.9 5.3.7-3.9 3.7 1 5.3-4.7-2.6-4.7 2.6 1-5.3-3.9-3.7 5.3-.7Z"/></symbol>
+    <symbol id="i-sheet" viewBox="0 0 24 24"><path d="M7 3.5h7.5L18 7v13.5H7ZM14.5 3.5V7H18M10.5 16.4v-5l4-.9v4.9"/><circle cx="9.5" cy="16.4" r="1" fill="currentColor" stroke="none"/><circle cx="13.5" cy="15.4" r="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-journal" viewBox="0 0 24 24"><path d="M7.5 3.5H17A1.5 1.5 0 0 1 18.5 5v14a1.5 1.5 0 0 1-1.5 1.5H7.5ZM7.5 3.5v17M5 7.5h2.5M5 12h2.5M5 16.5h2.5M11 8.5h4.5M11 12h4.5"/></symbol>
+    <symbol id="i-metronome" viewBox="0 0 24 24"><path d="M9.3 3.5h5.4l3.6 17H5.7ZM7 15.5h10M12 15.5l4.6-9.2"/><circle cx="15.2" cy="9.1" r="1.3" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 5.5 6v5.4c0 4.1 2.6 7.3 6.5 9.1 3.9-1.8 6.5-5 6.5-9.1V6ZM9 12l2.1 2.1L15 10.2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4.5 19.5h15M7.5 16v-4M12 16V7.5M16.5 16v-6.5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.7v.3"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+  </svg>
   <a class="skip" href="#main">Skip to content</a>
   <header class="site-header">
     <div class="shell header-inner">
       <a class="wordmark" href="#home">
-        <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <svg class="mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle cx="18" cy="18" r="17"/><g transform="rotate(24 18 18)"><path d="M14.4 25V13"/><path d="M18 26V8.5"/><path d="M21.6 25v-9"/></g></svg>
         Guitar Academy
       </a>
-      <nav aria-label="Main navigation" class="primary-nav">
-        <a href="#home" data-nav="home">Dashboard</a>
+      <nav class="primary-nav" aria-label="Main">
+        <a href="#home" data-nav="home">Today</a>
         <a href="#course" data-nav="course">Curriculum</a>
         <a href="#reading" data-nav="reading">Reading</a>
         <a href="#technique" data-nav="technique">No nails</a>
         <a href="#estas" data-nav="estas">Estas Tonne</a>
+        <a href="#repertoire" data-nav="repertoire">Repertoire</a>
+        <a href="#journal" data-nav="journal">Journal</a>
       </nav>
-      <a href="#journal" data-nav="journal" class="journal-link">Practice journal</a>
+      <div class="header-tools">
+        <a class="progress-chip" href="#progress" data-nav="progress" data-progress-chip aria-label="Progress">
+          <svg class="ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle class="ring-track" cx="18" cy="18" r="15"/><circle class="ring-value" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 18 18)"/></svg>
+          <span>Progress</span>
+        </a>
+        <a class="tool-link" href="#settings" data-nav="settings" aria-label="Settings"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sliders"></use></svg></a>
+      </div>
     </div>
   </header>
   <main id="main" class="shell main" tabindex="-1">
-    <div hidden><span id="home"></span><span id="course"></span><span id="reading"></span><span id="technique"></span><span id="estas"></span><span id="journal"></span><span id="repertoire"></span><span id="progress"></span><span id="settings"></span></div>
-    <div id="app"></div>
-    <noscript>Enable JavaScript to use the course and track your practice. <a href="reading-sheets.pdf">Open the reading sheets</a>.</noscript>
+    <div id="app"><div class="view" data-view="home"><section class="hero">
+    <picture class="hero-media">
+      <source type="image/avif" srcset="img/guitar-720.avif 720w, img/guitar-1440.avif 1440w" sizes="(min-width: 1260px) 1180px, 96vw">
+      <img src="guitar.webp" srcset="img/guitar-720.webp 720w, guitar.webp 1440w" sizes="(min-width: 1260px) 1180px, 96vw" alt="" width="1440" height="960" fetchpriority="high" decoding="async">
+    </picture>
+    <div class="hero-body">
+      <p class="kicker">A no-nails course</p>
+      <h1>Classical guitar <em>&amp; flamenco</em></h1>
+      <p class="hero-copy">Read music from your first session. Build a warm fingertip tone, learn Spanish guitar and work toward the music of Estas Tonne.</p>
+      <div class="actions"><a class="btn btn--light" href="#day/1">Start Day 1<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a><a class="btn btn--ghost" href="#course">Explore curriculum<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a></div>
+    </div>
+  </section>
+  <ul class="facts">
+    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg><div><strong>12 modules, six months</strong><span>From your first open strings to a first improvisation.</span></div></li>
+    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg><div><strong>25 minutes a day</strong><span>Or 10 when time is short. The first 28 days are planned for you.</span></div></li>
+    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-shield"></use></svg><div><strong>No account</strong><span>Your progress and notes stay in this browser.</span></div></li>
+  </ul>
+  <div class="dashboard">
+    <section class="card today">
+      <div class="card-head"><h2>Today’s practice</h2><div class="segment" role="group" aria-label="Session length">
+      <button type="button" data-minutes="25" aria-pressed="true">25 min</button><button type="button" data-minutes="10" aria-pressed="false">10 min</button>
+      </div></div>
+      <p class="meta">Day 1 · <span id="activity-total">0 of 5 checked</span></p>
+      <ol class="practice-list"><li><label class="check-row"><input class="check" type="checkbox" data-activity="0000-00-00/day-1/25/setup"><span><strong>Set up and tune</strong><small>Find a relaxed sitting position.</small></span></label><span class="mins">3 min</span></li><li><label class="check-row"><input class="check" type="checkbox" data-activity="0000-00-00/day-1/25/video"><span><strong>Watch the setup chapter</strong><small>Watch 0:51–5:00 of Werner’s posture lesson.</small></span></label><span class="mins">5 min</span></li><li><label class="check-row"><input class="check" type="checkbox" data-activity="0000-00-00/day-1/25/reading"><span><strong>Read score A</strong><small>Name and clap G, B and high E.</small></span></label><span class="mins">5 min</span></li><li><label class="check-row"><input class="check" type="checkbox" data-activity="0000-00-00/day-1/25/technique"><span><strong>Pluck with flesh</strong><small>Play open strings with the pad of your index finger.</small></span></label><span class="mins">7 min</span></li><li><label class="check-row"><input class="check" type="checkbox" data-activity="0000-00-00/day-1/25/music"><span><strong>Play the two bars</strong><small>Read score A at 45–50 bpm.</small></span></label><span class="mins">5 min</span></li></ol>
+      <p class="card-foot"><a class="link" href="#day/1">Open today’s <span class="nowrap">plan<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span></a></p>
+    </section>
+    <aside class="rail">
+      <section class="card">
+        <p class="kicker">Current module · Foundation</p>
+        <h2 class="card-title"><a href="#module/M01">Setup, pulse and your first notes</a></h2>
+        <p class="meta">Weeks 1–2</p>
+        <p class="next-up"><span class="label">Next lesson</span><a href="#lesson/L01">Sit comfortably and support the guitar</a></p>
+        <a class="link" href="#module/M01">Open <span class="nowrap">module<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span></a>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title card-title--small">Course progress</h2><a class="link" href="#progress">View <span class="nowrap">progress<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span></a></div>
+        <div class="progress-summary"><svg class="ring ring--large" viewBox="0 0 36 36" role="img" aria-label="0% of core exercises practised"><circle class="ring-track" cx="18" cy="18" r="15.5"></circle><circle class="ring-value" cx="18" cy="18" r="15.5" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 18 18)"></circle><text class="ring-text" x="18" y="18.5">0%</text></svg>
+          <p>0 of 34 core exercises practised<br><span class="meta">0 skills mastered</span></p></div>
+        
+        
+      </section>
+    </aside>
+  </div>
+  <nav class="explore" aria-label="More to practise">
+    <a href="#reading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-note"></use></svg><span><strong>Music Reading Academy</strong><small>Note names, frets, rhythm and sight-reading on a staff.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+    <a href="#technique"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wave"></use></svg><span><strong>Playing Without Nails</strong><small>Each stroke, adapted for fingertip pads.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+    <a href="#estas"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-star"></use></svg><span><strong>Estas Tonne guide</strong><small>Four pieces, studied one phrase at a time.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+    <a href="#repertoire"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sheet"></use></svg><span><strong>Repertoire</strong><small>Pieces to practise from the score.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+  </nav></div></div><!-- /app -->
+    <noscript><p class="noscript">The lessons, the reading trainer and progress tracking need JavaScript. Without it you can still <a href="reading-sheets.pdf">open the reading sheets (PDF)</a>.</p></noscript>
   </main>
-  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <a href="../">foshchii.com <span aria-hidden="true">↗</span></a>
+      <p class="footer-note">Your progress stays in this browser.</p>
       <nav aria-label="More academy pages">
+        <a href="#about">About</a>
         <a href="#repertoire">Repertoire</a>
         <a href="#progress">Progress</a>
         <a href="#settings">Settings</a>
+        <a href="../">foshchii.com <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-up-right"></use></svg></a>
       </nav>
     </div>
   </footer>
+  <nav class="tabbar" aria-label="Sections">
+    <a href="#home" data-nav="home"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-metronome"></use></svg>Today</a>
+    <a href="#course" data-nav="course"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>Course</a>
+    <a href="#reading" data-nav="reading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-note"></use></svg>Reading</a>
+    <a href="#journal" data-nav="journal"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-journal"></use></svg>Journal</a>
+    <a href="#menu" data-nav="menu technique estas repertoire progress settings about"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-more"></use></svg>More</a>
+  </nav>
+  <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
 </body>
 </html>

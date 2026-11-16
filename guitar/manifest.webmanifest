@@ -1,0 +1,16 @@
+{
+  "name": "Guitar Academy",
+  "short_name": "Guitar",
+  "description": "Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e8",
+  "theme_color": "#1e1611",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

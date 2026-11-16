@@ -19,7 +19,9 @@ and invisible until someone hits them on the live site:
   - feed.xml out of date with the articles
   - the booking backend's VERSION out of date with its code
   - a security.txt that is missing, malformed or expired
-  - JavaScript syntax errors
+  - JavaScript syntax errors, in every script the site serves
+  - mistakes in the Guitar Academy's course data, which only show up once the
+    browser draws a screen (see check_guitar.mjs)
 """
 
 import json
@@ -62,12 +64,15 @@ class Page(HTMLParser):
         self.canonical = []
         self.og_url = []
         self.title = []
+        self.hash_router = False  # <html data-router="hash">: its #links are screens, not anchors
         self._script = None  # (line, type, [chunks]) while inside <script>
         self._in_title = False
 
     def handle_starttag(self, tag, attrs):
         line = self.getpos()[0]
         a = dict(attrs)
+        if tag == "html" and a.get("data-router") == "hash":
+            self.hash_router = True
         if a.get("id"):
             self.ids.add(a["id"])
         for attr in ("href", "src"):
@@ -148,6 +153,10 @@ def check_references(pages):
             count += 1
             parts = urlsplit(url)
             path = unquote(parts.path)
+            if not path and page.hash_router:
+                # The Guitar Academy shows a screen per #link (#course, #lesson/L01).
+                # check_guitar.mjs follows those; they are not anchors in the page.
+                continue
             if not path:
                 target = name
             elif path.startswith("/"):
@@ -293,12 +302,23 @@ def check_backend_version():
              "VERSION is out of date with the code; run: python3 .github/scripts/stamp_backend_version.py")
 
 
+def site_scripts():
+    """Every .js file the site serves: the top level and each section's folder
+    (assets/js, guitar, …). Hidden folders and node_modules are skipped."""
+    found = []
+    for p in ROOT.rglob("*.js"):
+        rel = p.relative_to(ROOT)
+        if not any(part.startswith(".") or part == "node_modules" for part in rel.parts):
+            found.append(p)
+    return sorted(found)
+
+
 def check_js():
     node = shutil.which("node")
     if not node:
         print("note: node not found, skipping the JavaScript syntax check", file=sys.stderr)
         return 0
-    files = sorted(ROOT.glob("*.js")) + sorted(ROOT.glob("assets/js/*.js"))
+    files = site_scripts()
     for f in files:
         r = subprocess.run([node, "--check", str(f)], capture_output=True, text=True)
         if r.returncode:
@@ -307,6 +327,39 @@ def check_js():
             detail = next((l for l in r.stderr.splitlines() if "Error" in l), r.stderr.strip())
             fail(rel, int(m.group(1)) if m else 1, f"JavaScript syntax error: {detail}")
     return len(files)
+
+
+notes = []
+
+
+def check_guitar():
+    """The Guitar Academy draws its screens in the browser, so its mistakes are
+    not in the HTML. check_guitar.mjs draws every screen in Node and reports
+    them; prerender_guitar.mjs says whether the copy of the home page inside
+    guitar/index.html is still what the academy would draw."""
+    node = shutil.which("node")
+    if not node or not (ROOT / "guitar" / "views.js").is_file():
+        return
+    scripts = Path(__file__).resolve().parent
+    r = subprocess.run([node, str(scripts / "check_guitar.mjs")], capture_output=True, text=True)
+    for line in r.stdout.splitlines():
+        kind, _, rest = line.partition("\t")
+        file, _, msg = rest.partition("\t")
+        if kind == "ERROR":
+            fail(file, 1, msg)
+        elif kind == "NOTE":
+            notes.append((file, msg))
+    if r.returncode:
+        detail = next((l for l in r.stderr.splitlines() if "Error" in l), r.stderr.strip() or "no output")
+        fail("guitar/views.js", 1, f"check_guitar.mjs stopped: {detail}")
+        return
+    r = subprocess.run([node, str(scripts / "prerender_guitar.mjs"), "--check"], capture_output=True, text=True)
+    if r.returncode == 1:
+        # Not an error: academy.js redraws the screen when the copy is stale.
+        notes.append(("guitar/index.html", "its first-visit copy of the home page is out of date; "
+                      "refresh it with: node .github/scripts/prerender_guitar.mjs"))
+    elif r.returncode:
+        fail("guitar/index.html", 1, (r.stderr.strip() or "prerender_guitar.mjs failed").splitlines()[-1])
 
 
 def main():
@@ -321,8 +374,13 @@ def main():
     check_feed()
     check_backend_version()
     scripts = check_js()
+    check_guitar()
 
     annotate = os.environ.get("GITHUB_ACTIONS") == "true"
+    for file, msg in notes:
+        print(f"note: {file}: {msg}")
+        if annotate:
+            print(f"::warning file={file}::{msg}")
     for file, line, msg in errors:
         print(f"{file}:{line}: {msg}")
         if annotate:
@@ -331,7 +389,7 @@ def main():
         print(f"\n{len(errors)} problem(s) found.")
         return 1
     print(f"ok: {len(pages)} pages, {refs} internal links, {blocks} JSON-LD blocks, "
-          f"{scripts} scripts, sitemap, llms.txt, security.txt, feed and backend version all check out.")
+          f"{scripts} scripts, sitemap, llms.txt, security.txt, feed, backend version and the Guitar Academy all check out.")
     return 0
 
 
