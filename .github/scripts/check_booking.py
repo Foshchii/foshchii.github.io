@@ -10,6 +10,7 @@ same JSONP GET, and fails when:
   - it does not answer, or answers with a web page (a Google sign-in,
     "Authorization needed" or error page) instead of data
   - action=health reports Google Calendar, the iCloud feed or mail as broken,
+    or the NOTIFICATION_EMAIL or ICLOUD_GUEST_EMAIL script property as empty,
     or iCloud as not connected
   - the deployed code is not this repo's booking-api/google-apps-script.gs
     (their VERSIONs differ), i.e. the editor or the deployment is out of date
@@ -41,9 +42,11 @@ CALLBACK = "bookingCheck"
 TIMEOUT = 60       # seconds per request; an Apps Script cold start can be slow
 WAITS = (15, 45)   # seconds between attempts, so a blip is not reported as an outage
 
-REDEPLOY = (f"Paste {SCRIPT} into the Apps Script editor and save, run testHealth there, "
-            "then Deploy → Manage deployments → pencil on the site's deployment → "
-            "Version: New version → Deploy.")
+REDEPLOY = (f"Paste {SCRIPT} into the Apps Script editor and save, check that the "
+            "NOTIFICATION_EMAIL and ICLOUD_GUEST_EMAIL script properties are set (Project "
+            "Settings → Script properties), run testHealth there, then Deploy → Manage "
+            "deployments → pencil on the site's deployment → Version: New version → Deploy.")
+PROPERTIES = "Apps Script → Project Settings → Script properties"
 
 
 class Problem(Exception):
@@ -103,6 +106,13 @@ def check_health(api, want):
                         "empty), so iCloud events do not block booking times.")
     elif not icloud.get("ok"):
         problems.append(f"iCloud calendar feed: {icloud.get('error') or 'HTTP %s' % icloud.get('status')}.")
+    # Older deployments do not report these two; the version check below covers them.
+    if icloud.get("configured") and icloud.get("guestConfigured") is False:
+        problems.append("The ICLOUD_GUEST_EMAIL script property is empty, so new bookings are not "
+                        f"added to your iCloud calendar. Set it to your iCloud address in {PROPERTIES}.")
+    if h.get("alerts", {}).get("configured") is False:
+        problems.append("The NOTIFICATION_EMAIL script property is empty, so the backend cannot email "
+                        f"you when availability or booking breaks. Set it to your inbox in {PROPERTIES}.")
     mail = h.get("mail", {})
     if not mail.get("ok"):
         problems.append(f"Mail: {mail.get('error', 'not ok')}. Booking invites and alerts cannot be sent.")

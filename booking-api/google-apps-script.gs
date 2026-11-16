@@ -46,7 +46,7 @@ var CONFIG = {
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "014d5b363b3c";
+var VERSION = "28e83f647b02";
 
 /* ----------------------------- routing ----------------------------- *
  * Browsers can't read a normal fetch() response from Apps Script (it sends no
@@ -197,8 +197,11 @@ function health() {
     timezone: CONFIG.timezone,
     checkedAt: new Date().toISOString(),
     google: [],
-    icloud: { configured: !!prop("ICLOUD_ICS_URL"), ok: true },
-    mail: { ok: true }
+    icloud: { configured: !!prop("ICLOUD_ICS_URL"), ok: true, guestConfigured: !!prop("ICLOUD_GUEST_EMAIL") },
+    mail: { ok: true },
+    // Whether the addresses in Script properties are set. Only yes or no: this
+    // reply is public, and the addresses are kept out of it on purpose.
+    alerts: { configured: !!prop("NOTIFICATION_EMAIL") }
   };
 
   /* Booking sends invites and every alert goes out by mail, so a revoked mail
@@ -222,7 +225,7 @@ function health() {
     try {
       var cal = getGoogleCal(id);
       if (!cal) throw new Error("Calendar not found");
-      out.google.push({ id: id, ok: true, name: cal.getName() });
+      out.google.push({ id: id, ok: true });
     } catch (err) {
       out.ok = false;
       out.google.push({ id: id, ok: false, error: safeError(err) });

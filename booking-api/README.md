@@ -148,8 +148,11 @@ each change:
 
 1. Run `python3 .github/scripts/stamp_backend_version.py`. It sets `VERSION`
    in the script from the code itself; the site check fails until you do.
-2. Paste the whole file into the editor, save, and run `testHealth` there,
-   approving any new permission it asks for.
+2. Paste the whole file into the editor and save. In **Project Settings →
+   Script properties**, check that `NOTIFICATION_EMAIL` and
+   `ICLOUD_GUEST_EMAIL` are set: the addresses live there, not in the code.
+   Run `testHealth`, approving any new permission it asks for;
+   `alerts.configured` and `icloud.guestConfigured` should both be `true`.
 3. **Deploy → Manage deployments →** pencil on the site's deployment **→
    Version: New version → Deploy**.
 
@@ -167,6 +170,8 @@ the way the widget does, and fails when:
   error page instead of data
 - `action=health` reports Google Calendar, the iCloud feed or mail as broken, or
   iCloud as not connected
+- the `NOTIFICATION_EMAIL` or `ICLOUD_GUEST_EMAIL` script property is empty, so
+  alerts or the iCloud copy of each booking would silently stop
 - the deployed `version` differs from `VERSION` in this file
 - `action=availability` for the next working day returns no list of slots
 
@@ -212,13 +217,16 @@ The widget treats the booking as successful only when `booked` is `true`.
 fn({ "ok": true,
      "version": "e6adb11a8d21",
      "google": [{ "id": "primary", "ok": true }],
-     "icloud": { "configured": true, "ok": true },
-     "mail":   { "ok": true, "remainingQuota": 97 } })
+     "icloud": { "configured": true, "ok": true, "guestConfigured": true },
+     "mail":   { "ok": true, "remainingQuota": 97 },
+     "alerts": { "configured": true } })
 ```
 `mail` is the one to read first when booking fails but availability works:
 invites and alerts both go out by mail, so a revoked scope or a spent quota
 takes out exactly those two paths. `version` says which copy of the script is
-deployed; the daily check fails when it is not this repo's.
+deployed; the daily check fails when it is not this repo's. The reply is
+public, so it says only *whether* the alert and iCloud addresses are set,
+never the addresses themselves.
 
 **`GET {api}?action=issue&kind=availability&message=...&callback=fn`**
 ```js
