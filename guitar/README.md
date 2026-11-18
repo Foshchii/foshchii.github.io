@@ -15,7 +15,7 @@ This static section is served at https://foshchii.com/guitar/ by the portfolio's
 ## Note-reading quiz
 
 - note-reading/index.html is a separate page: a quiz in twelve levels on the staff, the fretboard, note lengths, rests, key signatures and guitar signs. The academy links to it from the Music Reading Academy screen, each day's reading resources and All sections; its Academy link leads back.
-- It is one self-contained file, built from separate sources, so edit those and rebuild rather than editing the file here. It uses the academy's fonts from fonts/ and its colours, and follows the light or dark choice saved in Settings.
+- It is one self-contained file, with its styles and script written out in full (not minified), so edit it in place. It uses the academy's fonts from fonts/ and its colours, and follows the light or dark choice saved in Settings.
 - Progress stays in this browser under the localStorage key guitar-note-reading-v1. Like the academy, it loads nothing from another site.
 
 ## How it is put together
