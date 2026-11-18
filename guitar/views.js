@@ -558,7 +558,7 @@ function dayView(day) {
       ${card(first ? "Day 1 checkpoint" : rest ? "Log the rest day" : "Check your work", `<p>${first ? rich(course.dayOneTest) : rest ? "Mark this day when you’re ready to move to the next plan." : "Try the assignment and make a note of what to repeat."}</p>
         ${check(`data-day="${day.id}"`, "Day complete", state.progress.days[day.id], "check-row--cta")}
         ${link("#module/" + module.id, "Module and assessment")}`)}
-      ${card("Reading resources", `<ul class="link-list"><li>${link("#reading/guided", "Guided notes and fretboard")}</li><li>${pdf}</li><li>${link("#reading", "Music Reading Academy")}</li></ul>`)}
+      ${card("Reading resources", `<ul class="link-list"><li>${link("#reading/guided", "Guided notes and fretboard")}</li><li>${pdf}</li><li>${link("#reading", "Music Reading Academy")}</li><li>${link("note-reading/", "Note-reading quiz")}</li></ul>`)}
     </aside></div>`;
 }
 
@@ -596,7 +596,7 @@ function readingView() {
   const { reading } = state;
   const topic = readingModes.find(mode => mode.id === reading.mode);
   return head({ title: "Music Reading Academy", lede: "Find the note on the staff, name it, then play it on the guitar. Start with the three open strings." }) +
-    `<div class="actions">${btn("#reading/guided", "Learn the fretboard step by step")}</div>
+    `<div class="actions">${btn("#reading/guided", "Learn the fretboard step by step")}${btn("note-reading/", "Play the note-reading quiz", "ghost")}</div>
     <div class="cols"><div class="cols-main">
     <section class="card trainer"><h2>Practice</h2>
       <div class="tabs" role="group" aria-label="Reading exercise">${readingModes.map(mode => `<button type="button" data-mode="${mode.id}" aria-pressed="${mode.id === reading.mode}">${mode.label}</button>`).join("")}</div>
@@ -779,6 +779,7 @@ function menuView() {
       ${item("#home", "metronome", "Today", "Your session and where you left off.")}
       ${item("#course", "book", "Curriculum", "Twelve modules, the first 28 days and months 7–12.")}
       ${item("#reading", "note", "Music Reading Academy", "Note names, frets, rhythm and sight-reading on a staff.")}
+      ${item("note-reading/", "note", "Note-reading quiz", "Twelve quiz levels on the staff and the fretboard, with sound and stars.")}
       ${item("#technique", "wave", "Playing Without Nails", "Each stroke, adapted for fingertip pads.")}
       ${item("#estas", "star", "Estas Tonne guide", "Four pieces, studied one phrase at a time.")}
       ${item("#repertoire", "sheet", "Repertoire", "Pieces to practise from the score.")}
