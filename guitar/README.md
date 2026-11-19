@@ -17,6 +17,7 @@ This static section is served at https://foshchii.com/guitar/ by the portfolio's
 - note-reading/index.html is a separate page: a quiz in twelve levels on the staff, the fretboard, note lengths, rests, key signatures and guitar signs. The academy links to it from the Music Reading Academy screen, each day's reading resources and All sections; its Academy link leads back.
 - It is one self-contained file, with its styles and script written out in full (not minified), so edit it in place. It uses the academy's fonts from fonts/ and its colours, and follows the light or dark choice saved in Settings.
 - Progress stays in this browser under the localStorage key guitar-note-reading-v1. Like the academy, it loads nothing from another site.
+- note-reading/manifest.webmanifest and note-reading/icons/ make it a Home Screen app of its own, separate from the academy's: it is called Note Quiz, opens on the quiz, and its icon has a note in place of the academy's strings. On an iPhone, a Home Screen app keeps its own progress, apart from Safari's.
 
 ## How it is put together
 
