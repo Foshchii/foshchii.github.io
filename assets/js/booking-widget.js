@@ -12,6 +12,7 @@
           data-workdays="1,2,3,4,5"      // 0=Sun … 6=Sat
           data-start="09:00" data-end="17:00"
           data-days-ahead="21"
+          data-min-days-ahead="1"        // 1 = no same-day bookings: tomorrow at the earliest (0 = today)
           data-message-label="…"         // optional: label for the free-text field
           data-api=""                    // optional backend base URL (see /booking-api)
           data-strict-live="true"        // connected mode blocks booking if live availability fails
@@ -207,6 +208,7 @@
       end: el.dataset.end || "17:00",
       step: parseInt(el.dataset.slotStep || "30", 10),
       daysAhead: parseInt(el.dataset.daysAhead || "21", 10),
+      minDaysAhead: Math.max(0, parseInt(el.dataset.minDaysAhead || "0", 10) || 0),
       messageLabel: el.dataset.messageLabel || "What's it about? (optional)",
       api: (el.dataset.api || "").trim(),
       strictLive: el.dataset.strictLive !== "false",
@@ -226,10 +228,26 @@
     var state = { view: new Date(), date: null, slot: null, duration: cfg.durations[0] || 30 };
     state.view.setDate(1);
 
+    // Today's date where the host is (data-timezone), moved on by `days`, as a
+    // local midnight Date like the calendar's own days. The calendar shows the
+    // host's dates, so "today" has to be the host's too, wherever the visitor is.
+    function hostDate(days) {
+      var parts = new Intl.DateTimeFormat("en-CA", { timeZone: cfg.tz, year: "numeric", month: "2-digit", day: "2-digit" })
+        .formatToParts(new Date());
+      var part = function (type) { return +parts.find(function (p) { return p.type === type; }).value; };
+      return new Date(part("year"), part("month") - 1, part("day") + (days || 0));
+    }
+
+    // The first moment that may be booked: midnight at the host, data-min-days-ahead days from now.
+    function earliestStart() {
+      var d = hostDate(cfg.minDaysAhead);
+      return zonedWallToDate(d.getFullYear(), d.getMonth() + 1, d.getDate(), 0, 0, cfg.tz).getTime();
+    }
+
     function bookable(d) {
-      var today = new Date(); today.setHours(0, 0, 0, 0);
-      var max = new Date(today); max.setDate(max.getDate() + cfg.daysAhead);
-      return d >= today && d <= max && cfg.workdays.indexOf(d.getDay()) !== -1;
+      var first = hostDate(cfg.minDaysAhead);
+      var max = hostDate(cfg.daysAhead);
+      return d >= first && d <= max && cfg.workdays.indexOf(d.getDay()) !== -1;
     }
 
     // Build slot Date objects for a given calendar day, in host timezone.
@@ -458,6 +476,10 @@
 
       function paintSlots(slots) {
         if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
+        // Never offer a time before the earliest bookable day, even if an older
+        // backend or a page left open overnight would allow it.
+        var earliest = earliestStart();
+        slots = slots.filter(function (s) { return s.getTime() >= earliest; });
         var wrap = side.querySelector(".sfb-slotlist-wrap");
         if (!wrap) return;
         if (!slots.length) {

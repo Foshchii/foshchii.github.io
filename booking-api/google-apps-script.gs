@@ -39,14 +39,15 @@ var CONFIG = {
   endHour:   17,                // 17:00
   stepMin:   30,
   daysAhead: 21,
-  bufferMin: 60                 // don't offer slots within the next hour
+  bufferMin: 60,                // don't offer slots within the next hour
+  minDaysAhead: 1               // 1 = no same-day bookings: the first slot is tomorrow
 };
 
 /* Which copy of this file is deployed. action=health reports it, and a daily
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "28e83f647b02";
+var VERSION = "5a3cc3bfe5d6";
 
 /* ----------------------------- routing ----------------------------- *
  * Browsers can't read a normal fetch() response from Apps Script (it sends no
@@ -128,11 +129,12 @@ function availability(p) {
   var winStart = new Date(y, m - 1, d, CONFIG.startHour, 0, 0);
   var winEnd   = new Date(y, m - 1, d, CONFIG.endHour, 0, 0);
   var now = Date.now();
+  var earliest = firstBookableTime();
   var slots = [];
 
   for (var t = new Date(winStart); t.getTime() + duration * 60000 <= winEnd.getTime(); t = new Date(t.getTime() + CONFIG.stepMin * 60000)) {
     var s = new Date(t), e = new Date(t.getTime() + duration * 60000);
-    if (s.getTime() < now + CONFIG.bufferMin * 60000) continue;
+    if (s.getTime() < now + CONFIG.bufferMin * 60000 || s.getTime() < earliest) continue;
     var free = true;
     for (var i = 0; i < busy.length; i++) {
       if (s < busy[i].e && e > busy[i].s) { free = false; break; }
@@ -146,6 +148,11 @@ function availability(p) {
 function book(b) {
   if (!b || !b.start || !b.end || !b.email) return { ok: false, error: "Missing fields" };
   var start = new Date(b.start), end = new Date(b.end);
+  // The widget never offers these times; refuse them here too, for a page left
+  // open overnight or a request that did not come from the widget.
+  if (!(start.getTime() >= firstBookableTime())) {
+    return { ok: false, error: "That time is too soon to book. Please pick a later day." };
+  }
   var cal = getGoogleCal(CONFIG.googleCalendarIds[0]);
 
   // Last-second double-booking guard (Google side).
@@ -169,6 +176,12 @@ function book(b) {
     }
   );
   return { ok: true, booked: true };
+}
+
+/* Midnight, in the script's time zone, CONFIG.minDaysAhead days from today. */
+function firstBookableTime() {
+  var t = new Date();
+  return new Date(t.getFullYear(), t.getMonth(), t.getDate() + CONFIG.minDaysAhead).getTime();
 }
 
 /* --------------------------- Google busy --------------------------- */

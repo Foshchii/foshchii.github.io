@@ -33,6 +33,13 @@ availability, booking or health checks fail. If Apps Script itself is
 unreachable, neither the browser nor the script can send that email, so a
 [daily check](#daily-check) on GitHub looks for exactly that.
 
+**No same-day bookings.** The first bookable time is tomorrow at 00:00
+Copenhagen time. The rule is in two places: `CONFIG.minDaysAhead` in the script
+decides which times the backend offers and accepts, and `data-min-days-ahead`
+on the widget hides today straight away, even on a page left open overnight.
+Set both to `0` to allow same-day bookings again (the script still keeps
+`CONFIG.bufferMin`, an hour, clear).
+
 > Why not pure CalDAV for iCloud? Apps Script can't send the `PROPFIND`/`REPORT`
 > methods CalDAV needs. The published-feed + guest-invite approach is the
 > reliable, free way to cover iCloud from Apps Script. (If you'd rather have full
@@ -248,6 +255,7 @@ defaults to `book`.
      data-name="Your Name"
      data-title="Intro call" data-durations="30,45,60"
      data-timezone="Europe/Copenhagen"
+     data-min-days-ahead="1"
      data-strict-live="true"
      data-failure-mode="hide"
      data-api="https://script.google.com/macros/s/XXXX/exec"></div>
