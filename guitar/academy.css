@@ -389,6 +389,23 @@ details.card--fold[open] > summary { margin-bottom: 6px; }
 .guided-step-nav button:has(span) { border-color: var(--olive-line); background: var(--olive-wash); color: var(--olive); }
 .guided-step-nav button[aria-current]:has(span) { border-color: var(--olive); background: var(--olive); color: var(--paper); }
 .guided-beats button[aria-pressed="true"] { border-color: var(--button); background: var(--button); color: var(--button-ink); }
+/* Rhythm steps: the counts as a timeline under the bar, note blocks for Show me, lights while it plays */
+.guided-rhythm { display: grid; gap: 8px; max-width: 520px; }
+.guided-rhythm-label { color: var(--ink); font-weight: 650; }
+.guided-rhythm .guided-beats, .guided-timeline { display: grid; grid-template-columns: repeat(var(--slots), minmax(0, 1fr)); gap: 6px; }
+.guided-rhythm .guided-beats button { display: grid; place-items: center; align-content: center; gap: 1px; min-width: 0; min-height: 58px; padding: 6px 0; }
+.guided-rhythm .guided-beats button b { font-size: 1.2rem; line-height: 1; }
+.guided-rhythm .guided-beats button small { font-size: .72rem; font-weight: 650; letter-spacing: .02em; visibility: hidden; }
+.guided-rhythm .guided-beats button[aria-pressed="true"] small { visibility: visible; }
+.guided-rhythm .guided-beats button[data-now] { outline: 3px solid var(--sounding); outline-offset: 2px; }
+.guided-rhythm .guided-beats button[data-result="right"] { border-color: var(--olive); background: var(--olive); color: var(--surface); }
+.guided-rhythm .guided-beats button[data-result="wrong"] { border-color: var(--accent); background: var(--accent); color: var(--surface); }
+.guided-rhythm .guided-beats button[data-result="missed"] { border: 2px dashed var(--olive); }
+.guided-timeline[hidden] { display: none; }
+.guided-block { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; min-height: 40px; padding: 4px 10px; border: 1px solid var(--olive-line); border-radius: var(--radius-small); background: var(--olive-wash); color: var(--olive); font-weight: 650; }
+.guided-block small { overflow: hidden; font-size: .75rem; font-weight: 600; white-space: nowrap; text-overflow: ellipsis; opacity: .85; }
+.guided-block.rest { justify-content: center; border-style: dashed; border-color: var(--line); background: transparent; color: var(--muted); }
+.guided-block[data-sounding] { border-color: var(--olive); background: var(--olive); color: var(--surface); }
 .guided-exercise { padding-block: 20px; border-block: 1px solid var(--line); }
 .guided-exercise h3 { font-family: var(--serif); font-size: clamp(1.6rem, 1.35rem + 1vw, 2.2rem); font-weight: 500; line-height: 1.1; letter-spacing: -.005em; }
 .guided-exercise > p:not(.meta, .guided-feedback, .guided-count) { max-width: 62ch; color: var(--ink-soft); }

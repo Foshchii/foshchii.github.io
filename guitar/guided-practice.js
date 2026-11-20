@@ -51,6 +51,29 @@ function countSlots(step) {
     index % step.division ? `& after ${Math.floor(index / step.division) + 1}` : String(index / step.division + 1));
 }
 
+/* What happens on each count of a rhythm step: a new note starts, a note is still ringing, or a rest. */
+function rhythmStory(step) {
+  const story = [];
+  let beat = 0;
+  step.bar.forEach(([pitch, beats], event) => {
+    const start = Math.round(beat * step.division), span = Math.round(beats * step.division);
+    for (let k = 0; k < span; k++) story[start + k] = { kind: !pitch ? "rest" : k === 0 ? "start" : "held", pitch, from: start, span, event };
+    beat += beats;
+  });
+  return story;
+}
+const slotName = (slot, division) => division === 1 ? `count ${slot + 1}` : slot % division ? `the “and” after ${Math.floor(slot / division) + 1}` : `count ${slot / division + 1}`;
+const listWords = items => items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+/* "counts 1, 2 and 3", "count 1 and the “and” after 2" */
+function slotsText(slots, division) {
+  const counts = slots.filter(slot => slot % division === 0).map(slot => String(slot / division + 1));
+  const ands = slots.filter(slot => slot % division).map(slot => String(Math.floor(slot / division) + 1));
+  const parts = [];
+  if (counts.length) parts.push(`${counts.length > 1 ? "counts" : "count"} ${listWords(counts)}`);
+  if (ands.length) parts.push(`the “and” after ${listWords(ands)}`);
+  return listWords(parts);
+}
+
 export function rhythmAttacks(bar, division) {
   let beat = 0;
   return bar.flatMap(([pitch, beats]) => {
@@ -78,10 +101,18 @@ function stepBody(step, current, tempo, showHints) {
   }
   if (step.type === "rhythm") {
     const slots = countSlots(step);
-    return `${notation([step.bar])}<div class="guided-beats" role="group" aria-label="Counts">
-      ${slots.map((label, index) => `<button type="button" aria-label="${label}" aria-pressed="false" data-guided-action="beat" data-guided-beat="${index}">${label.includes("&") ? "&amp;" : label}</button>`).join("")}</div>
-      <div class="actions"><button type="button" class="btn" data-guided-action="check-rhythm">Check counts</button><button type="button" class="btn secondary" data-guided-action="hear-rhythm">Hear it</button><button type="button" class="btn secondary" data-guided-action="stop" disabled>Stop</button></div>
-      <p class="guided-count" aria-hidden="true" data-guided-count></p>`;
+    const story = rhythmStory(step);
+    const notes = story.filter((slot, i) => slot.from === i);
+    return `${notation([step.bar])}
+      <div class="guided-rhythm" style="--slots:${slots.length}">
+        <p class="guided-rhythm-label">Tap the counts where you pluck a new note</p>
+        <div class="guided-timeline" data-guided-timeline hidden>${notes.map(slot => `<span class="guided-block${slot.kind === "rest" ? " rest" : ""}" style="grid-column:${slot.from + 1} / span ${slot.span}" data-block="${slot.event}"><b>${slot.kind === "rest" ? "rest" : pitchName(slot.pitch)}</b>${slot.kind !== "rest" && slot.span > 1 ? "<small>still ringing →</small>" : ""}</span>`).join("")}</div>
+        <div class="guided-beats" role="group" aria-label="Counts. Tap the ones where you pluck a new note.">
+          ${slots.map((label, index) => `<button type="button" aria-label="${label}" aria-pressed="false" data-guided-action="beat" data-guided-beat="${index}"><b>${label.includes("&") ? "&amp;" : label}</b><small>pluck</small></button>`).join("")}
+        </div>
+      </div>
+      <div class="actions"><button type="button" class="btn" data-guided-action="check-rhythm">Check</button><button type="button" class="btn secondary" data-guided-action="hear-rhythm">Hear it</button><button type="button" class="btn secondary" data-guided-action="show-rhythm">Show me</button><button type="button" class="btn secondary" data-guided-action="stop" disabled>Stop</button></div>
+      <p class="guided-count" aria-hidden="true" data-guided-count>Hear it gives four clicks, then plays the bar while the counts light up.</p>`;
   }
   const location = playPositions(step.bars);
   return `${notation(step.bars, step.beatsPerBar)}
@@ -141,6 +172,7 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
     for (const node of sounds) node.stop();
     sounds.clear();
     root.querySelectorAll("[data-sounding]").forEach(cell => cell.removeAttribute("data-sounding"));
+    root.querySelectorAll("[data-now]").forEach(cell => cell.removeAttribute("data-now"));
     const stopButton = root.querySelector('[data-guided-action="stop"]');
     if (stopButton) stopButton.disabled = true;
   }
@@ -182,7 +214,7 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
     timers.add(id);
   }
 
-  async function playback(bars, beatsPerBar, notesOn, ringing = false) {
+  async function playback(bars, beatsPerBar, notesOn, ringing = false, counts = 0) {
     stop();
     const active = run;
     try {
@@ -200,7 +232,14 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
         const count = beat % beatsPerBar + 1;
         tone(context, count === 1 ? 83 : 76, time, .095, true);
         if (counter) schedule(context, time, () => {
-          counter.textContent = beat < countIn ? `Count in · ${count}` : `Bar ${Math.floor((beat - countIn) / beatsPerBar) + 1} · Beat ${count}`;
+          counter.textContent = beat < countIn ? `Count in · ${count}` : counts ? `Count ${count}` : `Bar ${Math.floor((beat - countIn) / beatsPerBar) + 1} · Beat ${count}`;
+        });
+      }
+      /* A rhythm step lights each count (and each “and”) as it passes. */
+      if (counts) for (let slot = 0; slot < beatsPerBar * counts; slot++) {
+        schedule(context, start + (countIn + slot / counts) * sec, () => {
+          root.querySelectorAll(".guided-beats [data-now]").forEach(cell => cell.removeAttribute("data-now"));
+          root.querySelector(`[data-guided-beat="${slot}"]`)?.setAttribute("data-now", "");
         });
       }
       let elapsed = countIn;
@@ -215,6 +254,7 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
           schedule(context, at, () => {
             root.querySelectorAll("[data-sounding]").forEach(cell => cell.removeAttribute("data-sounding"));
             root.querySelector(`[data-score-event="${currentNote}"]`)?.setAttribute("data-sounding", "");
+            root.querySelector(`[data-block="${currentNote}"]`)?.setAttribute("data-sounding", "");
             for (const name of pitches) {
               const place = fretPositions(name)[0];
               if (place) root.querySelector(`[data-guided-fret="${place.string}/${place.fret}"]`)?.setAttribute("data-sounding", "");
@@ -225,7 +265,7 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
       }
       schedule(context, start + totalBeats * sec, () => {
         stop();
-        if (counter) counter.textContent = `Finished · ${tempo} bpm`;
+        if (counter) counter.textContent = counts ? "Now tap the counts where a note started, then Check." : `Finished · ${tempo} bpm`;
       });
     } catch {
       if (active === run) feedback("Audio is unavailable in this browser. Follow the score and count the beats aloud.");
@@ -328,21 +368,43 @@ export function mountGuidedPractice(root, lesson, { optional = false, markComple
         if (selected.has(beat)) selected.delete(beat);
         else selected.add(beat);
         button.setAttribute("aria-pressed", String(selected.has(beat)));
+        root.querySelectorAll(".guided-beats [data-result]").forEach(cell => cell.removeAttribute("data-result"));
         feedback("");
         break;
       }
       case "check-rhythm": {
         const answer = rhythmAttacks(step.bar, step.division);
+        const story = rhythmStory(step);
+        const name = slot => slotName(slot, step.division);
         const correct = answer.length === selected.size && answer.every(beat => selected.has(beat));
-        if (correct) complete("Correct. Clap once on each selected count and say the other counts aloud.");
-        else {
-          const missed = answer.filter(beat => !selected.has(beat)).length;
-          const extra = [...selected].filter(beat => !answer.includes(beat)).length;
-          feedback(`Try again. ${missed ? `You missed ${missed} ${missed === 1 ? "note" : "notes"}. ` : ""}${extra ? `${extra} selected ${extra === 1 ? "count has" : "counts have"} no new note. ` : ""}Keep counting when a note is held or there is a rest.`);
+        story.forEach((slot, i) => {
+          const cell = root.querySelector(`[data-guided-beat="${i}"]`);
+          if (!cell) return;
+          const picked = selected.has(i);
+          if (picked && slot.kind === "start") cell.dataset.result = "right";
+          else if (picked) cell.dataset.result = "wrong";
+          else if (slot.kind === "start") cell.dataset.result = "missed";
+        });
+        const quiet = story.map((slot, i) => slot.kind === "held" ? `on ${name(i)} the note from ${name(slot.from)} is still ringing` : slot.kind === "rest" ? `${name(i)} is a rest` : null).filter(Boolean);
+        if (correct) {
+          complete(`Right: you pluck on ${slotsText(answer, step.division)}${quiet.length ? `. ${quiet[0][0].toUpperCase() + quiet[0].slice(1)}${quiet.length > 1 ? `, and ${listWords(quiet.slice(1))}` : ""}` : ""}. Clap the rhythm once while you count aloud.`);
+        } else {
+          const missed = answer.filter(beat => !selected.has(beat));
+          const extra = [...selected].filter(beat => !answer.includes(beat)).sort((a, b) => a - b);
+          const parts = [];
+          if (missed.length) parts.push(`A new note starts on ${slotsText(missed, step.division)}.`);
+          extra.forEach(i => parts.push(story[i].kind === "held" ? `On ${name(i)} the note from ${name(story[i].from)} is still ringing, so you don’t pluck.` : `${name(i)[0].toUpperCase() + name(i).slice(1)} is a rest: stay silent.`));
+          root.querySelector("[data-guided-timeline]")?.removeAttribute("hidden");
+          feedback(`Not yet. ${parts.join(" ")} The blocks above the counts show how long each note lasts.`);
         }
         break;
       }
-      case "hear-rhythm": playback([step.bar], 4, true); break;
+      case "show-rhythm": {
+        root.querySelector("[data-guided-timeline]")?.removeAttribute("hidden");
+        feedback("Each block is one note. It starts where you pluck and stretches over the counts it lasts. Tap the counts where a block starts.");
+        break;
+      }
+      case "hear-rhythm": playback([step.bar], 4, true, false, step.division); break;
       case "play": playback(step.bars, step.beatsPerBar ?? 4, true, step.ringing); break;
       case "count": playback(step.bars, step.beatsPerBar ?? 4, false); break;
       case "new-score":
