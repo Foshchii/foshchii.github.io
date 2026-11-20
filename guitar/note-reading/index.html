@@ -575,7 +575,8 @@ body.in-run .tabbar { display: none; }
   body.in-run main { padding-top: 12px; }
   .run-card { padding: 16px 0 230px; }
   .opts { grid-template-columns: minmax(0, 1fr); }
-  .opts.lay-tf { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opts.lay-tf, .opts.lay-ear { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .opts.lay-ear .opt-key { display: none; }
   .opt { min-height: 54px; }
   .answers { gap: 6px; }
   .ans { min-height: 56px; border-radius: 11px; }
@@ -759,6 +760,14 @@ body.in-run .tabbar { display: none; }
   --warn: #e9b25a; --on-warn: #21160d; --warn-soft: #3a2a12;
   --shadow: none;
 }
+/* Ear training */
+.card-sub { margin: -4px 0 12px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.opt-small { display: block; font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.opt.is-right .opt-small, .opt.is-wrong .opt-small { color: inherit; opacity: .8; }
+.card-wait { margin: 0; padding: 22px 12px; text-align: center; color: var(--muted); font-size: 14.5px; }
+.chord-name { margin: 0 0 4px; text-align: center; font: 600 22px/1.2 var(--font-display); }
+.card-vis .fb-wrap { margin-top: 2px; }
+.pr-lede { margin: -4px 0 10px; color: var(--muted); font-size: 15px; }
 /* Tap the rhythm */
 .q-tap .tap-how { margin: -4px 0 12px; color: var(--muted); font-size: 15px; line-height: 1.45; }
 .tap-score { padding: 8px 6px 4px; overflow: hidden; }
@@ -2174,6 +2183,7 @@ const DEFAULT_PRACTICE = {
   keys: { max: 2 },
   melody: { range: 'treble', key: 'C', rhythm: 1 },
   tap: { level: 1 },
+  earint: { set: 1 },
 };
 const DAILY_GOAL = 50;
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -2243,6 +2253,8 @@ function sanitizeStore(d) {
     }
     const tp = d.practice.tap;
     if (tp && [1, 2, 3, 4, 5].indexOf(tp.level) >= 0) b.practice.tap.level = tp.level;
+    const ei = d.practice.earint;
+    if (ei && [1, 2, 3].indexOf(ei.set) >= 0) b.practice.earint.set = ei.set;
   }
   b.settingsAt = +d.settingsAt || 0;
   b.updated = +d.updated || 0;
@@ -4120,6 +4132,168 @@ function tapExplain(rh, st) {
   return out.join(' ');
 }
 
+/* ============================================================
+   Ear training: higher or lower, intervals, naming a note after
+   a C, major or minor chords, and finding a heard note on one
+   string. Nothing to read: the questions are played, and the
+   answer is shown on the staff or the fretboard afterwards.
+   ============================================================ */
+/* Each interval with a well-known tune that begins with it, where there is a clear one. */
+const IV = {
+  1: { name: 'half step', song: 'the shark theme from “Jaws”' },
+  2: { name: 'whole step', song: 'the first two notes of “Frère Jacques”' },
+  3: { name: 'minor third', song: 'the first two notes of “Greensleeves”' },
+  4: { name: 'major third', song: 'the first two notes of “When the Saints Go Marching In”' },
+  5: { name: 'fourth', song: 'the first two notes of “Here Comes the Bride”' },
+  6: { name: 'tritone', song: 'the first two notes of “Maria” from West Side Story' },
+  7: { name: 'fifth', song: 'the leap in the first bar of “Twinkle, Twinkle, Little Star”' },
+  8: { name: 'minor sixth' },
+  9: { name: 'major sixth', song: 'the first two notes of “My Bonnie Lies over the Ocean”' },
+  10: { name: 'minor seventh', song: 'the first two notes of “Somewhere” from West Side Story' },
+  11: { name: 'major seventh' },
+  12: { name: 'octave', song: 'the first two notes of “Somewhere over the Rainbow”' },
+};
+const IV_SETS = { 0: [1, 2], 1: [1, 2, 3, 4], 2: [1, 2, 3, 4, 5, 7, 12], 3: range(1, 12) };
+const IV_SET_LABELS = { 1: 'Steps and thirds', 2: 'Up to the fifth', 3: 'All' };
+function fretsWord(n) { return n + (n === 1 ? ' fret' : ' frets'); }
+/* Play notes one after another (written pitches), on the audio clock so the gaps are even. */
+function earPlay(midis, gap, dur) {
+  const ctx = Sound.context();
+  if (!ctx) return;
+  const t = ctx.currentTime + 0.06;
+  midis.forEach((m, i) => Sound.note(m, { at: t + i * gap, dur: dur || 0.95, vol: 0.85 }));
+}
+/* Two notes on the staff, named, once the question is answered. */
+function earPair(pa, pb, opts) {
+  opts = opts || {};
+  const yr = poolYRange([pa, pb, PN('B3'), PN('D5')]);
+  const draw = staffOf(st => {
+    const a = nt(pitchId(pa), { label: nmShort(pa), w: 7 });
+    if (!st.answered) return [a, { kind: 'slot', w: 5 }];
+    return [a, nt(pitchId(pb), { label: nmShort(pb), w: 7, cls: st.ok ? 'good' : 'shown' })];
+  }, { reserveLabel: true, yRange: yr, aria: 'The two notes' });
+  return (el, st, c) => { const show = !!(st.answered || opts.keepFirst); el.style.display = show ? '' : 'none'; if (show) draw(el, st, c); };
+}
+/* Spell the upper note of an interval from a natural lower note, by letters (C to E is a third), unless that needs an odd sign. */
+const IV_LETTERS = { 1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 5, 9: 5, 10: 6, 11: 6, 12: 7 };
+function ivSpell(low, n) {
+  const midi = midiOf(low) + n, steps = IV_LETTERS[n];
+  const l = (low.l + steps) % 7, o = low.o + Math.floor((low.l + steps) / 7);
+  const a = midi - midiOf({ l, a: 0, o });
+  if (Math.abs(a) > 1 || (a === 1 && (l === 2 || l === 6)) || (a === -1 && (l === 3 || l === 0))) return spellings(midi)[0];
+  return { l, a, o };
+}
+
+function qEarUpDown(o) {
+  o = o || {};
+  const a = 57 + Math.floor(Math.random() * 15);
+  let d = 0;
+  if (o.noSame || Math.random() > 0.14) {
+    const size = rnd(o.small ? [1, 2, 2, 3, 4] : [1, 2, 3, 3, 4, 5, 5, 7, 9, 12]);
+    d = Math.random() < 0.5 ? size : -size;
+  }
+  const b = a + d, pa = spellings(a)[0], pb = spellings(b)[0];
+  const options = [{ html: 'Higher', correct: d > 0 }, { html: 'Lower', correct: d < 0 }];
+  if (!o.noSame) options.push({ html: 'The same note', correct: d === 0 });
+  return {
+    t: 'listen', kicker: 'Ear training', prompt: 'Is the second note higher or lower?', layout: 'ear', fixed: true, options,
+    visual2: earPair(pa, pb),
+    hear: () => earPlay([a, b], 0.8),
+    key: 'ear:updown', answerText: d > 0 ? 'Higher' : d < 0 ? 'Lower' : 'The same note', review: 'Ear training: higher or lower',
+    explain: () => d === 0 ? 'Both notes were <b>' + nm(pa) + '</b>.'
+      : 'The second note, <b>' + nm(pb) + '</b>, was ' + (d > 0 ? 'higher' : 'lower') + ' than ' + nm(pa) + ': ' + fretsWord(Math.abs(d)) + (d > 0 ? ' up' : ' down') + '.',
+  };
+}
+
+function qEarInterval(set, o) {
+  o = o || {};
+  const pool = IV_SETS[set] || IV_SETS[1];
+  const n = rnd(pool);
+  const pa = rnd(['A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4'].map(PN)), pb = ivSpell(pa, n);
+  const low = midiOf(pa), high = midiOf(pb);
+  const opts = pool.length <= 7 ? pool.slice() : [n].concat(sample(pool.filter(x => x !== n), 5)).sort((a, b) => a - b);
+  const iv = IV[n];
+  return {
+    t: 'listen', kicker: 'Ear training', prompt: o.prompt || 'How far apart are the two notes?', layout: 'ear', fixed: true,
+    options: opts.map(k => ({ html: capFirst(IV[k].name) + '<small class="opt-small">' + fretsWord(k) + '</small>', correct: k === n })),
+    visual2: earPair(pa, pb),
+    hear: () => earPlay([low, high], 0.85),
+    key: 'ear:iv' + n, answerText: capFirst(iv.name), review: 'Ear training: intervals',
+    explain: () => 'From ' + nm(pa) + ' up to ' + nm(pb) + ' is ' + fretsWord(n) + ': ' + article(iv.name) + ' <b>' + iv.name + '</b>.' + (iv.song ? ' You hear it in ' + iv.song + '.' : ''),
+  };
+}
+
+/* A C, then a natural note above it up to the next C. */
+function qEarName() {
+  const L = rnd([0, 1, 2, 3, 4, 5, 6, 1, 2, 4]);
+  const ref = PN('C4'), p = { l: L, a: 0, o: L === 0 ? 5 : 4 };
+  const semis = midiOf(p) - midiOf(ref);
+  return {
+    t: 'listen', kicker: 'Ear training', prompt: 'First a C, then which note?', layout: 'letters', fixed: true,
+    options: LETTERS.map((x, i) => ({ l: i, correct: i === L })),
+    visual2: earPair(ref, p, { keepFirst: true }),
+    hear: () => earPlay([midiOf(ref), midiOf(p)], 0.9),
+    key: 'ear:name' + LETTERS[L], answerText: nmShort(p), review: 'Ear training: notes after a C',
+    explain: () => 'After C came <b>' + nm(p) + '</b>, ' + fretsWord(semis) + ' higher: ' + article(IV[semis].name) + ' ' + IV[semis].name + '.',
+  };
+}
+
+/* Open chords in pairs: the minor one has its third one fret lower. Frets from the 6th string to the 1st; null = not played. */
+const EAR_CHORDS = [
+  { root: 'E', major: [0, 2, 2, 1, 0, 0], minor: [0, 2, 2, 0, 0, 0], third: 3 },
+  { root: 'A', major: [null, 0, 2, 2, 2, 0], minor: [null, 0, 2, 2, 1, 0], third: 2 },
+  { root: 'D', major: [null, null, 0, 2, 3, 2], minor: [null, null, 0, 2, 3, 1], third: 1 },
+];
+function qEarChord() {
+  const ch = rnd(EAR_CHORDS), minor = Math.random() < 0.5;
+  const frets = minor ? ch.minor : ch.major;
+  const pos = frets.map((f, k) => f === null ? null : { s: 6 - k, f }).filter(Boolean);
+  const midis = pos.map(x => posMidi(x.s, x.f));
+  const name = ch.root + (minor ? ' minor' : ' major');
+  const thirdOf = shape => posMidi(ch.third, shape[6 - ch.third]);
+  const tMaj = spellings(thirdOf(ch.major)).find(p => p.a >= 0), tMin = spellings(thirdOf(ch.minor)).find(p => p.a <= 0);
+  return {
+    t: 'listen', kicker: 'Ear training', prompt: 'Major or minor?', layout: 'ear', fixed: true,
+    sub: 'Major chords sound bright; minor chords sound darker.',
+    options: [{ html: 'Major', correct: !minor }, { html: 'Minor', correct: minor }],
+    visual2: (el, st) => {
+      if (!st.answered) { el.innerHTML = '<p class="card-wait">The chord’s shape appears here once you answer.</p>'; return; }
+      el.innerHTML = '<p class="chord-name">' + esc(name) + '</p><div class="fb-wrap"></div>';
+      mountFretboard(el.querySelector('.fb-wrap'), { maxFret: 4, maxFw: 64, showZero: true, names: NS(), interactive: true,
+        dots: pos.map(x => ({ s: x.s, f: x.f, text: nmShort(spellings(posMidi(x.s, x.f)).find(p => minor ? p.a <= 0 : p.a >= 0)), cls: x.s === ch.third ? 'mk-accent' : 'mk-soft' })),
+        aria: 'The ' + name + ' chord on the fretboard' });
+    },
+    hear: () => Sound.strum(midis, 0.04),
+    key: 'ear:chord' + (minor ? 'min' : 'maj'), answerText: minor ? 'Minor' : 'Major', review: 'Ear training: ' + name,
+    explain: () => 'That was <b>' + name + '</b>. One note makes the difference, the chord’s third: ' + nm(tMaj) + ' in ' + ch.root + ' major, ' + nm(tMin) + ' in ' + ch.root + ' minor, one fret lower.',
+  };
+}
+
+/* The open string, then a note on it: play it back or tap it. */
+function qEarEcho(s, f) {
+  const midi = posMidi(s, f), open = posMidi(s, 0), p = spellings(midi)[0];
+  const c = qPlayNote(p, { hidden: true, kicker: 'Play it back', prompt: 'Find this note on the ' + ordinal(s) + ' string', maxFret: 5, noKey: true });
+  c.sub = 'You hear the open ' + ordinal(s) + ' string, then the note. Play it on your guitar, or tap where it is.';
+  c.board = { maxFret: 5, strings: [s] };
+  const reveal = c.visual;
+  c.visual = null;
+  c.visual2 = (el, st, cc) => { el.style.display = st.answered ? '' : 'none'; if (st.answered) reveal(el, st, cc); };
+  c.reveal = () => positionsOf(midi, 5);
+  c.hear = () => earPlay([open, midi], 0.95, 1.2);
+  c.key = 'echo:' + s + '-' + f;
+  c.review = 'Play it back: ' + posLabel(s, f);
+  return c;
+}
+
+const EAR_MODES = ['earupdown', 'earint', 'earname', 'earchord', 'earecho'];
+function earGen(mode, cfg) {
+  if (mode === 'earupdown') return () => qEarUpDown();
+  if (mode === 'earint') return () => qEarInterval(cfg && cfg.set || 1);
+  if (mode === 'earname') return () => qEarName();
+  if (mode === 'earchord') return () => qEarChord();
+  return () => qEarEcho(rnd([1, 2, 3, 4, 5, 6]), rnd([1, 2, 3, 4, 5]));
+}
+
 /* Rhythms to tap inside the rhythm levels, one picked at random. */
 const TAP_SETS = {
   lengths: [['q q h | q q q q', [4, 4]], ['h q q | w', [4, 4]], ['q e e q q | h h', [4, 4]], ['q q q | h q', [3, 4]]],
@@ -4172,6 +4346,7 @@ const LV = {
         { visual: staffOf(st => [1, 3, 5, 7].map(p => ({ kind: 'note', p, dur: 'w', label: st.answered ? nmShort(nat(p)) : '?', labelCls: st.answered ? '' : 'hl', cls: st.answered ? 'good' : 'on', midi: midiOf(nat(p)) })), { gap: 3.6 }) }),
       ...sample(naturalsBetween(-1, 9), 5).map(p => qReadNote(p, { yRange: [-2.4, 6.9], maxFret: 5 })),
       staffTapQ('Tap the space where A is written', 3, 'A is in the second space: F, A, C, E.', { range: [-1, 9] }),
+      qEarUpDown({ noSame: true }),
     ];
   },
   open: () => {
@@ -4231,6 +4406,7 @@ const LV = {
       ...sample(accPool, 2).map(p => qFindNote(p, { maxFret: 4, yRange: yr })),
       qPlayNote(rnd(accPool), { maxFret: 4, yRange: yr }),
       ...sample(accPos, 2).map(x => qNameFret(x.s, x.f, { chromatic: true, maxFret: 5 })),
+      qEarInterval(0, { prompt: 'Half step or whole step?' }),
       mc('Which note is one fret above E?', [N(3), N(3, 1), N(2, -1), N(4)], 'E and F have no fret between them, so one fret above E is F.',
         { visual: stepVis('E5', 'F5'), board: { maxFret: 4, strings: [1], dots: [{ s: 1, f: 0, text: N(2) }], before: [{ s: 1, f: 1, text: '?', cls: 'mk-accent mk-ask' }], after: [{ s: 1, f: 1, text: N(3), cls: 'mk-good' }] } }),
     ];
@@ -4359,7 +4535,7 @@ function levelCount(lv) {
 
 /* ---------- Practice generators ---------- */
 function practicePool(mode, cfg) {
-  if (mode === 'melody' || mode === 'tap') return [1];
+  if (mode === 'melody' || mode === 'tap' || EAR_MODES.indexOf(mode) >= 0) return [1];
   if (mode === 'read' || mode === 'find' || mode === 'play') return notePool(cfg);
   if (mode === 'fret') return positionPool(cfg);
   if (mode === 'rhythm') return rhythmPool(cfg);
@@ -4368,6 +4544,7 @@ function practicePool(mode, cfg) {
 function practiceGen(mode, cfg) {
   if (mode === 'melody') return () => melodyCard(genMelody(cfg));
   if (mode === 'tap') return () => tapCard(genRhythm(cfg.level), { key: 'tap:level' + cfg.level });
+  if (EAR_MODES.indexOf(mode) >= 0) return earGen(mode, cfg);
   const pool = practicePool(mode, cfg);
   const yr = (mode === 'read' || mode === 'find' || mode === 'play') ? poolYRange(pool) : null;
   const vals = mode === 'rhythm' ? Array.from(new Set(pool.map(it => durBeats(it.dur, it.dots)))).sort((a, b) => b - a) : null;
@@ -4430,7 +4607,7 @@ function startLevel(id) {
 }
 function startPractice(mode, cfg) {
   if (!practicePool(mode, cfg).length) return;
-  startRun({ kind: 'practice', title: MODES[mode].title, mode, cfg, gen: practiceGen(mode, cfg), total: mode === 'melody' ? 5 : mode === 'tap' ? 8 : 20, origin: 'practice' });
+  startRun({ kind: 'practice', title: MODES[mode].title, mode, cfg, gen: practiceGen(mode, cfg), total: mode === 'melody' ? 5 : mode === 'tap' ? 8 : EAR_MODES.indexOf(mode) >= 0 ? 12 : 20, origin: 'practice' });
 }
 function startChallenge(mode, cfg) {
   if (!practicePool(mode, cfg).length) return;
@@ -4551,7 +4728,8 @@ function renderCard() {
   } else {
     const isTap = c.t === 'staffTap';
     h = '<article class="card q q-' + c.t + '">' + kickerHTML(c) + '<h2 class="card-prompt">' + c.prompt + '</h2>' +
-      (c.t === 'listen' ? '<div class="listen"><button class="btn big" data-act="hear">' + ICONS.play + 'Play it again</button></div>' : '') +
+      (c.sub && !st.answered ? '<p class="card-sub">' + c.sub + '</p>' : '') +
+      (c.t === 'listen' || (c.t === 'play' && c.autoHear) ? '<div class="listen"><button class="btn big" data-act="hear">' + ICONS.play + 'Play it again</button></div>' : '') +
       (c.visual ? '<div class="paper card-vis' + (isTap ? ' tapstaff' : '') + '" data-vis' + (isTap ? ' tabindex="0" aria-label="Staff. Tap a line or a space; the arrow keys move the note."' : '') + '></div>' : '') +
       (c.t === 'play' && !st.answered ? micPanelHTML({ alt: c.board ? 'No microphone? Tap where you play it on the fretboard.' : '' }) : '') +
       (isTap ? '<div class="tap-adj"><button class="btn small" data-act="down">' + ICONS.down + 'Lower</button><button class="btn small" data-act="up">' + ICONS.up + 'Higher</button></div>' : '') +
@@ -5100,6 +5278,11 @@ const MODES = {
   play: { title: 'Play it on your guitar', desc: 'A note appears on the staff. Play it; the microphone listens. No microphone? Tap the fretboard.' },
   rhythm: { title: 'Note lengths', desc: 'A note or a rest appears. Say how many beats it lasts.' },
   tap: { title: 'Tap the rhythm', desc: 'Two measures of rhythm appear. After four clicks, tap once for every note, in time.' },
+  earupdown: { title: 'Higher or lower', desc: 'Two notes play. Is the second one higher or lower?' },
+  earint: { title: 'Intervals', desc: 'Two notes play. How far apart are they, in frets and by name?' },
+  earname: { title: 'Name the note by ear', desc: 'A C plays, then another note. Which one is it?' },
+  earchord: { title: 'Major or minor', desc: 'A chord is strummed. Is it major, bright, or minor, darker?' },
+  earecho: { title: 'Play it back', desc: 'An open string plays, then a note on that string. Find it on your guitar, or tap the fretboard.' },
   keys: { title: 'Key signatures', desc: 'A key signature appears. Name its major key.' },
 };
 
@@ -5383,6 +5566,12 @@ function modeArt(mode) {
   if (mode === 'fret') return '<svg viewBox="0 0 24 18" aria-hidden="true"><path d="M1 4h22M1 9h22M1 14h22" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M8 1v16M16 1v16" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="12" y="11.4" font-size="6.6" font-weight="700" text-anchor="middle" fill="currentColor">?</text></svg>';
   if (mode === 'melody') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<ellipse cx="5.5" cy="12" rx="2.1" ry="1.6" transform="rotate(-22 5.5 12)" fill="currentColor"/><path d="M7.4 11.6V4.6" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="9" rx="2.1" ry="1.6" transform="rotate(-22 12 9)" fill="currentColor"/><path d="M13.9 8.6V1.8" stroke="currentColor" stroke-width="1"/><path d="M7.4 4.6l6.5-2.8" stroke="currentColor" stroke-width="1.6"/><rect x="16.4" y="1" width="2.6" height="16" rx="1.3" fill="currentColor" opacity=".35"/></svg>';
   if (mode === 'play') return '<svg viewBox="0 0 24 18" aria-hidden="true"><rect x="9" y="1.5" width="6" height="9.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8.6a6 6 0 0 0 12 0M12 14.6v2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 6.5c1 1.2 1 3.8 0 5M22 6.5c-1 1.2-1 3.8 0 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".6"/></svg>';
+  const head = (x, y) => '<ellipse cx="' + x + '" cy="' + y + '" rx="2.1" ry="1.6" transform="rotate(-22 ' + x + ' ' + y + ')" fill="currentColor"/>';
+  if (mode === 'earupdown') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + head(5, 13) + head(19, 6) + '<path d="M9.5 12.5l5-5M11.4 7.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  if (mode === 'earint') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + head(6, 13) + head(17, 6) + '<path d="M3.6 16.6h16v-2" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".8"/></svg>';
+  if (mode === 'earname') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + head(6, 13) + '<text x="16.5" y="12" font-size="9" font-weight="700" text-anchor="middle" fill="currentColor">?</text><path d="M20.6 4.4a5 5 0 0 1 0 6.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
+  if (mode === 'earchord') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + head(10, 13.5) + head(10, 10.5) + head(10, 7.5) + '<path d="M12 13V1.8" stroke="currentColor" stroke-width="1.1"/></svg>';
+  if (mode === 'earecho') return '<svg viewBox="0 0 24 18" aria-hidden="true"><path d="M1 5h22M1 9h22M1 13h22" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M8 2v14" stroke="currentColor" stroke-width="1.6"/><circle cx="13" cy="9" r="2.6" fill="currentColor"/><path d="M17.5 5.5a5 5 0 0 1 0 7M20 3.4a8 8 0 0 1 0 11.2" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>';
   if (mode === 'tap') return '<svg viewBox="0 0 24 18" aria-hidden="true"><rect x="3.5" y="7" width="17" height="10" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M7.4 4.6a6.4 6.4 0 0 1 9.2 0M5 2.4a9.8 9.8 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".7"/></svg>';
   if (mode === 'rhythm') return '<svg viewBox="0 0 24 18" aria-hidden="true"><ellipse cx="7" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 7 14)" fill="currentColor"/><path d="M9.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><ellipse cx="16" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 16 14)" fill="currentColor"/><path d="M18.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><path d="M9.3 2.5h9" stroke="currentColor" stroke-width="2.2"/></svg>';
   return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(8 6) scale(3)" fill="currentColor"/><path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(13.5 10.5) scale(3)" fill="currentColor"/></svg>';
@@ -5426,9 +5615,9 @@ function viewPractice(main) {
       modeRow('rhythm', '<div class="mode-opts"><label class="check small"><input type="checkbox" id="cfgRests"' + (P.rhythm.rests ? ' checked' : '') + '> Rests</label><label class="check small"><input type="checkbox" id="cfgDots"' + (P.rhythm.dotted ? ' checked' : '') + '> Dotted notes</label></div>') +
       tapRow(P.tap) +
       modeRow('keys', '<div class="mode-opts"><span class="opt-label" id="lblKeys">Up to</span><div class="seg small" role="group" aria-labelledby="lblKeys">' + [1, 2, 3, 4].map(n => '<button data-k="' + n + '" aria-pressed="' + (P.keys.max === n) + '">' + n + '</button>').join('') + '</div><span class="opt-label">sharps or flats</span></div>') +
-    '</div></section></section>';
+    '</div></section>' + earBlock(P) + '</section>';
   const root = main.firstElementChild;
-  const cfgFor = m => m === 'rhythm' ? Store.data.practice.rhythm : m === 'keys' ? Store.data.practice.keys : m === 'melody' ? Store.data.practice.melody : m === 'tap' ? Store.data.practice.tap : Store.data.practice.notes;
+  const cfgFor = m => m === 'rhythm' ? Store.data.practice.rhythm : m === 'keys' ? Store.data.practice.keys : m === 'melody' ? Store.data.practice.melody : m === 'tap' ? Store.data.practice.tap : m === 'earint' ? Store.data.practice.earint : EAR_MODES.indexOf(m) >= 0 ? {} : Store.data.practice.notes;
   function saveNotes(c) { Store.setPractice('notes', c); viewPractice(main); }
   root.addEventListener('click', e => {
     const sb = e.target.closest('[data-s]');
@@ -5446,6 +5635,8 @@ function viewPractice(main) {
     if (mb) { const c = clone(P.melody), k = mb.dataset.mel; c[k] = k === 'rhythm' ? +mb.dataset.v : mb.dataset.v; Store.setPractice('melody', c); viewPractice(main); return; }
     const tb = e.target.closest('[data-tune]');
     if (tb) { startTune(tb.dataset.tune); return; }
+    const es = e.target.closest('[data-earset]');
+    if (es) { Store.setPractice('earint', { set: +es.dataset.earset }); viewPractice(main); return; }
     const tl = e.target.closest('[data-taplevel]');
     if (tl) { Store.setPractice('tap', { level: +tl.dataset.taplevel }); viewPractice(main); return; }
     const tsb = e.target.closest('[data-tspeed]');
@@ -5461,6 +5652,14 @@ function viewPractice(main) {
   });
 }
 
+function earBlock(P) {
+  const row = (mode, extra) => '<div class="mode' + (extra ? ' tall' : '') + '"><div class="mode-art">' + modeArt(mode) + '</div><div class="mode-txt"><h3>' + MODES[mode].title + '</h3><p>' + MODES[mode].desc + '</p>' + (extra || '') +
+    '<p class="mode-last">' + lastRoundText(mode) + '</p></div><div class="mode-btns"><button class="btn primary" data-start="' + mode + '">12 questions' + ICONS.next + '</button></div></div>';
+  const sets = '<div class="mode-fields"><div class="mode-field"><span class="opt-label" id="lblEarSet">Intervals</span><div class="seg small wrap" role="group" aria-labelledby="lblEarSet">' +
+    [1, 2, 3].map(n => '<button data-earset="' + n + '" aria-pressed="' + (P.earint.set === n) + '" title="' + IV_SETS[n].map(k => IV[k].name).join(', ') + '">' + IV_SET_LABELS[n] + '</button>').join('') + '</div></div></div>';
+  return '<section class="pr-block"><h2 class="sec-title">Ear training</h2><p class="pr-lede">Questions you answer by listening. Use headphones or turn the sound up.</p><div class="mode-list">' +
+    row('earupdown') + row('earint', sets) + row('earname') + row('earchord') + row('earecho') + '</div></section>';
+}
 function tapRow(T) {
   const sp = tapSpeed();
   return '<div class="mode tall"><div class="mode-art">' + modeArt('tap') + '</div><div class="mode-txt"><h3>' + MODES.tap.title + '</h3><p>' + MODES.tap.desc + '</p>' +
