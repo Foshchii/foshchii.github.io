@@ -764,6 +764,17 @@ body.in-run .tabbar { display: none; }
   --warn: #e9b25a; --on-warn: #21160d; --warn-soft: #3a2a12;
   --shadow: none;
 }
+/* Spaced review */
+.review-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; margin: 16px 0 12px; padding: 16px 18px; border-radius: 16px; background: var(--accent-soft); border: 1px solid var(--rule); }
+.review-card .rv-txt { flex: 1 1 260px; min-width: 0; }
+.rv-kicker { margin: 0; font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.rv-title { margin: 2px 0 4px; font: 600 23px/1.2 var(--font-display); }
+.rv-sub { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.4; }
+.rv-none { display: flex; align-items: center; gap: 8px; margin: 14px 0 8px; color: var(--muted); font-size: 14.5px; }
+.rv-none .ic { width: 16px; height: 16px; color: var(--good); flex: none; }
+.mode-srs { margin: 3px 0 0; font-size: 13px; color: var(--muted); }
+.mode-srs b { color: var(--accent); font-weight: 700; }
+.lvl-run { margin: 6px 0 0; font-size: 13.5px; color: var(--accent); font-weight: 600; }
 /* Signs, chords and theory */
 .pr-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .pr-jump .chip { cursor: pointer; font-weight: 600; color: var(--ink); }
@@ -2313,8 +2324,11 @@ try {
   if (saved && /^[a-z0-9]{4,24}$/.test(saved)) DEVICE = saved; else localStorage.setItem('guitar-note-reading-device', DEVICE);
 } catch (e) { /* storage unavailable */ }
 
+/* Spaced review gaps, by box: 0 = new or just missed, then about a day, 3 days, a week, 16 days, 35 days, 75 days, 160 days. */
+const SRS_GAPS = [0, 72000000, 259200000, 604800000, 1382400000, 3024000000, 6480000000, 13824000000];
+function srsGap(b) { return Math.round(SRS_GAPS[b] * (0.9 + Math.random() * 0.2)); }
 function blankStore() {
-  return { v: 2, items: {}, days: [], lessons: {}, rounds: {}, levels: {}, best: {}, tunes: {}, xp: {}, settings: clone(DEFAULT_SETTINGS), practice: clone(DEFAULT_PRACTICE), settingsAt: 0, updated: 0, resetAt: 0 };
+  return { v: 2, items: {}, days: [], lessons: {}, rounds: {}, levels: {}, best: {}, tunes: {}, xp: {}, runs: {}, settings: clone(DEFAULT_SETTINGS), practice: clone(DEFAULT_PRACTICE), settingsAt: 0, updated: 0, resetAt: 0 };
 }
 function sanitizeStore(d) {
   const b = blankStore();
@@ -2323,7 +2337,21 @@ function sanitizeStore(d) {
   if (obj(d.items)) Object.keys(d.items).forEach(k => {
     const r = d.items[k];
     if (!obj(r) || k.length > 40) return;
-    b.items[k] = { n: Math.max(0, +r.n || 0), c: Math.max(0, +r.c || 0), h: String(r.h || '').replace(/[^01]/g, '').slice(-12), t: +r.t || 0 };
+    const it = { n: Math.max(0, +r.n || 0), c: Math.max(0, +r.c || 0), h: String(r.h || '').replace(/[^01]/g, '').slice(-12), t: +r.t || 0 };
+    if (typeof r.b === 'number') { it.b = Math.max(0, Math.min(7, Math.round(r.b))); it.d = +r.d || 0; }
+    else {
+      /* answered before spaced review existed: the run of right answers at the end sets the box */
+      const m = /1*$/.exec(it.h)[0].length;
+      it.b = Math.min(4, m);
+      it.d = it.t + SRS_GAPS[it.b];
+    }
+    b.items[k] = it;
+  });
+  if (obj(d.runs)) Object.keys(d.runs).forEach(k => {
+    const r = d.runs[k];
+    if (!obj(r) || !/^[a-z]{2,20}$/.test(k)) return;
+    const keys = a => Array.isArray(a) ? a.filter(x => typeof x === 'string' && x.length <= 40).slice(0, 120) : [];
+    b.runs[k] = { done: keys(r.done), miss: keys(r.miss), right: Math.max(0, +r.right || 0), total: Math.max(0, +r.total || 0), at: +r.at || 0 };
   });
   if (Array.isArray(d.days)) b.days = d.days.filter(x => /^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400);
   if (obj(d.lessons)) Object.keys(d.lessons).forEach(k => { if (d.lessons[k]) b.lessons[k] = +d.lessons[k] || 1; });
@@ -2395,14 +2423,34 @@ const Store = (() => {
     const d = todayStr();
     if (data.days[data.days.length - 1] !== d) { data.days.push(d); data.days = data.days.slice(-400); }
   }
-  function record(key, ok) {
-    const r = data.items[key] || { n: 0, c: 0, h: '', t: 0 };
+  /* One answer. Right: the item moves up a box and goes away for longer (a day, 3 days, a week...), unless it was
+     asked before it was due (extra practice), when it stays put. Right only on a second try: back in 10 minutes.
+     Wrong: back within a minute, and a well-known item drops back to a day. */
+  function record(key, ok, retry) {
+    const now = Date.now();
+    const r = data.items[key] || { n: 0, c: 0, h: '', t: 0, b: 0, d: 0 };
     r.n += 1; if (ok) r.c += 1;
     r.h = (r.h + (ok ? '1' : '0')).slice(-12);
-    r.t = Date.now();
+    r.t = now;
+    if (typeof r.b !== 'number') { r.b = 0; r.d = 0; }
+    if (!ok) { r.b = r.b >= 3 ? 1 : 0; r.d = now + 60000; }
+    else if (retry) { r.b = Math.min(r.b, 1); r.d = now + 600000; }
+    else if (r.b === 0 || r.d <= now + 300000) { r.b = Math.min(7, r.b + 1); r.d = now + srsGap(r.b); }
     data.items[key] = r;
     markDay();
     touch();
+  }
+  /* Count a question as learned at a given time, if it has no record yet. */
+  function seed(key, at, box) {
+    if (data.items[key]) return;
+    data.items[key] = { n: 1, c: 1, h: '1', t: at, b: box, d: at + SRS_GAPS[box] };
+    touch();
+  }
+  function status(key) {
+    const r = data.items[key];
+    if (!r || !r.n) return 'new';
+    if (r.d <= Date.now()) return 'due';
+    return r.b >= 1 ? 'known' : 'learning';
   }
   function mastery(key) {
     const r = data.items[key];
@@ -2477,6 +2525,7 @@ const Store = (() => {
     });
     Object.keys(r.best).forEach(k => { const a = data.best[k], b = r.best[k]; if (!a || b.score > a.score) { data.best[k] = b; changed = true; } });
     Object.keys(r.tunes).forEach(k => { const a = data.tunes[k], b = r.tunes[k]; if (!a || b.p > a.p) { data.tunes[k] = b; changed = true; } });
+    Object.keys(r.runs).forEach(k => { const a = data.runs[k], b = r.runs[k]; if (!a || b.at > a.at) { data.runs[k] = b; changed = true; } });
     Object.keys(r.xp).forEach(k => {
       if (k === DEVICE && data.xp[k]) return; /* this device is the only writer of its own counter */
       const a = data.xp[k], b = r.xp[k];
@@ -2489,7 +2538,17 @@ const Store = (() => {
   return {
     get data() { return data; },
     get settings() { return data.settings; },
-    record, mastery, weight, dayStreak, totals, merge, todayStr, addXp, xpTotal, xpToday,
+    record, seed, status, mastery, weight, dayStreak, totals, merge, todayStr, addXp, xpTotal, xpToday,
+    /* a level left half way: what was answered, so it can continue from there */
+    levelRun(id) { const r = data.runs[id]; return r && (r.done.length || r.miss.length) ? r : null; },
+    levelRunMark(id, key, how) {
+      const r = data.runs[id] || (data.runs[id] = { done: [], miss: [], right: 0, total: 0, at: 0 });
+      if (how === 'teach') { if (r.done.indexOf(key) < 0) r.done.push(key); }
+      else { r.total++; if (how === 'right') { r.right++; r.done.push(key); } else r.miss.push(key); }
+      r.at = Date.now();
+      touch();
+    },
+    levelRunClear(id) { if (data.runs[id]) { delete data.runs[id]; touch(); } },
     setSetting(k, v) { data.settings[k] = v; data.settingsAt = Date.now(); touch(); },
     setPractice(group, cfg) { data.practice[group] = clone(cfg); data.settingsAt = Date.now(); touch(); },
     markLesson(id, done) { if (done) data.lessons[id] = Date.now(); else delete data.lessons[id]; touch(); },
@@ -2529,7 +2588,7 @@ const Cloud = (() => {
   const state = { mode: 'local' };
   function body() {
     const d = Store.data;
-    return { v: 2, items: d.items, days: d.days, lessons: d.lessons, rounds: d.rounds, levels: d.levels, best: d.best, tunes: d.tunes, xp: d.xp, settings: d.settings, practice: d.practice, settingsAt: d.settingsAt, updated: d.updated, resetAt: d.resetAt || 0 };
+    return { v: 2, items: d.items, days: d.days, lessons: d.lessons, rounds: d.rounds, levels: d.levels, best: d.best, tunes: d.tunes, xp: d.xp, runs: d.runs, settings: d.settings, practice: d.practice, settingsAt: d.settingsAt, updated: d.updated, resetAt: d.resetAt || 0 };
   }
   async function write(force) {
     if (!ref || disabled) return;
@@ -4327,8 +4386,9 @@ function qEarUpDown(o) {
 
 function qEarInterval(set, o) {
   o = o || {};
-  const pool = IV_SETS[set] || IV_SETS[1];
-  const n = rnd(pool);
+  let pool = IV_SETS[set] || IV_SETS[1];
+  const n = o.n || rnd(pool);
+  if (pool.indexOf(n) < 0) pool = IV_SETS[3];
   const pa = rnd(['A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4'].map(PN)), pb = ivSpell(pa, n);
   const low = midiOf(pa), high = midiOf(pb);
   const opts = pool.length <= 7 ? pool.slice() : [n].concat(sample(pool.filter(x => x !== n), 5)).sort((a, b) => a - b);
@@ -4344,8 +4404,8 @@ function qEarInterval(set, o) {
 }
 
 /* A C, then a natural note above it up to the next C. */
-function qEarName() {
-  const L = rnd([0, 1, 2, 3, 4, 5, 6, 1, 2, 4]);
+function qEarName(fixedL) {
+  const L = fixedL >= 0 && fixedL <= 6 ? fixedL : rnd([0, 1, 2, 3, 4, 5, 6, 1, 2, 4]);
   const ref = PN('C4'), p = { l: L, a: 0, o: L === 0 ? 5 : 4 };
   const semis = midiOf(p) - midiOf(ref);
   return {
@@ -4364,8 +4424,8 @@ const EAR_CHORDS = [
   { root: 'A', major: [null, 0, 2, 2, 2, 0], minor: [null, 0, 2, 2, 1, 0], third: 2 },
   { root: 'D', major: [null, null, 0, 2, 3, 2], minor: [null, null, 0, 2, 3, 1], third: 1 },
 ];
-function qEarChord() {
-  const ch = rnd(EAR_CHORDS), minor = Math.random() < 0.5;
+function qEarChord(fixedMinor) {
+  const ch = rnd(EAR_CHORDS), minor = typeof fixedMinor === 'boolean' ? fixedMinor : Math.random() < 0.5;
   const frets = minor ? ch.minor : ch.major;
   const pos = frets.map((f, k) => f === null ? null : { s: 6 - k, f }).filter(Boolean);
   const midis = pos.map(x => posMidi(x.s, x.f));
@@ -4408,10 +4468,13 @@ function qEarEcho(s, f) {
 const EAR_MODES = ['earupdown', 'earint', 'earname', 'earchord', 'earecho'];
 function earGen(mode, cfg) {
   if (mode === 'earupdown') return () => qEarUpDown();
-  if (mode === 'earint') return () => qEarInterval(cfg && cfg.set || 1);
-  if (mode === 'earname') return () => qEarName();
   if (mode === 'earchord') return () => qEarChord();
-  return () => qEarEcho(rnd([1, 2, 3, 4, 5, 6]), rnd([1, 2, 3, 4, 5]));
+  const keys = modeKeys(mode, cfg), recent = [];
+  return () => {
+    const k = srsPick(keys, x => x, recent);
+    recent.push(k); if (recent.length > Math.min(4, keys.length - 1)) recent.shift();
+    return cardFromKey(k) || qEarUpDown();
+  };
 }
 
 /* ============================================================
@@ -4732,9 +4795,9 @@ function qChordStaff(id) {
   };
 }
 const INT_NAMES = { 2: 'second', 3: 'third', 4: 'fourth', 5: 'fifth', 6: 'sixth', 7: 'seventh', 8: 'octave' };
-function qStaffInterval() {
+function qStaffInterval(fixedNum) {
   const low = PN(rnd(['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5', 'D5']));
-  const num = rnd([2, 3, 3, 4, 5, 5, 6, 7, 8]);
+  const num = fixedNum >= 2 && fixedNum <= 8 ? fixedNum : rnd([2, 3, 3, 4, 5, 5, 6, 7, 8]);
   const hl = low.l + num - 1, high = { l: hl % 7, a: 0, o: low.o + Math.floor(hl / 7) };
   const letters = range(0, num - 1).map(k => LETTERS[(low.l + k) % 7]);
   const frets = midiOf(high) - midiOf(low);
@@ -4932,15 +4995,182 @@ const MORE_LV = {
 /* ---------- Practice ---------- */
 const MORE_MODES = ['symbols', 'intervals', 'chords'];
 function moreGen(mode) {
-  if (mode === 'symbols') {
-    let last = null;
-    return () => { let sg; do { sg = rnd(SIGNS); } while (sg.id === last); last = sg.id; return qSign(sg); };
-  }
-  if (mode === 'intervals') return () => (Math.random() < 0.8 ? qStaffInterval() : qEarInterval(2));
-  return () => { const id = rnd(Object.keys(CHORDS)); return Math.random() < 0.6 ? qChordShape(id) : qChordStaff(id); };
+  const keys = modeKeys(mode), recent = [];
+  return () => {
+    if (mode === 'intervals' && Math.random() < 0.2) return qEarInterval(2);
+    const k = srsPick(keys, x => x, recent);
+    recent.push(k); if (recent.length > Math.min(5, keys.length - 1)) recent.shift();
+    return cardFromKey(k) || qSign(rnd(SIGNS));
+  };
 }
 LESSONS.push.apply(LESSONS, MORE_LESSONS);
 Object.assign(FIGS, MORE_FIGS);
+
+/* ============================================================
+   Spaced review. Every question remembers how well you know it:
+   a right answer sends it away for longer each time (about a day,
+   then 3 days, a week, 2 weeks, a month, 2½ months, 5 months); a
+   wrong one brings it back within a minute. Practice
+   asks what is due first, then something new, and leaves what you
+   know alone until it is due again. Levels continue where you left
+   them; a finished level only asks what is due again.
+   ============================================================ */
+/* Short, stable keys for questions that have no item of their own: the level and a hash of the prompt. */
+function hashStr(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36); }
+function keyCards(cards, levelId) {
+  cards.forEach(c => {
+    if (c.key) return;
+    const text = stripTags(String((c.t === 'teach' ? c.title : c.prompt) || ''));
+    c.key = (c.t === 'teach' ? 'lvt:' : 'lv:') + levelId + ':' + hashStr(text);
+  });
+  return cards;
+}
+/* "in 3 hours", "tomorrow", "in 5 days": when something is next due. */
+function dueWords(at) {
+  const ms = at - Date.now();
+  if (ms <= 60000) return 'now';
+  if (ms < 3600000) return 'in ' + Math.max(2, Math.round(ms / 60000)) + ' minutes';
+  if (ms < 86400000 * 0.9) { const h = Math.round(ms / 3600000); return h <= 1 ? 'in an hour' : 'in ' + h + ' hours'; }
+  const d = Math.round(ms / 86400000);
+  return d <= 1 ? 'tomorrow' : 'in ' + d + ' days';
+}
+/* Pick the next item for practice: what is due first (the most overdue), now and then something new,
+   then whatever comes due soonest. Items asked in the last few questions wait their turn. */
+function srsPick(pool, keyFn, recent) {
+  const now = Date.now(), items = Store.data.items;
+  const all = pool.map(it => ({ it, k: keyFn(it) }));
+  const fresh = all.filter(x => (recent || []).indexOf(x.k) < 0);
+  const use = fresh.length ? fresh : all;
+  const rec = x => items[x.k];
+  const due = use.filter(x => rec(x) && rec(x).n && rec(x).d <= now);
+  const neu = use.filter(x => !rec(x) || !rec(x).n);
+  if (due.length && (!neu.length || Math.random() < 0.7)) {
+    due.sort((a, b) => rec(a).d - rec(b).d);
+    return due[Math.floor(Math.random() * Math.min(due.length, 3))].it;
+  }
+  if (neu.length) return rnd(neu).it;
+  /* nothing due or new: the least-known items, soonest due first */
+  const minB = Math.min.apply(null, use.map(x => rec(x).b));
+  const low = use.filter(x => rec(x).b === minB).sort((a, b) => rec(a).d - rec(b).d);
+  return low[Math.floor(Math.random() * Math.min(low.length, 3))].it;
+}
+function srsCounts(keys) {
+  const now = Date.now(), items = Store.data.items;
+  let due = 0, neu = 0, next = 0;
+  keys.forEach(k => {
+    const r = items[k];
+    if (!r || !r.n) { neu++; return; }
+    if (r.d <= now) due++;
+    else if (!next || r.d < next) next = r.d;
+  });
+  return { due, neu, next, total: keys.length };
+}
+/* The items each practice mode draws from, as keys. */
+function modeKeys(mode, cfg) {
+  if (['read', 'find', 'fret', 'play', 'rhythm', 'keys'].indexOf(mode) >= 0) return practicePool(mode, cfg).map(x => itemKey(mode, x));
+  if (mode === 'symbols') return SIGNS.map(x => 'sign:' + x.id);
+  if (mode === 'intervals') return [2, 3, 4, 5, 6, 7, 8].map(n => 'int:' + n);
+  if (mode === 'chords') return Object.keys(CHORDS).map(k => 'chord:' + k).concat(Object.keys(CHORDS).map(k => 'chordst:' + k));
+  if (mode === 'earint') return (IV_SETS[cfg && cfg.set] || IV_SETS[1]).map(n => 'ear:iv' + n);
+  if (mode === 'earname') return LETTERS.map(L => 'ear:name' + L);
+  if (mode === 'earecho') return range(1, 6).reduce((a, s) => a.concat(range(1, 5).map(f => 'echo:' + s + '-' + f)), []);
+  return null;
+}
+/* A practice-row line: "4 due for review · 6 new". */
+function srsLine(mode, cfg) {
+  const keys = modeKeys(mode, cfg);
+  if (!keys || !keys.length) return '';
+  const c = srsCounts(keys);
+  const learned = c.total - c.neu;
+  if (!learned) return '';
+  const parts = [];
+  if (c.due) parts.push('<b>' + c.due + ' due for review</b>');
+  if (c.neu) parts.push(c.neu + ' new');
+  if (!c.due && !c.neu) parts.push('All learned · next review ' + dueWords(c.next));
+  return parts.join(' · ');
+}
+
+/* ---------- Turning a remembered item back into a question ---------- */
+let LEVEL_INDEX = null;
+/* Which level each level-only question comes from (built once). */
+function levelIndex() {
+  if (LEVEL_INDEX) return LEVEL_INDEX;
+  LEVEL_INDEX = {};
+  LESSONS.forEach(l => { try { keyCards(LV[l.id](), l.id).forEach(c => { if (/^lv:/.test(c.key)) LEVEL_INDEX[c.key] = l.id; }); } catch (e) { /* skip */ } });
+  return LEVEL_INDEX;
+}
+function cardFromKey(k) {
+  try {
+    const i = k.indexOf(':'), kind = k.slice(0, i), rest = k.slice(i + 1);
+    const pitch = () => { const p = parsePitch(rest); return p && !isNaN(midiOf(p)) ? p : null; };
+    if (kind === 'read' || kind === 'find' || kind === 'play') {
+      const p = pitch(); if (!p) return null;
+      const o = { yRange: poolYRange([p, PN('E3'), PN('G5')]), maxFret: 12 };
+      return kind === 'read' ? qReadNote(p, o) : kind === 'find' ? qFindNote(p, o) : qPlayNote(p, o);
+    }
+    if (kind === 'fret') { const sf = rest.split('-').map(Number); if (!(sf[0] >= 1 && sf[0] <= 6 && sf[1] >= 0 && sf[1] <= 12)) return null; const nat = isNaturalMidi(posMidi(sf[0], sf[1])); return qNameFret(sf[0], sf[1], { chromatic: !nat, full: true, maxFret: Math.max(4, sf[1]) }); }
+    if (kind === 'rhy') { const it = RHYTHM_ITEMS.find(x => x.id === rest); return it ? qRhythm(it, { full: true }) : null; }
+    if (kind === 'key') { const kk = KEYS.find(x => x.id === rest); return kk ? qKey(kk, { pool: KEYS.filter(x => Math.abs(x.n) <= Math.max(2, Math.abs(kk.n))), full: true }) : null; }
+    if (kind === 'sign') { const sg = signById(rest); return sg ? qSign(sg) : null; }
+    if (kind === 'chord') return CHORDS[rest] ? qChordShape(rest) : null;
+    if (kind === 'chordst') return CHORDS[rest] ? qChordStaff(rest) : null;
+    if (kind === 'int') return +rest >= 2 && +rest <= 8 ? qStaffInterval(+rest) : null;
+    if (kind === 'ear') {
+      if (rest === 'updown') return qEarUpDown();
+      let m = /^iv(\d+)$/.exec(rest); if (m && IV[+m[1]]) return qEarInterval(3, { n: +m[1] });
+      m = /^name([A-G])$/.exec(rest); if (m) return qEarName(LETTERS.indexOf(m[1]));
+      if (rest === 'chordmaj' || rest === 'chordmin') return qEarChord(rest === 'chordmin');
+      return null;
+    }
+    if (kind === 'echo') { const sf = rest.split('-').map(Number); return sf[0] >= 1 && sf[0] <= 6 && sf[1] >= 1 && sf[1] <= 5 ? qEarEcho(sf[0], sf[1]) : null; }
+    if (kind === 'listen') return rest === 'dyn' ? qListenDyn() : rest === 'artic' ? qListenArtic() : null;
+    if (kind === 'tap') {
+      let m = /^level([1-5])$/.exec(rest); if (m) return tapCard(genRhythm(+m[1]), { key: k });
+      m = /^([a-z]+)(\d+)$/.exec(rest); if (m && TAP_SETS[m[1]] && TAP_SETS[m[1]][+m[2]]) return tapLevelCard(m[1], +m[2]);
+      return null;
+    }
+    if (kind === 'lv') {
+      const id = levelIndex()[k];
+      if (!id) return null;
+      return keyCards(LV[id](), id).find(c => c.key === k) || null;
+    }
+  } catch (e) { /* an item this version cannot ask any more */ }
+  return null;
+}
+const REVIEW_KINDS = ['read', 'find', 'play', 'fret', 'rhy', 'key', 'sign', 'chord', 'chordst', 'int', 'ear', 'echo', 'listen', 'tap', 'lv'];
+function reviewable(k) { const kind = k.slice(0, k.indexOf(':')); return REVIEW_KINDS.indexOf(kind) >= 0 && (kind !== 'lv' || !!levelIndex()[k]); }
+/* Everything due, oldest first: the Review round on the Play page. */
+function reviewKeys() {
+  const now = Date.now(), items = Store.data.items;
+  return Object.keys(items).filter(k => items[k].n && items[k].d <= now && reviewable(k)).sort((a, b) => items[a].d - items[b].d);
+}
+function startReview() {
+  const cards = [];
+  for (const k of reviewKeys()) {
+    const c = cardFromKey(k);
+    if (c) { c.key = k; cards.push(c); }
+    if (cards.length >= 20) break;
+  }
+  if (!cards.length) return;
+  startRun({ kind: 'practice', mode: 'review', title: 'Review', cards, total: cards.length, origin: App.route === 'progress' ? 'progress' : 'play' });
+}
+/* Levels finished before the review existed: count their questions as learned when the level was finished,
+   so a finished level does not come back all at once. */
+function seedFinishedLevel(id, cards) {
+  const lv = Store.data.levels[id];
+  if (!lv || !lv.s) return;
+  cards.forEach(c => { if (c.t !== 'teach' && /^lv:/.test(c.key)) Store.seed(c.key, lv.at || Date.now(), lv.s >= 2 ? 2 : 1); });
+}
+function reviewCardHTML() {
+  const n = reviewKeys().length;
+  if (n) return '<div class="review-card"><div class="rv-txt"><p class="rv-kicker">Spaced review</p><h2 class="rv-title">' + n + (n === 1 ? ' question is' : ' questions are') + ' due again</h2>' +
+    '<p class="rv-sub">Things you learned before come back just as they start to fade, then less and less often.</p></div>' +
+    '<button class="btn primary" data-review>Review ' + Math.min(20, n) + (n > 20 ? ' of ' + n : '') + ICONS.next + '</button></div>';
+  const items = Store.data.items, now = Date.now();
+  let next = 0, learned = 0;
+  Object.keys(items).forEach(k => { const r = items[k]; if (!r.n || !reviewable(k)) return; learned++; if (r.d > now && (!next || r.d < next)) next = r.d; });
+  return learned ? '<p class="rv-none">' + ICONS.check + 'All caught up with your reviews. The next one is due ' + dueWords(next) + '.</p>' : '';
+}
 
 /* Rhythms to tap inside the rhythm levels, one picked at random. */
 const TAP_SETS = {
@@ -4948,8 +5178,8 @@ const TAP_SETS = {
   rests: [['q qr q qr | h hr', [4, 4]], ['q q qr | h qr', [3, 4]], ['h qr q | qr q h', [4, 4]]],
   dots: [['h. q | q. e h', [4, 4]], ['h. | q. e q', [3, 4]], ['q. e q q | q~ q h', [4, 4]]],
 };
-function tapLevelCard(id) {
-  const k = Math.floor(Math.random() * TAP_SETS[id].length), x = TAP_SETS[id][k];
+function tapLevelCard(id, fixedK) {
+  const k = fixedK >= 0 && fixedK < TAP_SETS[id].length ? fixedK : Math.floor(Math.random() * TAP_SETS[id].length), x = TAP_SETS[id][k];
   return tapCard(parseRh(x[0], x[1]), { key: 'tap:' + id + k });
 }
 /* ---------- The levels ---------- */
@@ -5171,11 +5401,11 @@ const LV = {
 Object.assign(LV, MORE_LV);
 function buildExam() {
   const cards = [];
-  LESSONS.filter(l => l.part !== 'more').forEach(l => { const qs = LV[l.id]().filter(c => c.t !== 'teach'); sample(qs, 2).forEach(c => cards.push(c)); });
+  LESSONS.filter(l => l.part !== 'more').forEach(l => { const qs = keyCards(LV[l.id](), l.id).filter(c => c.t !== 'teach'); sample(qs, 2).forEach(c => cards.push(c)); });
   return shuffle(cards);
 }
 /* Eleven lessons up to the exam at the 12th fret, then the lessons beyond it. */
-const levelOf = l => ({ id: l.id, part: l.part, title: l.title, summary: l.summary, build: LV[l.id] });
+const levelOf = l => ({ id: l.id, part: l.part, title: l.title, summary: l.summary, build: () => keyCards(LV[l.id](), l.id) });
 const LEVELS = LESSONS.filter(l => l.part !== 'more').map(levelOf)
   .concat([{ id: 'exam', part: 'final', title: 'Final exam', summary: 'Two questions from each of the first eleven levels, mixed.', build: buildExam }])
   .concat(LESSONS.filter(l => l.part === 'more').map(levelOf));
@@ -5202,10 +5432,10 @@ function practiceGen(mode, cfg) {
   const yr = (mode === 'read' || mode === 'find' || mode === 'play') ? poolYRange(pool) : null;
   const vals = mode === 'rhythm' ? Array.from(new Set(pool.map(it => durBeats(it.dur, it.dots)))).sort((a, b) => b - a) : null;
   const dispMax = Math.max(cfg.maxFret || 0, 4);
-  let last = null;
+  const recent = [];
   return () => {
-    const it = weightedPick(pool, x => itemKey(mode, x), last);
-    last = itemKey(mode, it);
+    const it = srsPick(pool, x => itemKey(mode, x), recent);
+    recent.push(itemKey(mode, it)); if (recent.length > Math.min(6, Math.max(0, pool.length - 2))) recent.shift();
     if (mode === 'read') return qReadNote(it, { yRange: yr, maxFret: dispMax });
     if (mode === 'find') return qFindNote(it, { yRange: yr, maxFret: dispMax });
     if (mode === 'play') return qPlayNote(it, { yRange: yr, maxFret: dispMax });
@@ -5243,8 +5473,10 @@ function startRun(o) {
     queue: (o.cards || []).map(prepCard), pos: 0, total: o.total || (o.cards ? o.cards.length : 20), answered: 0,
     xp: 0, combo: 0, bestCombo: 0, first: { right: 0, total: 0 }, missed: [],
     seconds: o.seconds || 0, startedAt: Date.now(), endsAt: o.seconds ? Date.now() + o.seconds * 1000 : 0,
-    origin: o.origin || 'play', done: false, nextTimer: null,
+    origin: o.origin || 'play', done: false, nextTimer: null, review: !!o.review, base: 0,
+    track: o.kind === 'level' && !o.review && !Store.levelStars(o.levelId),
   };
+  if (o.resume) { R.first = { right: o.resume.right, total: o.resume.total }; R.base = o.resume.done.length + o.resume.miss.length; }
   if (R.gen && !R.queue.length) R.queue.push(prepCard(R.gen()));
   if (!R.queue.length) return;
   R.card = R.queue[0];
@@ -5252,11 +5484,41 @@ function startRun(o) {
   App.run = R;
   if (App.route !== R.origin) go(R.origin); else render(true);
 }
-function startLevel(id) {
+/* how: undefined (continue, review or start), or 'all' (every question again). */
+function startLevel(id, how) {
   const lv = LEVELS.find(l => l.id === id);
   if (!lv) return;
-  const n = LEVELS.indexOf(lv) + 1;
-  startRun({ kind: 'level', title: 'Level ' + n + ' · ' + lv.title, levelId: id, cards: lv.build(), origin: 'play' });
+  const n = LEVELS.indexOf(lv) + 1, title = 'Level ' + n + ' · ' + lv.title;
+  const cards = lv.build(), qs = cards.filter(c => c.t !== 'teach');
+  const finished = Store.levelStars(id) > 0;
+  if (how === 'all') { Store.levelRunClear(id); startRun({ kind: 'level', title, levelId: id, cards: finished ? qs : cards, origin: 'play' }); return; }
+  const run = Store.levelRun(id);
+  if (run && !finished) {
+    /* continue: the lesson cards and questions already done stay done; missed ones come back as second tries */
+    const seen = new Set(run.done), miss = new Set(run.miss);
+    let left = Math.max(0, qs.length - run.total);
+    const rest = cards.filter(c => c.t === 'teach' ? !seen.has(c.key) : !seen.has(c.key) && !miss.has(c.key) && left-- > 0);
+    const again = qs.filter(c => miss.has(c.key)).map(c => Object.assign({}, c, { retry: true }));
+    if (rest.some(c => c.t !== 'teach') || again.length) { startRun({ kind: 'level', title, levelId: id, cards: rest.concat(again), origin: 'play', resume: run }); return; }
+    /* everything was answered: finish it now */
+    const pct = run.total ? run.right / run.total : 1;
+    Store.saveLevel(id, pct >= 0.9 ? 3 : pct >= 0.7 ? 2 : 1, Math.round(pct * 100));
+    if (id !== 'exam') Store.markLesson(id, true);
+    Store.levelRunClear(id);
+  }
+  if (finished || Store.levelStars(id) > 0) {
+    /* finished before: only what is due again, or new; no lesson cards */
+    seedFinishedLevel(id, cards);
+    const pick = qs.filter(c => Store.status(c.key) === 'due').slice(0, 12);
+    if (!pick.length) {
+      const c = srsCounts(qs.map(x => x.key));
+      openConfirm('Nothing due here yet', 'You know this level for now' + (c.next ? '; its next question comes back ' + dueWords(c.next) : '') + '. Play every question anyway?', 'Play them all', () => startLevel(id, 'all'));
+      return;
+    }
+    startRun({ kind: 'level', review: true, title: 'Review · ' + title, levelId: id, cards: pick, origin: 'play' });
+    return;
+  }
+  startRun({ kind: 'level', title, levelId: id, cards, origin: 'play' });
 }
 function startPractice(mode, cfg) {
   if (!practicePool(mode, cfg).length) return;
@@ -5620,7 +5882,7 @@ function updateTop(bump) {
   const fill = $('#runFill');
   if (fill && R.kind !== 'challenge') {
     const doneNow = R.st.answered || R.card.t === 'teach' ? 1 : 0;
-    const frac = R.kind === 'practice' ? R.answered / R.total : (R.pos + doneNow) / R.queue.length;
+    const frac = R.kind === 'practice' ? R.answered / R.total : (R.base + R.pos + doneNow) / (R.base + R.queue.length);
     fill.style.width = Math.min(100, frac * 100) + '%';
   }
   const combo = $('#runCombo');
@@ -5712,7 +5974,8 @@ function answerCard(choice) {
     else { R.combo = 0; st.gain = 0; }
   }
   if (st.gain) { R.xp += st.gain; Store.addXp(st.gain); }
-  if (c.key) Store.record(c.key, ok);
+  if (c.key) Store.record(c.key, ok, !!c.retry);
+  if (R.track && !c.retry && c.key) Store.levelRunMark(R.levelId, c.key, ok ? 'right' : 'wrong');
   if (c.t === 'melody') { if (ok) Sound.fx('done'); }
   else if ((c.t === 'fretTap' || c.t === 'play') && choice && choice.s) { Sound.note(posMidi(choice.s, choice.f)); if (!ok) setTimeout(() => Sound.fx('bad'), 170); }
   else if (c.t === 'play' && choice && ok) Sound.fx('good');
@@ -5745,7 +6008,8 @@ function nextCard() {
   clearTimeout(R.nextTimer);
   const c = R.card, st = R.st;
   if (c.t !== 'teach' && !st.answered) return;
-  if (R.kind === 'level' && c.t !== 'teach' && !st.ok && !c.retry) {
+  if (c.t === 'teach' && R.track && c.key) Store.levelRunMark(R.levelId, c.key, 'teach');
+  if ((R.kind === 'level' || R.mode === 'review') && c.t !== 'teach' && !st.ok && !c.retry) {
     const again = Object.assign({}, c, { retry: true, uid: ++CARD_UID });
     if (again.options && !again.fixed) again.options = shuffle(again.options);
     R.queue.push(again);
@@ -5773,7 +6037,10 @@ function finishRun() {
   R.endedAt = Date.now();
   const pct = R.first.total ? R.first.right / R.first.total : 1;
   R.pct = Math.round(pct * 100);
-  if (R.kind === 'level') {
+  if (R.kind === 'level' && R.review) {
+    R.stars = 0; R.bonus = 0;
+  } else if (R.kind === 'level') {
+    Store.levelRunClear(R.levelId);
     R.stars = pct >= 0.9 ? 3 : pct >= 0.7 ? 2 : 1;
     R.bonus = 20 + (R.first.total && R.first.right === R.first.total ? 10 : 0);
     R.xp += R.bonus;
@@ -5796,7 +6063,7 @@ function quitRun() {
   if (!R) return;
   const leave = () => { clearTimeout(R.nextTimer); stopClock(); App.run = null; render(true); };
   if (R.done || R.answered === 0) { leave(); return; }
-  openConfirm(R.kind === 'level' ? 'Leave this level?' : 'Stop this round?', 'The points you earned stay. ' + (R.kind === 'level' ? 'Stars are given when you finish the level.' : 'This round will not be saved.'), 'Leave', leave);
+  openConfirm(R.kind === 'level' && !R.review ? 'Leave this level?' : 'Stop here?', R.kind === 'level' && !R.review ? 'Your answers so far are kept: next time this level continues where you left it. Stars come when you finish it.' : 'Your answers so far still count: what you know well rests, and what you missed comes back soon.', 'Leave', leave);
 }
 function startClock() {
   stopClock();
@@ -5833,11 +6100,12 @@ function viewResults(main) {
       '<div class="score-big"><span class="num">' + R.first.right + '</span><span class="of">right in 60 seconds</span></div>' +
       '<div class="res-stats">' + stat(Math.max(R.prevBest, R.first.right), 'best score') + stat(R.first.total ? R.pct + '%' : '–', 'right') + stat(R.bestCombo, 'best run in a row') + stat('+' + R.xp, 'points earned') + '</div>';
   } else {
-    const head = R.kind === 'level' ? (R.stars === 3 ? 'Brilliant' : R.stars === 2 ? 'Well done' : 'Level complete') : (R.pct >= 90 ? 'Excellent' : R.pct >= 70 ? 'Good work' : 'Round complete');
+    const head = R.kind === 'level' && !R.review ? (R.stars === 3 ? 'Brilliant' : R.stars === 2 ? 'Well done' : 'Level complete') : (R.pct >= 90 ? 'Excellent' : R.pct >= 70 ? 'Good work' : R.review || R.mode === 'review' ? 'Review done' : 'Round complete');
     const notesRun = R.mode === 'melody' || !!R.tune;
-    h += '<p class="eyebrow">' + esc(R.title) + '</p><h1 class="title">' + head + '</h1>' + (R.kind === 'level' ? starsHTML(R.stars, true) : '<div class="score-big"><span class="num">' + R.first.right + '</span><span class="of">of ' + R.first.total + (notesRun ? ' notes' : '') + ' right</span></div>') +
+    h += '<p class="eyebrow">' + esc(R.title) + '</p><h1 class="title">' + head + '</h1>' + (R.kind === 'level' && !R.review ? starsHTML(R.stars, true) : '<div class="score-big"><span class="num">' + R.first.right + '</span><span class="of">of ' + R.first.total + (notesRun ? ' notes' : '') + ' right</span></div>') +
       '<div class="res-stats">' + stat('+' + R.xp, 'points earned') + stat(R.pct + '%', 'right the first time') + stat(R.bestCombo, 'best run in a row') + stat(fmtTime(R.endedAt - R.startedAt), 'time') + '</div>';
-    if (R.kind === 'level') h += '<p class="res-note">' + (R.stars < 3 ? 'Get 9 out of 10 right the first time for three stars.' : 'Three stars. Every question right, or nearly.') + (R.bonus ? ' Level bonus: +' + R.bonus + ' points.' : '') + '</p>';
+    if (R.kind === 'level' && !R.review) h += '<p class="res-note">' + (R.stars < 3 ? 'Get 9 out of 10 right the first time for three stars.' : 'Three stars. Every question right, or nearly.') + (R.bonus ? ' Level bonus: +' + R.bonus + ' points.' : '') + '</p>';
+    if (R.review || R.mode === 'review') h += '<p class="res-note">What you got right goes away for longer; what you missed comes back soon.</p>';
   }
   if (miss.length) h += '<h2 class="sec-title">To review</h2><ul class="review">' + miss.slice(0, 10).map(c => '<li><span class="rv-name">' + (c.answerText || '') + '</span><span class="rv-detail">' + stripTags(c.review || c.prompt) + '</span></li>').join('') + '</ul>';
   h += '<div class="actions">';
@@ -6173,11 +6441,12 @@ function viewPlay(main) {
   const nextL = LEVELS.find(l => !Store.levelStars(l.id));
   const streak = Store.dayStreak();
   let h = '<section class="view play"><header class="play-head"><div class="play-intro"><h1 class="title">Play</h1>' +
-    '<p class="lede">Eighteen quiz levels up the neck: twelve to the exam at the 12th fret, then six more beyond it. Each one teaches a little, then asks. Questions you miss come back until you get them right.</p></div>' +
+    '<p class="lede">Eighteen quiz levels up the neck: twelve to the exam at the 12th fret, then six more beyond it. Each one teaches a little, then asks. A level you leave continues where you left it, and what you learned comes back for review just as it starts to fade.</p></div>' +
     '<div class="hud"><div class="hud-goal">' + ringSVG(frac) + '<div><b>' + today + '<small>/' + DAILY_GOAL + '</small></b><span>points today</span></div></div>' +
     '<div class="hud-item"><b>' + streak + '</b><span>' + (streak === 1 ? 'day' : 'days') + ' in a row</span></div>' +
     '<div class="hud-item"><b>' + stars + '</b><span>of ' + LEVELS.length * 3 + ' stars</span></div></div></header>' +
-    (nextL ? '<button class="btn primary continue-btn" data-level="' + nextL.id + '">' + (stars ? 'Continue' : 'Start') + ' with level ' + (LEVELS.indexOf(nextL) + 1) + ': ' + nextL.title + ICONS.next + '</button>' : '') +
+    reviewCardHTML() +
+    (nextL ? '<button class="btn ' + (reviewKeys().length ? '' : 'primary ') + 'continue-btn" data-level="' + nextL.id + '">' + (stars || Store.levelRun(nextL.id) ? 'Continue' : 'Start') + ' with level ' + (LEVELS.indexOf(nextL) + 1) + ': ' + nextL.title + ICONS.next + '</button>' : '') +
     '<div class="path" role="list" aria-label="Levels">';
   let lastPart = null;
   LEVELS.forEach((l, i) => {
@@ -6191,12 +6460,19 @@ function viewPlay(main) {
       '<button class="node" data-level="' + l.id + '" aria-label="Level ' + n + ', ' + l.title + ', ' + (s ? s + ' of 3 stars' : 'not played yet') + '">' + (s ? ICONS.check : n) + '</button>' +
       '<div class="lvl-card">' + partLabel + '<p class="lvl-num">Level ' + n + ' · ' + levelCount(l) + ' questions</p><h3 class="lvl-title">' + l.title + '</h3><div class="lvl-thumb">' + levelThumb(l.id) + '</div><p class="lvl-sum">' + l.summary + '</p>' +
       (s ? starsHTML(s) : '') +
-      '<div class="lvl-actions"><button class="btn small' + (isNext ? ' primary' : '') + '" data-level="' + l.id + '">' + (s ? 'Play again' : 'Start') + ICONS.next + '</button>' +
+      (Store.levelRun(l.id) && !s ? '<p class="lvl-run">' + Store.levelRun(l.id).total + ' of ' + levelCount(l) + ' answered · continues where you left it</p>' : '') +
+      '<div class="lvl-actions"><button class="btn small' + (isNext ? ' primary' : '') + '" data-level="' + l.id + '">' + (s ? 'Review' : Store.levelRun(l.id) ? 'Continue' : 'Start') + ICONS.next + '</button>' +
+      (s ? '<button class="btn small ghost" data-level-all="' + l.id + '">Play it all</button>' : '') +
       (l.id !== 'exam' ? '<a class="read-link" href="#lesson-' + l.id + '">' + ICONS.book + 'Read the lesson</a>' : '') + '</div></div></div>';
   });
   h += '</div></section>';
   main.innerHTML = h;
-  main.firstElementChild.addEventListener('click', e => { const b = e.target.closest('[data-level]'); if (b) startLevel(b.dataset.level); });
+  main.firstElementChild.addEventListener('click', e => {
+    if (e.target.closest('[data-review]')) { startReview(); return; }
+    const all = e.target.closest('[data-level-all]');
+    if (all) { startLevel(all.dataset.levelAll, 'all'); return; }
+    const b = e.target.closest('[data-level]'); if (b) startLevel(b.dataset.level);
+  });
 }
 
 /* ---------- Lesson reading page ---------- */
@@ -6249,6 +6525,8 @@ function notesSummary(cfg) {
   const a = lp[lp.length - 1], b = hp[0];
   return '<b>' + pool.length + ' notes</b>, from ' + nmShort(lo) + ' (' + posLabel(a.s, a.f) + ') to ' + nmShort(hi) + ' (' + posLabel(b.s, b.f) + ').';
 }
+function cfgForMode(m) { const P = Store.data.practice; return m === 'rhythm' ? P.rhythm : m === 'keys' ? P.keys : m === 'melody' ? P.melody : m === 'tap' ? P.tap : m === 'earint' ? P.earint : P.notes; }
+function srsLineHTML(mode, cfg) { const t = srsLine(mode, cfg); return t ? '<p class="mode-srs">' + t + '</p>' : ''; }
 function lastRoundText(mode) {
   const r = Store.data.rounds[mode], best = Store.best(mode);
   const parts = [];
@@ -6262,10 +6540,10 @@ function lastRoundText(mode) {
 function viewPractice(main) {
   const P = Store.data.practice;
   const cfg = P.notes;
-  const modeRow = (mode, opts) => '<div class="mode"><div class="mode-art">' + modeArt(mode) + '</div><div class="mode-txt"><h3>' + MODES[mode].title + '</h3><p>' + MODES[mode].desc + '</p>' + (opts || '') + '<p class="mode-last">' + lastRoundText(mode) + '</p></div>' +
+  const modeRow = (mode, opts) => '<div class="mode"><div class="mode-art">' + modeArt(mode) + '</div><div class="mode-txt"><h3>' + MODES[mode].title + '</h3><p>' + MODES[mode].desc + '</p>' + (opts || '') + '<p class="mode-last">' + lastRoundText(mode) + '</p>' + srsLineHTML(mode, cfgForMode(mode)) + '</div>' +
     '<div class="mode-btns"><button class="btn primary" data-start="' + mode + '">20 questions' + ICONS.next + '</button><button class="btn" data-challenge="' + mode + '">' + ICONS.clock + '60 seconds</button></div></div>';
   main.innerHTML = '<section class="view practice">' +
-    '<header class="view-head"><h1 class="title">Practice</h1><p class="lede">Rounds of questions, or a 60-second race against the clock. What you miss comes back more often until you know it.</p>' +
+    '<header class="view-head"><h1 class="title">Practice</h1><p class="lede">Rounds of questions, or a 60-second race against the clock. Each round asks what is due for review first, then new things; what you know well rests until it is due again.</p>' +
       '<nav class="pr-jump" aria-label="Kinds of practice">' + [['notes', 'Notes'], ['sight', 'Sight-reading'], ['rhythm', 'Rhythm and keys'], ['theory', 'Signs and theory'], ['ear', 'Ear training']].map(x => '<button class="chip" data-jump="' + x[0] + '">' + x[1] + '</button>').join('') + '</nav></header>' +
     '<section class="pr-block" id="pr-notes"><h2 class="sec-title">Notes</h2>' +
       '<div class="pr-config">' +
@@ -6312,7 +6590,12 @@ function viewPractice(main) {
     const tsb = e.target.closest('[data-tspeed]');
     if (tsb) { Store.setSetting('tapSpeed', tsb.dataset.tspeed); viewPractice(main); return; }
     const st = e.target.closest('[data-start]');
-    if (st) { startPractice(st.dataset.start, cfgFor(st.dataset.start)); return; }
+    if (st) {
+      const m = st.dataset.start, keys = modeKeys(m, cfgFor(m)), c = keys ? srsCounts(keys) : null;
+      if (c && c.total && !c.due && !c.neu) openConfirm('All caught up here', 'Everything in this set is learned and not due yet; the next review comes ' + dueWords(c.next) + '. Practise it anyway' + (['read', 'find', 'fret', 'play'].indexOf(m) >= 0 ? ', or add strings and frets above for new notes' : '') + '?', 'Practise anyway', () => startPractice(m, cfgFor(m)));
+      else startPractice(m, cfgFor(m));
+      return;
+    }
     const ch = e.target.closest('[data-challenge]');
     if (ch) startChallenge(ch.dataset.challenge, cfgFor(ch.dataset.challenge));
   });
@@ -6324,7 +6607,7 @@ function viewPractice(main) {
 
 function earBlock(P) {
   const row = (mode, extra) => '<div class="mode' + (extra ? ' tall' : '') + '"><div class="mode-art">' + modeArt(mode) + '</div><div class="mode-txt"><h3>' + MODES[mode].title + '</h3><p>' + MODES[mode].desc + '</p>' + (extra || '') +
-    '<p class="mode-last">' + lastRoundText(mode) + '</p></div><div class="mode-btns"><button class="btn primary" data-start="' + mode + '">12 questions' + ICONS.next + '</button></div></div>';
+    '<p class="mode-last">' + lastRoundText(mode) + '</p>' + srsLineHTML(mode, mode === 'earint' ? P.earint : {}) + '</div><div class="mode-btns"><button class="btn primary" data-start="' + mode + '">12 questions' + ICONS.next + '</button></div></div>';
   const sets = '<div class="mode-fields"><div class="mode-field"><span class="opt-label" id="lblEarSet">Intervals</span><div class="seg small wrap" role="group" aria-labelledby="lblEarSet">' +
     [1, 2, 3].map(n => '<button data-earset="' + n + '" aria-pressed="' + (P.earint.set === n) + '" title="' + IV_SETS[n].map(k => IV[k].name).join(', ') + '">' + IV_SET_LABELS[n] + '</button>').join('') + '</div></div></div>';
   return '<section class="pr-block" id="pr-ear"><h2 class="sec-title">Ear training</h2><p class="pr-lede">Questions you answer by listening. Use headphones or turn the sound up.</p><div class="mode-list">' +
@@ -6379,7 +6662,8 @@ function viewProgress(main) {
   const streak = Store.dayStreak();
   const stat = (v, l) => '<div class="stat"><b>' + v + '</b><span>' + l + '</span></div>';
   main.innerHTML = '<section class="view progress">' +
-    '<header class="view-head"><h1 class="title">Progress</h1><p class="lede">' + (Cloud.state.mode === 'account' ? 'Saved to your account, so your phone and computer share the same progress.' : 'Saved in this browser.') + '</p></header>' +
+    '<header class="view-head"><h1 class="title">Progress</h1><p class="lede">' + (Cloud.state.mode === 'account' ? 'Saved to your account, so your phone and computer share the same progress.' : 'Saved on this device. On an iPhone, the Home Screen app and Safari each keep their own progress, so stay with one of them.') + '</p></header>' +
+    reviewCardHTML() +
     '<div class="stats">' + stat(Store.xpTotal(), 'points in total') + stat(stars + '/' + LEVELS.length * 3, 'stars') + stat(streak, streak === 1 ? 'day in a row' : 'days in a row') + stat(done + '/' + LEVELS.length, 'levels finished') + '</div>' +
     '<p class="pg-line">' + t.n + ' notes, rhythms and keys answered, ' + pct + ' of them right.</p>' +
     '<div class="legend" aria-label="Colour key">' + ['strong', 'ok', 'weak', 'new'].map(m => '<span class="lg m-' + m + '"><i></i>' + MASTERY_WORD[m] + '</span>').join('') + '</div>' +
@@ -6413,6 +6697,7 @@ function viewProgress(main) {
     $('#pgKeys', root).innerHTML = KEYS.map(k => { const m = Store.mastery('key:' + k.id); return '<span class="chip m-' + m + '" title="' + MASTERY_WORD[m] + '"><i></i>' + keyName(k, NS()) + '</span>'; }).join('');
   }
   root.addEventListener('click', e => {
+    if (e.target.closest('[data-review]')) { startReview(); return; }
     if (e.target.closest('[data-act="reset"]')) openConfirm('Reset all progress?', 'Your points, stars, answers and round results will be cleared ' + (Cloud.state.mode === 'account' ? 'on every device' : 'in this browser') + '. Settings stay as they are.', 'Reset progress', () => { Store.reset(); render(false); });
   });
   draw(); addResizer(draw);
@@ -6541,6 +6826,8 @@ function initShell() {
 }
 function start(data) {
   data = data || {};
+  /* ask the browser not to clear this site's storage when space runs low */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(p => { if (!p) return navigator.storage.persist(); }).catch(() => {}); } catch (e) { /* not supported */ }
   if (data.ex && typeof data.ex.p === 'number') App.ex = Object.assign(App.ex, data.ex);
   initShell();
   Sound.setEnabled(Store.settings.sound);
