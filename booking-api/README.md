@@ -167,6 +167,34 @@ each change:
 this file. If it doesn't, or the reply has no `version` at all, the editor or
 the deployment is out of date. The daily check compares them for you.
 
+## Automatic deploys
+
+`.github/workflows/booking-deploy.yml` deploys the script for you whenever
+`google-apps-script.gs` or `appsscript.json` changes on `main`, using
+[clasp](https://github.com/google/clasp), Google's Apps Script command line
+tool. It replaces the code in the "Sviatoslav Booking Widget" project, saves a
+new version, moves the site's deployment (the `/exec` URL in `contact.html`)
+to it, and runs the booking check. Once it is set up, skip the paste-and-deploy
+steps above.
+
+One-time setup, on a computer with Node:
+
+1. Turn on the **Google Apps Script API** at
+   <https://script.google.com/home/usersettings>.
+2. Run `npx @google/clasp@3.4.1 login` and sign in as the project's owner. It
+   saves the sign-in to `~/.clasprc.json`.
+3. Store that file as a repository secret called `CLASPRC_JSON`, either with
+   `gh secret set CLASPRC_JSON --repo Foshchii/foshchii.github.io < ~/.clasprc.json`
+   or under **Settings → Secrets and variables → Actions → New repository
+   secret**, pasting the whole file.
+4. Run **Actions → Deploy booking backend → Run workflow** once to check it.
+
+The secret lets GitHub change your Apps Script projects. To withdraw it, remove
+"clasp" at <https://myaccount.google.com/permissions> and delete the secret.
+If a code change needs a new Google permission (a service the script did not
+use before), run any function once in the editor to approve it; a deploy cannot
+approve permissions.
+
 ## Daily check
 
 `.github/workflows/booking-health.yml` runs `.github/scripts/check_booking.py`

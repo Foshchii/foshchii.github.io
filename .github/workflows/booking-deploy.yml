@@ -1,0 +1,55 @@
+# Deploys the booking backend to Google Apps Script whenever
+# booking-api/google-apps-script.gs (or its manifest) changes on main, so the
+# live /exec URL always runs the code in this repo. It moves the site's existing
+# deployment to the new code, so the URL in contact.html stays the same, then
+# runs the booking check against it.
+#
+# Needs the CLASPRC_JSON secret, once: booking-api/README.md, "Automatic deploys".
+# Run it by hand: Actions → Deploy booking backend → Run workflow.
+name: Deploy booking backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - booking-api/google-apps-script.gs
+      - booking-api/appsscript.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: booking-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+    steps:
+      # Until the secret is set up, say so instead of failing: the daily
+      # booking check still reports a backend that runs older code.
+      - name: Not set up yet
+        if: env.CLASPRC_JSON == ''
+        run: echo "::warning::Not deployed. Set up the CLASPRC_JSON secret once (booking-api/README.md, Automatic deploys) to deploy the booking backend from GitHub."
+
+      - name: Checkout
+        if: env.CLASPRC_JSON != ''
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        if: env.CLASPRC_JSON != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy to Apps Script
+        if: env.CLASPRC_JSON != ''
+        run: python3 .github/scripts/deploy_booking.py
+
+      - name: Check the live backend
+        if: env.CLASPRC_JSON != ''
+        run: python3 .github/scripts/check_booking.py
