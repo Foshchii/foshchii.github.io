@@ -470,6 +470,9 @@ main { display: block; max-width: 980px; margin: 0 auto; padding: 24px 20px 120p
 .run-foot.slim { display: none; }
 .run-foot.ok { background: var(--good-soft); border-top-color: var(--good); }
 .run-foot.no { background: var(--bad-soft); border-top-color: var(--bad); }
+.run-foot.found { background: var(--warn-soft); border-top-color: var(--warn); }
+.run-foot.found .foot-title { color: var(--warn); }
+.run-foot.found .foot-main, .run-foot.found .foot-main:hover { background: var(--warn); border-color: var(--warn); color: var(--on-warn); }
 .foot-in { max-width: 720px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; }
 .foot-msg { flex: 1 1 340px; min-width: 0; }
 .foot-title { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; flex-wrap: wrap; }
@@ -737,6 +740,59 @@ body.in-run .tabbar { display: none; }
   --warn: #e9b25a; --on-warn: #21160d; --warn-soft: #3a2a12;
   --shadow: none;
 }
+/* Listening strip */
+.mic { margin: 14px 0 2px; padding: 10px 12px 11px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
+.mic-row { display: flex; align-items: center; gap: 12px; }
+.mic-btn { flex: none; gap: 6px; min-width: 104px; justify-content: center; }
+.mic-btn .ic { width: 18px; height: 18px; }
+.mic-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mic-mid { flex: 1; min-width: 0; }
+.mic-meter { height: 6px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+.mic-meter span { display: block; width: 0; height: 100%; border-radius: 3px; background: var(--good); transition: width .07s linear; }
+.mic.muted .mic-meter span { background: var(--muted); }
+.mic:not([data-state="on"]) .mic-meter { opacity: .45; }
+.mic-text { margin: 7px 0 0; color: var(--muted); font-size: 13.5px; line-height: 1.35; }
+.mic-text.bad { color: var(--bad); font-weight: 600; }
+.mic[data-state="denied"] .mic-text, .mic[data-state="error"] .mic-text { color: var(--warn); }
+.mic-heard { flex: none; width: 58px; text-align: center; opacity: .3; transition: opacity .25s; }
+.mic.hears .mic-heard { opacity: 1; }
+.mic-name { display: block; font: 600 27px/1 var(--font-display); font-variant-numeric: lining-nums; }
+.mic-tune { position: relative; display: block; height: 5px; margin-top: 7px; border-radius: 3px; background: linear-gradient(90deg, var(--bad-soft), var(--good-soft) 38% 62%, var(--bad-soft)); }
+.mic-tune i { position: absolute; top: -4px; left: 50%; width: 3px; height: 13px; margin-left: -1.5px; border-radius: 2px; background: var(--muted); transition: left .12s; }
+.mic-tune.in i { background: var(--good); }
+.mic-tune.near i { background: var(--warn); }
+.mic-tune.off i { background: var(--bad); }
+.mic-alt { margin: 9px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); color: var(--muted); font-size: 13px; }
+.q-play .board-card { margin-top: 12px; }
+@media (prefers-reduced-motion: no-preference) { .mic.nudge { animation: shake .42s; } }
+@media (max-width: 720px) { .mic-btn { min-width: 0; padding-left: 12px; padding-right: 12px; } .mic-heard { width: 48px; } .mic-name { font-size: 24px; } }
+/* Microphone settings and the tuner */
+.set-mic { margin-top: 18px; padding-top: 4px; }
+.tuner-open { width: 100%; margin-top: 4px; }
+.tuner-card { max-width: 440px; }
+.tn-display { margin: 10px 0 14px; padding: 16px 18px 12px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); text-align: center; }
+.tn-name b { display: block; font: 600 60px/1 var(--font-display); }
+.tn-name span { display: block; min-height: 18px; margin-top: 4px; color: var(--muted); font-size: 13px; }
+.tn-dial { position: relative; height: 34px; margin: 14px 6px 4px; border-bottom: 2px solid var(--rule); }
+.tn-tick { position: absolute; bottom: 0; width: 2px; height: 10px; margin-left: -1px; background: var(--rule); }
+.tn-tick.mid { height: 20px; background: var(--muted); }
+.tn-dial i { position: absolute; bottom: -2px; left: 50%; width: 4px; height: 32px; margin-left: -2px; border-radius: 2px; background: var(--muted); transition: left .12s, background .2s; }
+.tn-dial.in i { background: var(--good); }
+.tn-dial.near i { background: var(--warn); }
+.tn-dial.off i { background: var(--bad); }
+.tn-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; }
+.tn-hz { min-height: 18px; margin: 8px 0 0; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.tn-strings { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.tn-strings .btn { flex-direction: column; gap: 0; padding: 6px 0; }
+.tn-strings small { color: var(--muted); font-size: 11px; font-weight: 500; }
+.tuner-card .mic { margin-top: 12px; }
+/* Explore: listening */
+.ex-name-row .ex-listen { gap: 6px; }
+.ex-listen .ic { width: 18px; height: 18px; }
+.ex-listen[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.ex-listen-note { margin: 8px 0 0; color: var(--muted); font-size: 13.5px; }
+@media (prefers-reduced-motion: no-preference) { #exStaff svg.ping .nt { animation: noteIn .35s; } }
+
 /* The way back to the academy: in a phone's home-screen app there is no browser back button. */
 .back-home { display: inline-flex; align-items: center; gap: 1px; flex: none; margin-right: -2px; padding: 8px 12px 8px 0;
   border-right: 1px solid var(--rule); color: var(--muted); text-decoration: none; font: 600 13px/1 var(--font-body); white-space: nowrap; }
@@ -783,6 +839,28 @@ body.in-run .tabbar { display: none; }
     <label class="switch-row" for="setSound"><span>Sound</span><input type="checkbox" id="setSound"></label>
     <label class="switch-row" for="setAuto"><span>Go to the next question after a right answer</span><input type="checkbox" id="setAuto"></label>
     <p class="sheet-note">Sound plays through the media volume of your device.</p>
+    <fieldset class="set-mic">
+      <legend>Microphone</legend>
+      <label class="switch-row" for="setListen"><span>Listen to my guitar in play-it questions</span><input type="checkbox" id="setListen"></label>
+      <label class="switch-row" for="setSpeaker"><span>Keep the app’s sounds on the loudspeaker while listening</span><input type="checkbox" id="setSpeaker"></label>
+      <p class="sheet-note">While the microphone is on, an iPhone may play the app’s sounds quietly through the earpiece. This switch keeps them on the loudspeaker, but then the phone filters what the microphone hears, which can make notes harder to recognise. The sound is analysed on this device and never recorded or sent.</p>
+      <button class="btn tuner-open" type="button" id="btnTuner">Test the microphone and tune your guitar</button>
+    </fieldset>
+    <div class="sheet-actions"><button class="btn primary" data-close>Done</button></div>
+  </div>
+</div>
+<div class="sheet" id="tuner" role="dialog" aria-modal="true" aria-labelledby="tunerTitle" hidden>
+  <div class="sheet-card tuner-card">
+    <h2 id="tunerTitle">Tuner</h2>
+    <p class="sheet-note">Play one string at a time and let it ring. The needle shows whether it is flat (left) or sharp (right). Tap a string to hear its note.</p>
+    <div class="tn-display" aria-live="polite">
+      <div class="tn-name"><b id="tnName">–</b><span id="tnString">&nbsp;</span></div>
+      <div class="tn-dial" aria-hidden="true"><span class="tn-tick" style="left:0%"></span><span class="tn-tick" style="left:25%"></span><span class="tn-tick mid" style="left:50%"></span><span class="tn-tick" style="left:75%"></span><span class="tn-tick" style="left:100%"></span><i id="tnNeedle"></i></div>
+      <div class="tn-scale" aria-hidden="true"><span>flat</span><span>in tune</span><span>sharp</span></div>
+      <p class="tn-hz" id="tnHz">&nbsp;</p>
+    </div>
+    <div class="tn-strings" id="tnStrings" role="group" aria-label="Play a reference note"></div>
+    <div class="tn-mic"></div>
     <div class="sheet-actions"><button class="btn primary" data-close>Done</button></div>
   </div>
 </div>
@@ -1459,9 +1537,10 @@ function mountFretboard(el, o) {
    Audio may only start from a tap or click; every call is guarded.
    ============================================================ */
 const Sound = (() => {
-  let ctx = null, master = null, enabled = true;
+  let ctx = null, master = null, enabled = true, onPlay = null;
   const cache = new Map();
   let live = [];
+  function played(end) { if (onPlay) { try { onPlay(end); } catch (e) { /* ignore */ } } }
 
   function ready() {
     if (!ctx) {
@@ -1509,6 +1588,7 @@ const Sound = (() => {
         g.gain.linearRampToValueAtTime(0.0001, end);
         src.stop(end + 0.03);
       }
+      played(t + Math.min(o.dur || 9, 1.6));
       live.push(src);
       src.onended = () => { live = live.filter(s => s !== src); };
       return src;
@@ -1526,6 +1606,7 @@ const Sound = (() => {
       g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
       osc.connect(g); g.connect(master);
       osc.start(at); osc.stop(at + 0.08);
+      played(at + 0.1);
       live.push(osc);
       osc.onended = () => { live = live.filter(s => s !== osc); };
     } catch (e) { /* ignore */ }
@@ -1576,8 +1657,355 @@ const Sound = (() => {
     note, click, strum, rhythm, stopAll, fx,
     setEnabled(v) { enabled = !!v; if (!enabled) stopAll(); },
     unlock() { ready(); },
+    /* The shared AudioContext, made or resumed now (call from a tap). */
+    context() { return ready(); },
+    get enabled() { return enabled; },
+    onPlay(fn) { onPlay = fn; },
   };
 })();
+
+/* ============================================================
+   Listening: the microphone hears your guitar.
+   The sound is analysed on this device a few dozen times a
+   second and then dropped: nothing is recorded or sent.
+   Pitch: the YIN method (de Cheveigné and Kawahara, 2002) on a
+   short window. A note counts once it has stayed steady for a
+   moment after a pluck, so a ringing string, or the app's own
+   sound, does not count as playing.
+   ============================================================ */
+const LISTEN = { minF: 70, maxF: 1400, threshold: 0.14, steadyMs: 60, armMs: 1600, legatoMs: 140 };
+
+/* Pitch of one window of samples. Returns { freq, clarity } or null when there is no clear pitch.
+   work: { d: Float32Array, maxTau } reused between calls; it keeps this window's difference curve,
+   so the caller can then ask whether an expected note is sounding (noteSounds). */
+function yinPitch(x, sr, work) {
+  const maxTau = Math.min(Math.floor(sr / LISTEN.minF), Math.floor(x.length / 2) - 1);
+  const minTau = Math.max(2, Math.floor(sr / LISTEN.maxF));
+  const W = x.length - maxTau;
+  if (!work.d || work.d.length < maxTau + 2) work.d = new Float32Array(maxTau + 2);
+  const d = work.d;
+  work.maxTau = maxTau;
+  /* difference function */
+  for (let tau = 1; tau <= maxTau; tau++) {
+    let s = 0;
+    for (let j = 0; j < W; j++) { const v = x[j] - x[j + tau]; s += v * v; }
+    d[tau] = s;
+  }
+  /* cumulative mean normalised difference */
+  d[0] = 1;
+  let run = 0;
+  for (let tau = 1; tau <= maxTau; tau++) { run += d[tau]; d[tau] = run > 0 ? d[tau] * tau / run : 1; }
+  /* first dip under the threshold, then down to its bottom */
+  let tau = -1;
+  for (let t = minTau; t <= maxTau; t++) {
+    if (d[t] < LISTEN.threshold) { while (t + 1 <= maxTau && d[t + 1] < d[t]) t++; tau = t; break; }
+  }
+  if (tau < 0) {
+    let best = minTau;
+    for (let t = minTau + 1; t <= maxTau; t++) if (d[t] < d[best]) best = t;
+    if (d[best] > 0.3) return null;
+    tau = best;
+  }
+  /* A much deeper dip at twice the period means the true note is an octave lower:
+     a strong second harmonic fooled the first dip. */
+  const t2 = tau * 2;
+  if (t2 + 1 <= maxTau) {
+    let m = t2;
+    for (let t = Math.max(minTau, t2 - 2); t <= Math.min(maxTau, t2 + 2); t++) if (d[t] < d[m]) m = t;
+    if (d[tau] > 0.1 && d[m] < d[tau] * 0.35) tau = m;
+  }
+  let exact = tau;
+  if (tau > 1 && tau < maxTau) {
+    const s0 = d[tau - 1], s1 = d[tau], s2 = d[tau + 1], den = s0 - 2 * s1 + s2;
+    if (den > 0) exact = tau + (s0 - s2) / (2 * den);
+  }
+  return { freq: sr / exact, clarity: 1 - d[tau] };
+}
+
+/* How periodic the window is at the period of freq: the bottom of the dip in the normalised
+   difference nearest that period (0 = perfectly periodic, about 1 = not at all). The dip must be
+   centred within 2% of the period (a third of a half step): a neighbouring note's dip does not count.
+   null when the period is out of range. */
+function periodScore(d, maxTau, sr, freq) {
+  const T = sr / freq;
+  const lo = Math.max(2, Math.floor(T * 0.94)), hi = Math.min(maxTau - 1, Math.ceil(T * 1.06));
+  if (lo >= hi || T < 2 || T > maxTau) return null;
+  let m = lo;
+  for (let i = lo + 1; i <= hi; i++) if (d[i] < d[m]) m = i;
+  let pos = m;
+  if (m > lo && m < hi) { const s0 = d[m - 1], s1 = d[m], s2 = d[m + 1], den = s0 - 2 * s1 + s2; if (den > 0) pos = m + (s0 - s2) / (2 * den); }
+  if (Math.abs(pos - T) > T * 0.02 + 0.35) return 1;
+  return d[m];
+}
+/* Is the expected note sounding? Periodic at its period, but not at a half or a third of it:
+   a note one octave, or an octave and a fifth, higher is periodic at the expected period too. */
+function noteSounds(d, maxTau, sr, freq, loose) {
+  const s1 = periodScore(d, maxTau, sr, freq);
+  if (s1 === null || s1 > (loose ? 0.3 : 0.22)) return false;
+  const s2 = periodScore(d, maxTau, sr, freq * 2), s3 = periodScore(d, maxTau, sr, freq * 3);
+  return (s2 === null || s2 > s1 + 0.2) && (s3 === null || s3 > s1 + 0.2);
+}
+
+/* Halve the sample rate with a small low-pass, so the pitch search costs a quarter as much. */
+function decimate2(src, out) {
+  const n = out.length;
+  for (let i = 0; i < n; i++) {
+    const j = 2 * i;
+    const a = src[j - 1] || 0, b = src[j], c = src[j + 1] || 0, e = src[j + 2] || 0;
+    out[i] = (a + 3 * b + 3 * c + e) / 8;
+  }
+  return out;
+}
+
+/* Turns a stream of analysed frames into notes.
+   frame: { t (ms), rms, freq (or null), clarity, muted, hear(freq) -> is that note sounding }
+   on.note({ midi (sounding), cents, freq, t, onsetAt, legato }): once per pluck, for any clear note.
+   on.match({ midi, t, onsetAt }): once per pluck, when one of the expected notes sounds.
+   Expected notes make a busy texture readable: a new note can be checked while older notes
+   still ring, which a plain pitch reading cannot do. */
+function createNoteTracker(on) {
+  let env = 0, floor = 0.003, armedAt = 0, lastFrameT = 0, peaks = [];
+  let cand = null, candSince = 0, lastEmit = null, emittedArm = -1, quietSince = 0;
+  let expect = [], heardFor = {}, matchedArm = -1, lastMatch = null, recent = [], ringing = new Set();
+  function step(fr) {
+    const dt = lastFrameT ? Math.min(100, fr.t - lastFrameT) : 16;
+    lastFrameT = fr.t;
+    /* noise floor: falls fast, rises slowly */
+    if (fr.rms < floor) floor = floor * 0.6 + fr.rms * 0.4;
+    else floor = Math.min(0.03, floor * (1 + 0.0004 * dt));
+    floor = Math.max(floor, 0.0004);
+    const gate = Math.max(0.0035, floor * 2.6);
+    /* a pluck: the level jumps above its slow average, or well above the last few frames */
+    const recentMax = peaks.reduce((a, p) => fr.t - p.t <= 70 && p.v > a ? p.v : a, 0);
+    const onset = fr.rms > gate && (fr.rms > env * 1.45 + 0.0015 || fr.rms > recentMax * 1.25 + 0.0015);
+    peaks.push({ t: fr.t, v: fr.rms }); if (peaks.length > 12) peaks.shift();
+    env = fr.rms > env ? env + (fr.rms - env) * 0.55 : env * Math.pow(0.9, dt / 16);
+    if (fr.muted) { armedAt = 0; cand = null; lastEmit = null; heardFor = {}; lastMatch = null; return; }
+    const clear = fr.freq && fr.clarity > 0.86 && fr.rms > gate ? Math.round(69 + 12 * Math.log2(fr.freq / 440)) : null;
+    if (onset) {
+      if (!armedAt || fr.t - armedAt > 90) {
+        armedAt = fr.t;
+        /* notes heard clearly just before this pluck are probably still ringing */
+        ringing = new Set(recent.filter(r => fr.t - r.t < 1500).map(r => r.n));
+      }
+      cand = null;
+    }
+    if (clear !== null) { recent.push({ n: clear, t: fr.t }); if (recent.length > 40) recent.shift(); }
+    const armed = armedAt && fr.t - armedAt < LISTEN.armMs;
+    /* Expected notes. Older notes may still ring, so the expected note only has to stand out, not stand
+       alone. A clear new note other than the expected one means something else was played. */
+    if (expect.length && fr.hear && fr.rms > gate) {
+      const loose = armed && fr.t - armedAt < 260;
+      for (const m of expect) {
+        const f = 440 * Math.pow(2, (m - 69) / 12);
+        /* a clear pitch that is the expected note or one of its subharmonics (a busy mix often reads that way) agrees with it */
+        const k = clear !== null ? Math.round(f / fr.freq) : 0;
+        const agrees = k >= 1 && k <= 4 && Math.abs(f / fr.freq - k) < 0.03 * k;
+        const other = clear !== null && !agrees && !ringing.has(clear);
+        const ok = fr.hear(f, loose) && !other;
+        if (ok) heardFor[m] = (heardFor[m] || 0) + dt; else heardFor[m] = 0;
+        const fresh = armed && matchedArm !== armedAt && heardFor[m] >= 45;
+        const slurred = !armed && lastMatch !== null && m !== lastMatch && heardFor[m] >= 160;
+        if (fresh || slurred) {
+          matchedArm = armedAt; lastMatch = m; heardFor = {};
+          if (on.match) on.match({ midi: m, t: fr.t, onsetAt: fresh ? armedAt : fr.t - 160 });
+          break;
+        }
+      }
+    } else heardFor = {};
+    /* any clear note */
+    const voiced = fr.freq && fr.clarity > 0.86 && fr.rms > gate;
+    if (!voiced) {
+      if (fr.rms < gate) { if (!quietSince) quietSince = fr.t; if (fr.t - quietSince > 140) { cand = null; lastEmit = null; } }
+      return;
+    }
+    quietSince = 0;
+    const midiF = 69 + 12 * Math.log2(fr.freq / 440);
+    const n = Math.round(midiF);
+    if (cand !== n) { cand = n; candSince = fr.t; return; }
+    if (fr.t - candSince < LISTEN.steadyMs) return;
+    let legato = false;
+    if (armed && emittedArm !== armedAt) { /* the first steady note after a pluck */ }
+    else if (lastEmit !== null && n !== lastEmit && fr.t - candSince >= LISTEN.legatoMs) legato = true; /* a slide or slur to a new note */
+    else return;
+    emittedArm = armedAt; lastEmit = n;
+    if (on.note) on.note({ midi: n, cents: Math.round((midiF - n) * 100), freq: fr.freq, t: fr.t, onsetAt: legato ? candSince : armedAt, legato });
+  }
+  step.expect = list => { expect = (list || []).slice(); heardFor = {}; };
+  return step;
+}
+
+/* The microphone: starts and stops capture, analyses the sound every frame, and tells
+   whoever is listening about notes. Shares the app's AudioContext, so starting it from
+   a tap also unlocks sound. The app's own sounds are ignored while they play. */
+const Mic = (() => {
+  let state = 'off';       /* off | asking | on | denied | unsupported | error */
+  let stream = null, ctx = null, source = null, analyser = null, raw = null, half = null, raf = 0, sr2 = 24000;
+  let tracker = null, quietUntil = 0, expectList = [], token = 0;
+  const work = { d: null, maxTau: 0 };
+  const fns = { state: new Set(), frame: new Set(), note: new Set(), match: new Set() };
+  function emit(kind, v) { fns[kind].forEach(fn => { try { fn(v); } catch (e) { console.error(e); } }); }
+  function supported() {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext));
+  }
+  function set(s) { if (state !== s) { state = s; emit('state', s); } }
+  function session(type) { try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) { /* not supported */ } }
+
+  async function start() {
+    if (state === 'on' || state === 'asking') return state === 'on';
+    if (!supported()) { set('unsupported'); return false; }
+    const c = Sound.context(); /* created or resumed inside this tap */
+    if (!c) { set('unsupported'); return false; }
+    const my = ++token;
+    set('asking');
+    try {
+      session('play-and-record');
+      const clean = !Store.settings.speaker;
+      const s = await navigator.mediaDevices.getUserMedia({ audio: clean ? { echoCancellation: false, noiseSuppression: false, autoGainControl: false } : true });
+      if (my !== token) { s.getTracks().forEach(t => t.stop()); return false; } /* stopped while asking */
+      stream = s; ctx = c;
+      source = ctx.createMediaStreamSource(stream);
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0;
+      source.connect(analyser);
+      raw = new Float32Array(analyser.fftSize);
+      half = new Float32Array(analyser.fftSize / 2);
+      sr2 = ctx.sampleRate / 2;
+      tracker = createNoteTracker({ note: ev => emit('note', ev), match: ev => emit('match', ev) });
+      tracker.expect(expectList);
+      if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) { /* needs a tap */ } }
+      stream.getAudioTracks().forEach(t => { t.onended = () => { if (stream === s) { release(); set('error'); } }; });
+      set('on');
+      loop();
+      return true;
+    } catch (e) {
+      if (my !== token) return false;
+      release();
+      set(e && (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'denied' : e && e.name === 'NotFoundError' ? 'unsupported' : 'error');
+      return false;
+    }
+  }
+  function release() {
+    cancelAnimationFrame(raf); raf = 0;
+    if (source) { try { source.disconnect(); } catch (e) { /* gone */ } }
+    if (stream) stream.getTracks().forEach(t => { try { t.stop(); } catch (e) { /* gone */ } });
+    if (stream) session('playback');
+    stream = null; source = null; analyser = null; tracker = null;
+  }
+  function stop() { token++; release(); set('off'); }
+
+  function loop() {
+    raf = requestAnimationFrame(loop);
+    if (!analyser) return;
+    analyser.getFloatTimeDomainData(raw);
+    let ss = 0;
+    for (let i = 0; i < raw.length; i++) ss += raw[i] * raw[i];
+    const rms = Math.sqrt(ss / raw.length);
+    const now = performance.now();
+    let pitch = null, hear = null;
+    if (rms > 0.0025) {
+      decimate2(raw, half);
+      pitch = yinPitch(half, sr2, work);
+      hear = (f, loose) => noteSounds(work.d, work.maxTau, sr2, f, loose);
+    }
+    const muted = now < quietUntil;
+    tracker({ t: now, rms, freq: pitch && pitch.freq, clarity: pitch ? pitch.clarity : 0, muted, hear });
+    if (fns.frame.size) {
+      const voiced = !!pitch && pitch.clarity > 0.86 && rms > 0.004;
+      const midiF = voiced ? 69 + 12 * Math.log2(pitch.freq / 440) : null;
+      emit('frame', {
+        t: now, rms, muted, suspended: ctx && ctx.state !== 'running',
+        level: Math.max(0, Math.min(1, (20 * Math.log10(rms + 1e-9) + 60) / 54)),
+        voiced, freq: voiced ? pitch.freq : null, midi: voiced ? Math.round(midiF) : null, cents: voiced ? Math.round((midiF - Math.round(midiF)) * 100) : null,
+      });
+    }
+  }
+  /* Ignore the microphone until the app's own sound has died away. */
+  Sound.onPlay(endCtxTime => {
+    if (!ctx || !stream) return;
+    const until = performance.now() + Math.max(0, endCtxTime - ctx.currentTime) * 1000 + 180;
+    if (until > quietUntil) quietUntil = until;
+  });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && (state === 'on' || state === 'asking')) stop(); });
+  return {
+    supported, start, stop,
+    get state() { return state; },
+    get resumable() { return !!ctx && ctx.state !== 'running'; },
+    resume() { if (ctx && ctx.state !== 'running') { try { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* needs a tap */ } } },
+    /* Written pitches the app is waiting for (guitar music is written an octave above the sound). */
+    expect(written) { expectList = (written || []).map(m => m - 12); if (tracker) tracker.expect(expectList); },
+    on(kind, fn) { fns[kind].add(fn); return () => fns[kind].delete(fn); },
+  };
+})();
+
+/* The listening strip on a card: a Listen button, a level meter, the note it hears and how
+   in tune it is. o: { expect: [written midi], onMatch(ev), onNote(ev), idle } */
+const MIC_ICON = '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="8.5" y="2.5" width="7" height="12" rx="3.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 11.5a7 7 0 0 0 14 0M12 18.5v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const MIC_TEXT = {
+  off: 'Tap Listen, then play it on your guitar.',
+  asking: 'Allow the microphone when your browser asks.',
+  denied: 'The microphone is blocked for this site. Allow it in your browser’s settings for this website, then tap Listen.',
+  unsupported: 'This browser can’t listen through a microphone here.',
+  error: 'The microphone didn’t start. Tap Listen to try again.',
+};
+function micPanelHTML(o) {
+  return '<div class="mic" data-mic data-state="' + Mic.state + '"><div class="mic-row">' +
+    '<button class="btn mic-btn" data-act="mic" aria-pressed="false">' + MIC_ICON + '<span class="mic-btn-txt">Listen</span></button>' +
+    '<div class="mic-mid"><div class="mic-meter" aria-hidden="true"><span></span></div><p class="mic-text" aria-live="polite"></p></div>' +
+    '<div class="mic-heard" aria-hidden="true"><b class="mic-name">–</b><span class="mic-tune"><i></i></span></div>' +
+    '</div>' + (o && o.alt ? '<p class="mic-alt">' + o.alt + '</p>' : '') + '</div>';
+}
+function mountMic(root, o) {
+  o = o || {};
+  const el = root.querySelector('[data-mic]');
+  if (!el) return () => {};
+  const btn = el.querySelector('.mic-btn'), btnTxt = el.querySelector('.mic-btn-txt'), meter = el.querySelector('.mic-meter span');
+  const text = el.querySelector('.mic-text'), name = el.querySelector('.mic-name'), tune = el.querySelector('.mic-tune i');
+  let msg = null, msgUntil = 0, shown = null, shownAt = 0;
+  function idle() { return typeof o.idle === 'function' ? o.idle() : (o.idle || 'Listening. Play the note.'); }
+  function paint() {
+    const s = Mic.state;
+    el.dataset.state = s;
+    btn.setAttribute('aria-pressed', s === 'on');
+    btnTxt.textContent = s === 'on' ? 'Stop' : s === 'asking' ? 'Wait…' : 'Listen';
+    btn.disabled = s === 'asking' || s === 'unsupported';
+    if (s !== 'on') { text.textContent = MIC_TEXT[s] || MIC_TEXT.off; text.className = 'mic-text'; meter.style.width = '0'; name.textContent = '–'; tune.style.left = '50%'; el.classList.remove('hears'); }
+    else if (!msg || performance.now() > msgUntil) { msg = null; text.textContent = idle(); text.className = 'mic-text'; }
+  }
+  function say(t, cls, ms) { msg = t; msgUntil = performance.now() + (ms || 2200); text.textContent = t; text.className = 'mic-text ' + (cls || ''); }
+  const offs = [
+    Mic.on('state', paint),
+    Mic.on('frame', fr => {
+      meter.style.width = Math.round(fr.level * 100) + '%';
+      el.classList.toggle('muted', fr.muted);
+      if (fr.suspended) { if (!msg) { text.textContent = 'Tap Listen to carry on listening.'; } return; }
+      if (fr.voiced && fr.midi >= 38 && fr.midi <= 90) {
+        const sp = spellings(fr.midi + 12)[0];
+        if (shown !== fr.midi || fr.t - shownAt > 120) { name.textContent = nmShort(sp); shown = fr.midi; shownAt = fr.t; }
+        tune.style.left = (50 + Math.max(-50, Math.min(50, fr.cents))) + '%';
+        tune.parentNode.className = 'mic-tune ' + (Math.abs(fr.cents) <= 12 ? 'in' : Math.abs(fr.cents) <= 30 ? 'near' : 'off');
+        el.classList.add('hears');
+      } else if (fr.t - shownAt > 900) { el.classList.remove('hears'); }
+      if (msg && performance.now() > msgUntil) { msg = null; text.textContent = idle(); text.className = 'mic-text'; }
+    }),
+    Mic.on('note', ev => { if (o.onNote) o.onNote(ev, say); }),
+    Mic.on('match', ev => { if (o.onMatch) o.onMatch(ev, say); }),
+  ];
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    if (Mic.state === 'on') {
+      if (Mic.resumable) { Mic.resume(); return; }
+      Mic.stop(); Store.setSetting('listen', false);
+    } else Mic.start().then(okk => { if (okk) Store.setSetting('listen', true); });
+  });
+  Mic.expect(o.expect || []);
+  paint();
+  /* Carry on listening if the player turned the microphone on before. */
+  if (Store.settings.listen && Mic.state === 'off' && !o.noAuto) Mic.start();
+  return () => { offs.forEach(f => f()); Mic.expect([]); };
+}
+
 
 /* ============================================================
    Progress store: kept in this browser, and in the person's
@@ -1585,7 +2013,7 @@ const Sound = (() => {
    so phone and computer share one history.
    ============================================================ */
 const STORE_KEY = 'guitar-note-reading-v1';
-const DEFAULT_SETTINGS = { names: 'letters', sound: true, autoNext: true };
+const DEFAULT_SETTINGS = { names: 'letters', sound: true, autoNext: true, listen: false, speaker: false };
 const DEFAULT_PRACTICE = {
   notes: { strings: [1, 2, 3, 4, 5, 6], maxFret: 3, accidentals: false },
   rhythm: { rests: true, dotted: false },
@@ -1632,6 +2060,8 @@ function sanitizeStore(d) {
     if (['letters', 'solfege', 'both'].indexOf(d.settings.names) >= 0) b.settings.names = d.settings.names;
     if (typeof d.settings.sound === 'boolean') b.settings.sound = d.settings.sound;
     if (typeof d.settings.autoNext === 'boolean') b.settings.autoNext = d.settings.autoNext;
+    if (typeof d.settings.listen === 'boolean') b.settings.listen = d.settings.listen;
+    if (typeof d.settings.speaker === 'boolean') b.settings.speaker = d.settings.speaker;
   }
   if (obj(d.practice)) {
     const n = d.practice.notes;
@@ -2408,7 +2838,7 @@ function weightedPick(pool, keyFn, avoid) {
   return pool[pool.length - 1];
 }
 function itemKey(mode, it) {
-  if (mode === 'read' || mode === 'find') return mode + ':' + pitchId(it);
+  if (mode === 'read' || mode === 'find' || mode === 'play') return mode + ':' + pitchId(it);
   if (mode === 'fret') return 'fret:' + it.s + '-' + it.f;
   if (mode === 'rhythm') return 'rhy:' + it.id;
   return 'key:' + it.id;
@@ -2574,6 +3004,41 @@ function qFindNote(p, o) {
       if (st.ok) { const others = all().filter(x => !(x.s === st.choice.s && x.f === st.choice.f)); return '<b>' + nm(p) + '</b> is at ' + posLabel(st.choice.s, st.choice.f) + '.' + (others.length ? ' Also at: ' + listPositions(others) + '.' : ''); }
       if (mod12(cm) === mod12(midi)) { const n = Math.round(Math.abs(cm - midi) / 12); return 'You tapped ' + nmShort(spellings(cm)[0]) + ', but ' + (n === 1 ? 'one octave' : n + ' octaves') + ' too ' + (cm > midi ? 'high' : 'low') + '. This one sits ' + placePhrase(staffPos(p)) + ': ' + listPositions(all()) + '.'; }
       return 'You tapped ' + nmShort(spellings(cm)[0]) + '. <b>' + nm(p) + '</b> is at: ' + listPositions(all()) + '.';
+    },
+  };
+}
+/* Play the note on the guitar: the microphone listens. Without a microphone, tap the fretboard.
+   Through the microphone a wrong note is not the end: keep trying, but only a first-time hit counts as right. */
+function heardText(w, target) {
+  const hp = spellings(w)[0];
+  if (mod12(w) === mod12(target)) {
+    const n = Math.round(Math.abs(w - target) / 12);
+    return 'That was ' + nmShort(hp) + ', ' + (n === 1 ? 'one octave' : n + ' octaves') + ' too ' + (w > target ? 'high' : 'low') + '. Try again.';
+  }
+  return 'That was ' + nmShort(hp) + '. Try again.';
+}
+function qPlayNote(p, o) {
+  o = o || {};
+  const midi = midiOf(p), maxF = o.maxFret === undefined ? 12 : o.maxFret;
+  const all = () => positionsOf(midi, 12);
+  return {
+    t: 'play', kicker: o.kicker || 'Play it', prompt: o.prompt || 'Play this note on your guitar', target: midi,
+    visual: o.hidden ? revealStaff([p], o.yRange) : staffVis(st => noteSpec(p, st, o.yRange)),
+    board: { maxFret: Math.max(maxF, 4) },
+    accept: (s, f) => posMidi(s, f) === midi, reveal: all, revealText: nmShort(p),
+    key: o.noKey ? null : 'play:' + pitchId(p),
+    hear: () => Sound.note(midi), autoHear: !!o.hidden,
+    answerText: nmShort(p), review: listPositions(all()),
+    explain: st => {
+      const where = listPositions(all());
+      if (st.choice && st.choice.heard !== undefined) {
+        if (st.ok) return 'You played <b>' + nm(p) + '</b>, written ' + placePhrase(staffPos(p)) + '. On the guitar: ' + where + '.';
+        return 'You found it after ' + (st.tries === 1 ? 'one wrong note' : st.tries + ' wrong notes') + '. <b>' + nm(p) + '</b> sits ' + placePhrase(staffPos(p)) + ': ' + where + '.';
+      }
+      if (!st.choice) return '<b>' + nm(p) + '</b> is at: ' + where + '.';
+      const cm = posMidi(st.choice.s, st.choice.f);
+      if (st.ok) return '<b>' + nm(p) + '</b> is at ' + posLabel(st.choice.s, st.choice.f) + '.';
+      return 'You tapped ' + nmShort(spellings(cm)[0]) + '. <b>' + nm(p) + '</b> is at: ' + where + '.';
     },
   };
 }
@@ -2815,6 +3280,7 @@ const LV = {
       tf('The open 3rd string G is written on the second line.', true, 'Yes: the line the clef curls around.',
         { visual: staffOf(st => [nt('G4', { label: st.answered ? G : '?', labelCls: 'hl', cls: st.answered ? 'good' : 'on' })]), board: { maxFret: 3, dots: [{ s: 3, f: 0, text: G }] } }),
       ...sample([6, 5, 4, 3, 2, 1], 2).map(s => qFindNote(spellings(OPEN_WRITTEN[s])[0], { maxFret: 4, yRange: [-4.7, 7.9], noKey: true })),
+      qPlayNote(spellings(OPEN_WRITTEN[rnd([6, 5, 4, 3, 2, 1])])[0], { maxFret: 4, yRange: [-4.7, 7.9], noKey: true, prompt: 'Play this open string on your guitar' }),
       mc('Where is the open 1st string E written?', ['In the top space', 'On the top line', 'On the bottom line', 'Under the third ledger line below the staff'], 'High E sits in the fourth space, the top space of the staff. Low E hangs under the third ledger line.',
         { layout: 'list', board: { maxFret: 3, dots: [{ s: 1, f: 0, text: Eh }] }, visual2: revealStaff([PN('E5')], [-1.9, 6.8]) }),
     ];
@@ -2830,6 +3296,7 @@ const LV = {
       staffTapQ('Tap where the open 6th string E is written', -7, 'Low E hangs under the third ledger line below the staff.', { range: [-8, 6] }),
       ...sample(naturalsBetween(-7, -1), 5).map(p => qReadNote(p, { yRange: [-1.7, 8.3], maxFret: 4 })),
       ...sample(naturalsBetween(-7, -2), 2).map(p => qFindNote(p, { maxFret: 4, yRange: [-1.7, 8.3] })),
+      qPlayNote(rnd(naturalsBetween(-7, -2)), { maxFret: 4, yRange: [-1.7, 8.3] }),
       staffTapQ('Tap where C is written: 5th string, 3rd fret', -2, 'C sits on the first ledger line below the staff.', { range: [-8, 6] }),
     ];
   },
@@ -2852,7 +3319,8 @@ const LV = {
       }),
       tf('A sharp in one measure still applies in the next measure.', false, 'The bar line cancels it. In the next measure the note is plain F again, unless the key signature says otherwise.',
         { visual: staffVis(st => ({ clef: 'g8', time: [4, 4], items: [{ kind: 'note', p: 1, acc: 1, dur: 'h', label: N(3, 1), midi: midiOf(PN('F#4')) }, { kind: 'note', p: 2, dur: 'h', label: N(4), midi: midiOf(PN('G4')) }, { kind: 'bar' }, { kind: 'note', p: 1, dur: 'w', cls: st.answered ? 'good' : 'on', label: st.answered ? N(3) : '?', labelCls: 'hl', midi: midiOf(PN('F4')) }], beatW: 2.6, endBar: 'final', padR: 0.3, centerGroup: true, yRange: [-1.9, 6.8] })) }),
-      ...sample(accPool, 3).map(p => qFindNote(p, { maxFret: 4, yRange: yr })),
+      ...sample(accPool, 2).map(p => qFindNote(p, { maxFret: 4, yRange: yr })),
+      qPlayNote(rnd(accPool), { maxFret: 4, yRange: yr }),
       ...sample(accPos, 2).map(x => qNameFret(x.s, x.f, { chromatic: true, maxFret: 5 })),
       mc('Which note is one fret above E?', [N(3), N(3, 1), N(2, -1), N(4)], 'E and F have no fret between them, so one fret above E is F.',
         { visual: stepVis('E5', 'F5'), board: { maxFret: 4, strings: [1], dots: [{ s: 1, f: 0, text: N(2) }], before: [{ s: 1, f: 1, text: '?', cls: 'mk-accent mk-ask' }], after: [{ s: 1, f: 1, text: N(3), cls: 'mk-good' }] } }),
@@ -2940,7 +3408,8 @@ const LV = {
       teach('The octave shape', '<p>To find the same note <b>one octave higher</b>, go two strings thinner and two frets higher.</p><p>If the move crosses the 2nd string, go three frets higher instead.</p>',
         { visual: staffOf(() => [nt('G3', { label: G }), nt('G4', { label: G, cls: 'on' })], { gap: 4.6 }), board: { maxFret: 7, dots: [{ s: 6, f: 3, text: G, cls: 'mk-soft' }, { s: 4, f: 5, text: G, cls: 'mk-accent' }], playable: true } }),
       qOctaveUp(), qOctaveUp(),
-      ...sample(naturalsBetween(-4, 9), 4).map(p => qFindNote(p, { maxFret: 12, prompt: 'Tap any spot where you play this note', yRange: [-2.4, 7.0] })),
+      ...sample(naturalsBetween(-4, 9), 3).map(p => qFindNote(p, { maxFret: 12, prompt: 'Tap any spot where you play this note', yRange: [-2.4, 7.0] })),
+      qPlayNote(rnd(naturalsBetween(-4, 9)), { maxFret: 12, yRange: [-2.4, 7.0], prompt: 'Play this note anywhere on your guitar' }),
       mc('Up to the 12th fret, in how many places can you play this note?', ['3', '1', '2', '4'], 'The open 1st string, the 2nd string at the 5th fret and the 3rd string at the 9th fret. The 4th string at the 14th fret is past the 12th.',
         { visual: staffOf(st => [nt('E5', { tag: st.answered ? N(2) : undefined, cls: st.answered ? 'good' : '' })], { yRange: [-1.9, 6.8] }), board: { maxFret: 9, minFw: 27, after: e5.filter(x => x.f <= 9).map(x => ({ s: x.s, f: x.f, text: N(2), cls: 'mk-good' })) } }),
     ];
@@ -2978,14 +3447,14 @@ function levelCount(lv) {
 
 /* ---------- Practice generators ---------- */
 function practicePool(mode, cfg) {
-  if (mode === 'read' || mode === 'find') return notePool(cfg);
+  if (mode === 'read' || mode === 'find' || mode === 'play') return notePool(cfg);
   if (mode === 'fret') return positionPool(cfg);
   if (mode === 'rhythm') return rhythmPool(cfg);
   return KEYS.filter(k => Math.abs(k.n) <= cfg.max);
 }
 function practiceGen(mode, cfg) {
   const pool = practicePool(mode, cfg);
-  const yr = (mode === 'read' || mode === 'find') ? poolYRange(pool) : null;
+  const yr = (mode === 'read' || mode === 'find' || mode === 'play') ? poolYRange(pool) : null;
   const vals = mode === 'rhythm' ? Array.from(new Set(pool.map(it => durBeats(it.dur, it.dots)))).sort((a, b) => b - a) : null;
   const dispMax = Math.max(cfg.maxFret || 0, 4);
   let last = null;
@@ -2994,6 +3463,7 @@ function practiceGen(mode, cfg) {
     last = itemKey(mode, it);
     if (mode === 'read') return qReadNote(it, { yRange: yr, maxFret: dispMax });
     if (mode === 'find') return qFindNote(it, { yRange: yr, maxFret: dispMax });
+    if (mode === 'play') return qPlayNote(it, { yRange: yr, maxFret: dispMax });
     if (mode === 'fret') return qNameFret(it.s, it.f, { chromatic: cfg.accidentals, full: true, maxFret: dispMax, strings: cfg.strings });
     if (mode === 'rhythm') return qRhythm(it, { values: vals, full: true });
     return qKey(it, { pool, full: true });
@@ -3017,6 +3487,7 @@ function freshState(c) {
   const st = { answered: false, ok: null, choice: null, gain: 0 };
   if (c.t === 'order') { st.pool = shuffle(c.answer.map((label, i) => ({ label, i }))); st.picks = []; }
   if (c.t === 'staffTap') st.p = null;
+  if (c.t === 'play') st.tries = 0;
   return st;
 }
 function startRun(o) {
@@ -3123,6 +3594,7 @@ function renderCard() {
     h = '<article class="card q q-' + c.t + '">' + kickerHTML(c) + '<h2 class="card-prompt">' + c.prompt + '</h2>' +
       (c.t === 'listen' ? '<div class="listen"><button class="btn big" data-act="hear">' + ICONS.play + 'Play it again</button></div>' : '') +
       (c.visual ? '<div class="paper card-vis' + (isTap ? ' tapstaff' : '') + '" data-vis' + (isTap ? ' tabindex="0" aria-label="Staff. Tap a line or a space; the arrow keys move the note."' : '') + '></div>' : '') +
+      (c.t === 'play' && !st.answered ? micPanelHTML({ alt: c.board ? 'No microphone? Tap where you play it on the fretboard.' : '' }) : '') +
       (isTap ? '<div class="tap-adj"><button class="btn small" data-act="down">' + ICONS.down + 'Lower</button><button class="btn small" data-act="up">' + ICONS.up + 'Higher</button></div>' : '') +
       (c.board ? '<div class="board-card"><div class="fb-wrap" data-board></div></div>' : '') +
       (c.visual2 ? '<div class="paper card-vis" data-vis2></div>' : '') +
@@ -3136,6 +3608,28 @@ function renderCard() {
   drawCardVisuals();
   renderFoot();
   if (c.t === 'listen' && c.hear && !st.played) { st.played = true; c.hear(); }
+  if (c.t === 'play' && !st.answered) {
+    const stopMic = mountMic(el, {
+      expect: [c.target],
+      idle: () => st.tries ? 'Listening. Try again.' : 'Listening. Play the note.',
+      onMatch: () => { if (!st.answered && App.run === R && R.st === st) answerCard({ heard: c.target, tries: st.tries }); },
+      onNote: (ev, say) => {
+        if (st.answered || App.run !== R || R.st !== st) return;
+        const w = ev.midi + 12;
+        if (w === c.target) { answerCard({ heard: w, tries: st.tries }); return; }
+        if (w < 50 || w > 98) return;
+        const ratio = Math.pow(2, (c.target - w) / 12), k = Math.round(ratio);
+        if (k >= 2 && k <= 4 && Math.abs(ratio - k) < 0.03 * k) return; /* a busy sound misread below the note */
+        st.tries++;
+        say(heardText(w, c.target), 'bad');
+        const box = $('[data-mic]', el);
+        if (box) { box.classList.remove('nudge'); void box.offsetWidth; box.classList.add('nudge'); }
+      },
+    });
+    const prev = App.cleanup;
+    App.cleanup = () => { stopMic(); if (prev) prev(); };
+    if (c.autoHear && !st.played) { st.played = true; setTimeout(() => { if (App.run === R && R.st === st && !st.answered) c.hear(); }, 250); }
+  }
 }
 function drawCardVisuals() {
   const R = App.run;
@@ -3155,16 +3649,17 @@ function drawBoard(el, c, st) {
   if (o.dots) o.dots.forEach(d => dots.push(d));
   if (o.before && !st.answered) o.before.forEach(d => dots.push(d));
   if (o.after && st.answered) o.after.forEach(d => dots.push(d));
-  if (c.t === 'fretTap' && st.answered) {
+  if ((c.t === 'fretTap' || c.t === 'play') && st.answered) {
     (c.reveal ? c.reveal() : []).forEach(x => dots.push({ s: x.s, f: x.f, text: c.revealText || '', cls: 'mk-good' + (st.choice && st.choice.s === x.s && st.choice.f === x.f ? ' mk-ring' : '') }));
-    if (!st.ok && st.choice) dots.push({ s: st.choice.s, f: st.choice.f, text: nmShort(spellings(posMidi(st.choice.s, st.choice.f))[0]), cls: 'mk-bad' });
+    if (!st.ok && st.choice && st.choice.s) dots.push({ s: st.choice.s, f: st.choice.f, text: nmShort(spellings(posMidi(st.choice.s, st.choice.f))[0]), cls: 'mk-bad' });
   }
   if (o.ask) {
     const names = spellings(posMidi(o.ask.s, o.ask.f)).map(nmShort).join('/');
     dots.push(st.answered ? { s: o.ask.s, f: o.ask.f, text: names, cls: st.ok ? 'mk-good' : 'mk-bad' } : { s: o.ask.s, f: o.ask.f, text: '?', cls: 'mk-accent mk-ask' });
   }
-  const interactive = c.t === 'fretTap' || st.answered || !!o.playable || c.t === 'teach';
-  const r = mountFretboard(el, { maxFret: o.maxFret === undefined ? 12 : o.maxFret, dots, interactive, focusable: c.t === 'fretTap' && !st.answered, names: NS(), showZero: true, activeStrings: o.strings, minFw: o.minFw, aria: c.t === 'fretTap' ? 'Fretboard. Tap the right spot.' : 'Fretboard' });
+  const tapCard = c.t === 'fretTap' || c.t === 'play';
+  const interactive = tapCard || st.answered || !!o.playable || c.t === 'teach';
+  const r = mountFretboard(el, { maxFret: o.maxFret === undefined ? 12 : o.maxFret, dots, interactive, focusable: tapCard && !st.answered, names: NS(), showZero: true, activeStrings: o.strings, minFw: o.minFw, aria: tapCard ? 'Fretboard. Tap the right spot.' : 'Fretboard' });
   focusBoard(el, r, c, st);
 }
 /* Scroll a wide fretboard so the spots this card marks are in view: the question spot first,
@@ -3172,7 +3667,7 @@ function drawBoard(el, c, st) {
    scrolled to is not pulled away when the answer appears. */
 function focusBoard(el, r, c, st) {
   const key = st.answered ? 'a' : 'b';
-  if (st.scrolled === key || (c.t === 'fretTap' && st.scrolled)) return;
+  if (st.scrolled === key || ((c.t === 'fretTap' || c.t === 'play') && st.scrolled)) return;
   st.scrolled = key;
   if (el.scrollWidth <= el.clientWidth + 2) return;
   const o = c.board, own = [];
@@ -3236,6 +3731,7 @@ function chipFace(c, label) { return (c.chipPic && c.chipPic[label] ? '<span cla
 function refreshOrder() { const el = $('[data-order]'); if (el) el.outerHTML = orderHTML(App.run.card, App.run.st); }
 function hintFor(c) {
   if (c.t === 'fretTap') return 'Tap a spot on the fretboard.';
+  if (c.t === 'play') return Mic.state === 'on' ? 'Play the note on your guitar.' : 'Play it, or tap the fretboard.';
   if (c.t === 'listen') return 'Listen, then choose.';
   if (isPhone()) return 'Tap an answer.';
   if (c.layout === 'letters') return 'Tap a letter, or type it.';
@@ -3261,9 +3757,10 @@ function renderFoot() {
   }
   const ex = typeof c.explain === 'function' ? c.explain(st) : (c.explain || '');
   const showAnswer = !st.ok && c.answerText && (c.t === 'order' || c.t === 'staffTap' || st.choice === null);
-  const title = st.ok ? (R.combo >= 5 ? R.combo + ' in a row!' : PRAISE[CARD_UID % PRAISE.length]) : (st.choice === null ? 'Skipped' : 'Not quite');
-  foot.className = 'run-foot ' + (st.ok ? 'ok' : 'no');
-  foot.innerHTML = '<div class="foot-in"><div class="foot-msg"><p class="foot-title"><span class="foot-icon">' + (st.ok ? ICONS.check : ICONS.close) + '</span>' + title +
+  const found = c.t === 'play' && !st.ok && st.choice && st.choice.heard !== undefined;
+  const title = st.ok ? (R.combo >= 5 ? R.combo + ' in a row!' : PRAISE[CARD_UID % PRAISE.length]) : (st.choice === null ? 'Skipped' : found ? 'Found it' : 'Not quite');
+  foot.className = 'run-foot ' + (st.ok ? 'ok' : found ? 'ok found' : 'no');
+  foot.innerHTML = '<div class="foot-in"><div class="foot-msg"><p class="foot-title"><span class="foot-icon">' + (st.ok || found ? ICONS.check : ICONS.close) + '</span>' + title +
     (st.gain ? '<span class="xp-pop">+' + st.gain + ' points</span>' : '') + '</p>' +
     (showAnswer ? '<p class="foot-text">Answer: <b>' + c.answerText + '</b></p>' : '') +
     (ex ? '<p class="foot-text">' + ex + '</p>' : '') +
@@ -3296,7 +3793,7 @@ function updateTop(bump) {
 function boardTap(s, f) {
   const R = App.run;
   if (!R || R.done) return;
-  if (R.card.t === 'fretTap' && !R.st.answered) { answerCard({ s, f }); return; }
+  if ((R.card.t === 'fretTap' || R.card.t === 'play') && !R.st.answered) { answerCard({ s, f }); return; }
   Sound.note(posMidi(s, f));
 }
 function staffTapAt(svg, e) {
@@ -3350,6 +3847,7 @@ function answerCard(choice) {
   if (choice !== null) {
     if (c.t === 'mc' || c.t === 'listen') ok = !!c.options[choice] && c.options[choice].correct;
     else if (c.t === 'fretTap') ok = !!c.accept(choice.s, choice.f);
+    else if (c.t === 'play') ok = choice.heard !== undefined ? choice.tries === 0 : !!c.accept(choice.s, choice.f);
     else if (c.t === 'staffTap') ok = !!c.accept(choice);
     else if (c.t === 'order') ok = choice.length === c.answer.length && choice.every((x, i) => x === c.answer[i]);
   }
@@ -3360,7 +3858,8 @@ function answerCard(choice) {
   else { R.combo = 0; st.gain = 0; }
   if (st.gain) { R.xp += st.gain; Store.addXp(st.gain); }
   if (c.key) Store.record(c.key, ok);
-  if (c.t === 'fretTap' && choice) { Sound.note(posMidi(choice.s, choice.f)); if (!ok) setTimeout(() => Sound.fx('bad'), 170); }
+  if ((c.t === 'fretTap' || c.t === 'play') && choice && choice.s) { Sound.note(posMidi(choice.s, choice.f)); if (!ok) setTimeout(() => Sound.fx('bad'), 170); }
+  else if (c.t === 'play' && choice && ok) Sound.fx('good');
   else if (ok) { if (c.playOnCorrect && c.hear) c.hear(); else Sound.fx('good'); }
   else Sound.fx('bad');
   drawCardVisuals();
@@ -3557,6 +4056,7 @@ const MODES = {
   read: { title: 'Read the note', desc: 'A note appears on the staff. Name it.' },
   find: { title: 'Find it on the guitar', desc: 'A note appears on the staff. Tap where you play it.' },
   fret: { title: 'Name the fret', desc: 'A spot on the fretboard lights up. Name its note.' },
+  play: { title: 'Play it on your guitar', desc: 'A note appears on the staff. Play it; the microphone listens. No microphone? Tap the fretboard.' },
   rhythm: { title: 'Note lengths', desc: 'A note or a rest appears. Say how many beats it lasts.' },
   keys: { title: 'Key signatures', desc: 'A key signature appears. Name its major key.' },
 };
@@ -3603,6 +4103,8 @@ function updateNav() {
 }
 function render(routeChanged) {
   if (routeChanged) Sound.stopAll();
+  const inRun = !!App.run && App.run.origin === App.route && !App.run.done;
+  if (!inRun && !(App.route === 'explore' && App.ex.listen) && Mic.state !== 'off') Mic.stop();
   if (App.cleanup) { try { App.cleanup(); } catch (e) { /* ignore */ } App.cleanup = null; }
   App.resizers = [];
   const main = $('#main');
@@ -3629,7 +4131,9 @@ function viewExplore(main) {
       '<div class="paper ex-staff-card"><div class="ex-staff" id="exStaff" tabindex="0" role="slider" aria-label="Note on the staff. Use the up and down arrow keys to move it." aria-valuemin="-7" aria-valuemax="14"></div>' +
         '<div class="ex-steps"><button class="btn icon" data-act="up" aria-label="One note higher">' + ICONS.up + '</button><button class="btn icon" data-act="down" aria-label="One note lower">' + ICONS.down + '</button></div></div>' +
       '<div class="ex-info">' +
-        '<div class="ex-name-row"><div class="ex-name" id="exName"></div><button class="btn primary" data-act="play">' + ICONS.play + 'Play</button></div>' +
+        '<div class="ex-name-row"><div class="ex-name" id="exName"></div><button class="btn primary" data-act="play">' + ICONS.play + 'Play</button>' +
+          '<button class="btn ex-listen" data-act="listen" aria-pressed="' + !!E.listen + '">' + MIC_ICON + '<span>Listen</span></button></div>' +
+        '<p class="ex-listen-note" id="exListenNote"' + (E.listen ? '' : ' hidden') + '>Listening: play any note and it appears on the staff and the fretboard.</p>' +
         '<div class="ex-alt" id="exAlt"></div>' +
         '<div class="ex-place" id="exPlace"></div>' +
         '<div class="seg" id="exAcc" role="group" aria-label="Sharp, natural or flat"><button data-a="-1" aria-label="Flat">♭</button><button data-a="0" aria-label="Natural">♮</button><button data-a="1" aria-label="Sharp">♯</button></div>' +
@@ -3676,10 +4180,40 @@ function viewExplore(main) {
     mountFretboard($('#exBoard', root), { maxFret: 12, dots, interactive: true, focusable: true, names: NS(), showZero: true, aria: 'Fretboard. Every spot where the selected note can be played is marked.' });
   }
   function play() { Sound.note(midiOf(pitchAt(E.p, E.a))); }
+  /* Listening: each note played on the guitar becomes the selected note. */
+  if (E.listen && Mic.state === 'off') E.listen = false;
+  const listenBtn = $('[data-act="listen"]', root), listenNote = $('#exListenNote', root);
+  function showListen() {
+    const on = E.listen && (Mic.state === 'on' || Mic.state === 'asking');
+    listenBtn.setAttribute('aria-pressed', on);
+    listenBtn.querySelector('span').textContent = Mic.state === 'asking' ? 'Wait…' : on ? 'Stop' : 'Listen';
+    listenNote.hidden = !E.listen && Mic.state !== 'denied' && Mic.state !== 'unsupported' && Mic.state !== 'error';
+    listenNote.textContent = Mic.state === 'denied' ? MIC_TEXT.denied : Mic.state === 'unsupported' ? MIC_TEXT.unsupported : Mic.state === 'error' ? MIC_TEXT.error : 'Listening: play any note and it appears on the staff and the fretboard.';
+  }
+  const offs = [
+    Mic.on('state', st => { if (st === 'off' || st === 'denied' || st === 'unsupported' || st === 'error') E.listen = false; showListen(); }),
+    Mic.on('note', ev => {
+      if (!E.listen) return;
+      const w = ev.midi + 12;
+      if (w < 52 || w > 88) return;
+      const sp = spellings(w), pick = sp.length === 2 && E.a === -1 ? sp[1] : sp[0];
+      E.p = staffPos(pick); E.a = pick.a; E.tap = null;
+      draw();
+      const s = $('#exStaff svg', root); if (s) { s.classList.remove('ping'); void s.getBoundingClientRect(); s.classList.add('ping'); }
+    }),
+  ];
+  App.cleanup = () => offs.forEach(f => f());
+  showListen();
   root.addEventListener('click', e => {
     const act = e.target.closest('[data-act]');
     if (act) {
       const a = act.dataset.act;
+      if (a === 'listen') {
+        if (E.listen) { E.listen = false; Mic.stop(); }
+        else { E.listen = true; Mic.start(); }
+        showListen();
+        return;
+      }
       if (a === 'up') { E.p += 1; E.a = 0; E.tap = null; draw(); play(); }
       else if (a === 'down') { E.p -= 1; E.a = 0; E.tap = null; draw(); play(); }
       else if (a === 'play') play();
@@ -3805,6 +4339,7 @@ function modeArt(mode) {
   if (mode === 'read') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<ellipse cx="11" cy="10.5" rx="2.6" ry="1.9" transform="rotate(-22 11 10.5)" fill="currentColor"/><text x="18.5" y="8" font-size="7" font-weight="700" fill="currentColor">?</text></svg>';
   if (mode === 'find') return '<svg viewBox="0 0 24 18" aria-hidden="true"><path d="M1 4h22M1 9h22M1 14h22" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M8 1v16M16 1v16" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="3.2" fill="currentColor"/></svg>';
   if (mode === 'fret') return '<svg viewBox="0 0 24 18" aria-hidden="true"><path d="M1 4h22M1 9h22M1 14h22" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M8 1v16M16 1v16" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="12" y="11.4" font-size="6.6" font-weight="700" text-anchor="middle" fill="currentColor">?</text></svg>';
+  if (mode === 'play') return '<svg viewBox="0 0 24 18" aria-hidden="true"><rect x="9" y="1.5" width="6" height="9.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8.6a6 6 0 0 0 12 0M12 14.6v2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 6.5c1 1.2 1 3.8 0 5M22 6.5c-1 1.2-1 3.8 0 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".6"/></svg>';
   if (mode === 'rhythm') return '<svg viewBox="0 0 24 18" aria-hidden="true"><ellipse cx="7" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 7 14)" fill="currentColor"/><path d="M9.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><ellipse cx="16" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 16 14)" fill="currentColor"/><path d="M18.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><path d="M9.3 2.5h9" stroke="currentColor" stroke-width="2.2"/></svg>';
   return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(8 6) scale(3)" fill="currentColor"/><path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(13.5 10.5) scale(3)" fill="currentColor"/></svg>';
 }
@@ -3840,7 +4375,7 @@ function viewPractice(main) {
         '<label class="check"><input type="checkbox" id="cfgAcc"' + (cfg.accidentals ? ' checked' : '') + '> Include sharps and flats</label>' +
         '<p class="pr-summary" id="cfgSummary">' + notesSummary(cfg) + '</p>' +
       '</div>' +
-      '<div class="mode-list">' + ['read', 'find', 'fret'].map(m => modeRow(m)).join('') + '</div>' +
+      '<div class="mode-list">' + ['read', 'find', 'fret', 'play'].map(m => modeRow(m)).join('') + '</div>' +
     '</section>' +
     '<section class="pr-block"><h2 class="sec-title">Rhythm and keys</h2><div class="mode-list">' +
       modeRow('rhythm', '<div class="mode-opts"><label class="check small"><input type="checkbox" id="cfgRests"' + (P.rhythm.rests ? ' checked' : '') + '> Rests</label><label class="check small"><input type="checkbox" id="cfgDots"' + (P.rhythm.dotted ? ' checked' : '') + '> Dotted notes</label></div>') +
@@ -3892,7 +4427,7 @@ function viewProgress(main) {
     '<div class="stats">' + stat(Store.xpTotal(), 'points in total') + stat(stars + '/' + LEVELS.length * 3, 'stars') + stat(streak, streak === 1 ? 'day in a row' : 'days in a row') + stat(done + '/' + LEVELS.length, 'levels finished') + '</div>' +
     '<p class="pg-line">' + t.n + ' notes, rhythms and keys answered, ' + pct + ' of them right.</p>' +
     '<div class="legend" aria-label="Colour key">' + ['strong', 'ok', 'weak', 'new'].map(m => '<span class="lg m-' + m + '"><i></i>' + MASTERY_WORD[m] + '</span>').join('') + '</div>' +
-    '<section class="pg-sec"><div class="pg-head"><h2 class="sec-title">Notes on the staff</h2><p class="hint">From reading notes and finding them on the guitar.</p></div><div class="paper pg-staff" id="pgStaff"></div></section>' +
+    '<section class="pg-sec"><div class="pg-head"><h2 class="sec-title">Notes on the staff</h2><p class="hint">From reading notes, finding them and playing them on the guitar.</p></div><div class="paper pg-staff" id="pgStaff"></div></section>' +
     '<section class="pg-sec"><div class="pg-head"><h2 class="sec-title">Spots on the fretboard</h2><p class="hint">From naming frets.</p></div><div class="board-card"><div class="fb-wrap" id="pgBoard"></div></div></section>' +
     '<section class="pg-sec"><div class="pg-head"><h2 class="sec-title">Note lengths</h2></div><div class="chips" id="pgRhythm"></div></section>' +
     '<section class="pg-sec"><div class="pg-head"><h2 class="sec-title">Key signatures</h2></div><div class="chips" id="pgKeys"></div></section>' +
@@ -3906,7 +4441,7 @@ function viewProgress(main) {
       const items = [];
       for (let p = r[0]; p <= r[1]; p++) {
         const pt = pitchAt(p, 0), id = pitchId(pt);
-        items.push({ kind: 'note', p, dur: 'w', cls: 'm-' + combinedMastery(['read:' + id, 'find:' + id]), label: nmShort(pt) });
+        items.push({ kind: 'note', p, dur: 'w', cls: 'm-' + combinedMastery(['read:' + id, 'find:' + id, 'play:' + id]), label: nmShort(pt) });
       }
       mountStaff($('[data-row="' + i + '"]', host), { clef: 'g8', items, gap: 2.55, padR: 0.5, yRange: [-3.6, 8.2], aria: 'Notes from low E to high E, coloured by how well you know them' }, isPhone() ? 9.5 : 10.5);
     });
@@ -3935,7 +4470,7 @@ function openSheet(el) {
   const f = el.querySelector('input, button');
   if (f) f.focus();
 }
-function closeSheet(el) { el.hidden = true; if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function closeSheet(el) { el.hidden = true; if (el._close) { const f = el._close; el._close = null; f(); } if (lastFocus && lastFocus.focus) lastFocus.focus(); }
 function openConfirm(title, text, okLabel, onOk) {
   const el = $('#confirm');
   $('#confirmTitle').textContent = title;
@@ -3950,6 +4485,33 @@ function syncSettingsForm() {
   $$('input[name="names"]').forEach(r => { r.checked = r.value === s.names; });
   $('#setSound').checked = s.sound;
   $('#setAuto').checked = s.autoNext;
+  $('#setListen').checked = s.listen;
+  $('#setSpeaker').checked = s.speaker;
+}
+/* ---------- Tuner ---------- */
+function openTuner() {
+  const el = $('#tuner');
+  const strings = $('#tnStrings', el);
+  strings.innerHTML = [6, 5, 4, 3, 2, 1].map(s => '<button class="btn small" data-s="' + s + '"><b>' + nmShort(spellings(OPEN_WRITTEN[s])[0]) + '</b><small>' + ordinal(s) + '</small></button>').join('');
+  $('.tn-mic', el).innerHTML = micPanelHTML({});
+  const name = $('#tnName', el), str = $('#tnString', el), needle = $('#tnNeedle', el), hz = $('#tnHz', el), dial = $('.tn-dial', el);
+  let last = 0;
+  const stopPanel = mountMic(el, { idle: 'Listening. Play one string.', noAuto: true });
+  const off = Mic.on('frame', fr => {
+    if (!fr.voiced || fr.muted) { if (fr.t - last > 1500) { dial.className = 'tn-dial'; } return; }
+    last = fr.t;
+    const w = fr.midi + 12, sp = spellings(w)[0];
+    name.textContent = nmShort(sp);
+    const near = [6, 5, 4, 3, 2, 1].find(s => OPEN_WRITTEN[s] === w);
+    str.textContent = near ? ordinal(near) + ' string, open' : '';
+    needle.style.left = (50 + Math.max(-50, Math.min(50, fr.cents))) + '%';
+    dial.className = 'tn-dial ' + (Math.abs(fr.cents) <= 5 ? 'in' : Math.abs(fr.cents) <= 20 ? 'near' : 'off');
+    hz.textContent = fr.freq.toFixed(1) + ' hertz, ' + (fr.cents === 0 ? 'in tune' : Math.abs(fr.cents) + ' cents ' + (fr.cents < 0 ? 'flat' : 'sharp'));
+  });
+  strings.onclick = e => { const b = e.target.closest('[data-s]'); if (b) Sound.note(OPEN_WRITTEN[+b.dataset.s], { dur: 2.2 }); };
+  el._close = () => { off(); stopPanel(); if (!(App.run && !App.run.done) && !(App.route === 'explore' && App.ex.listen)) Mic.stop(); };
+  openSheet(el);
+  if (Mic.state === 'off') Mic.start();
 }
 function runKey(e) {
   const R = App.run;
@@ -3983,20 +4545,23 @@ function runKey(e) {
 }
 function initShell() {
   installGlyphSprite();
-  const settings = $('#settings'), confirmEl = $('#confirm');
+  const settings = $('#settings'), confirmEl = $('#confirm'), tunerEl = $('#tuner');
   $('#btnSettings').addEventListener('click', () => { syncSettingsForm(); openSheet(settings); });
+  $('#btnTuner').addEventListener('click', () => { closeSheet(settings); openTuner(); });
   settings.addEventListener('change', e => {
     if (e.target.name === 'names') { Store.setSetting('names', e.target.value); if (App.run && !App.run.done && App.route === App.run.origin) { renderCard(); } else render(false); }
     if (e.target.id === 'setSound') { Store.setSetting('sound', e.target.checked); Sound.setEnabled(e.target.checked); }
     if (e.target.id === 'setAuto') Store.setSetting('autoNext', e.target.checked);
+    if (e.target.id === 'setListen') { Store.setSetting('listen', e.target.checked); if (!e.target.checked && Mic.state !== 'off') Mic.stop(); }
+    if (e.target.id === 'setSpeaker') { Store.setSetting('speaker', e.target.checked); if (Mic.state === 'on') { Mic.stop(); Mic.start(); } }
   });
-  [settings, confirmEl].forEach(el => {
+  [settings, confirmEl, tunerEl].forEach(el => {
     el.addEventListener('click', e => { if (e.target === el || e.target.closest('[data-close]')) closeSheet(el); });
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { [settings, confirmEl].forEach(el => { if (!el.hidden) closeSheet(el); }); }
+    if (e.key === 'Escape') { [settings, confirmEl, tunerEl].forEach(el => { if (!el.hidden) closeSheet(el); }); }
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (!settings.hidden || !confirmEl.hidden) return;
+    if (!settings.hidden || !confirmEl.hidden || !tunerEl.hidden) return;
     runKey(e);
   });
   document.addEventListener('pointerdown', () => Sound.unlock(), { once: true, capture: true });
