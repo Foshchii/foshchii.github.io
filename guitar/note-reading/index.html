@@ -354,6 +354,7 @@ main { display: block; max-width: 980px; margin: 0 auto; padding: 24px 20px 120p
 .mode-btns { display: flex; flex-direction: column; gap: 8px; }
 .mode-art { width: 52px; height: 52px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
 .mode-art svg { width: 34px; height: 26px; overflow: visible; }
+.mode.tall .mode-art { align-self: start; }
 .mode h3 { font-size: 17.5px; margin: 0; line-height: 1.25; }
 .mode-txt p { color: var(--muted); font-size: 14.5px; line-height: 1.4; margin-top: 2px; }
 .mode-txt .mode-last { font-size: 13px; margin-top: 4px; }
@@ -758,6 +759,36 @@ body.in-run .tabbar { display: none; }
   --warn: #e9b25a; --on-warn: #21160d; --warn-soft: #3a2a12;
   --shadow: none;
 }
+/* Tap the rhythm */
+.q-tap .tap-how { margin: -4px 0 12px; color: var(--muted); font-size: 15px; line-height: 1.45; }
+.tap-score { padding: 8px 6px 4px; overflow: hidden; }
+.tap-score svg { display: block; margin: 0 auto; }
+.staff .tap-ph { fill: var(--accent); opacity: .9; }
+.staff .tap-mk { fill: var(--accent); }
+.staff .tap-mk.good { fill: var(--good); }
+.staff .tap-mk.off { fill: var(--warn); }
+.staff .tap-mk.extra { fill: var(--bad); }
+.staff .nt.now { color: var(--accent); }
+.staff .lbl.t-good { fill: var(--good); font-weight: 700; }
+.staff .lbl.t-late { fill: var(--warn); font-weight: 700; }
+.staff .lbl.t-bad { fill: var(--bad); font-weight: 700; }
+.tap-pad { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; min-height: 128px; margin: 14px 0 4px; padding: 12px; border-radius: 22px;
+  border: 2px solid var(--accent); background: var(--accent); color: var(--accent-ink); cursor: pointer; font: inherit;
+  touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; transition: transform .07s ease-out, background-color .15s, color .15s; }
+.tap-pad .tap-big { font: 600 34px/1 var(--font-display); }
+.tap-pad .tap-small { font-size: 14px; line-height: 1.3; opacity: .86; }
+.tap-pad[data-phase="count"], .tap-pad[data-phase="take"], .tap-pad.demo { background: var(--accent-soft); color: var(--accent); }
+.tap-pad[data-phase="count"] .tap-big { font-size: 52px; font-variant-numeric: lining-nums; }
+.tap-pad[data-phase="take"] .tap-big { font-size: 40px; }
+.tap-pad.demo { cursor: default; border-style: dashed; }
+.tap-pad.hit { transform: scale(.975); background: var(--accent); color: var(--accent-ink); transition: none; }
+.tap-pad:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.tap-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 12px; }
+.tap-speed { display: flex; align-items: center; gap: 8px; }
+.tap-key { margin: 8px 2px 0; font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+.tap-key .tap-tri { display: inline-block; width: 0; height: 0; margin-right: 6px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid var(--muted); vertical-align: 1px; }
+.tap-key .k-good { color: var(--good); font-weight: 600; } .tap-key .k-late { color: var(--warn); font-weight: 600; } .tap-key .k-bad { color: var(--bad); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .tap-pad, .tap-pad.hit { transition: none; transform: none; } }
 /* Listening strip */
 .mic { margin: 14px 0 2px; padding: 10px 12px 11px; border: 1px solid var(--rule); border-radius: 16px; background: var(--paper); }
 .mic-row { display: flex; align-items: center; gap: 12px; }
@@ -1279,11 +1310,20 @@ function staffSVG(spec) {
     const first = geo[idx[0]], last = geo[idx[idx.length - 1]];
     const sx = g => dir === 'up' ? g.x + 1.18 - ENG.stem : g.x;
     const x1 = sx(first), x2 = sx(last) + ENG.stem;
-    const levels = geo[idx[0]].it.dur === 's' ? 2 : 1;
-    for (let k = 0; k < levels; k++) {
+    const beamRect = (a, b, k) => {
       const yy = dir === 'up' ? by + k * ENG.beamStep : by - k * ENG.beamStep - ENG.beam;
-      out.push('<rect class="beam" x="' + n3(x1) + '" y="' + n3(yy) + '" width="' + n3(x2 - x1) + '" height="' + ENG.beam + '" data-beam="' + idx[0] + '"/>');
+      out.push('<rect class="beam" x="' + n3(a) + '" y="' + n3(yy) + '" width="' + n3(b - a) + '" height="' + ENG.beam + '" data-beam="' + idx[0] + '"/>');
       grow(yy, yy + ENG.beam);
+    };
+    beamRect(x1, x2, 0);
+    for (let k = 0; k < idx.length;) {
+      if (geo[idx[k]].it.dur !== 's') { k++; continue; }
+      let e = k;
+      while (e + 1 < idx.length && geo[idx[e + 1]].it.dur === 's') e++;
+      if (e > k) beamRect(sx(geo[idx[k]]), sx(geo[idx[e]]) + ENG.stem, 1);
+      else if (k === idx.length - 1) beamRect(sx(geo[idx[k]]) + ENG.stem - 1.1, sx(geo[idx[k]]) + ENG.stem, 1);
+      else beamRect(sx(geo[idx[k]]), sx(geo[idx[k]]) + 1.1, 1);
+      k = e + 1;
     }
   });
 
@@ -1669,7 +1709,7 @@ const Sound = (() => {
       return src;
     } catch (e) { return null; }
   }
-  function click(at, strong) {
+  function click(at, strong, soft) {
     const c = ready();
     if (!c || !enabled) return;
     try {
@@ -1677,7 +1717,7 @@ const Sound = (() => {
       osc.type = 'triangle';
       osc.frequency.value = strong ? 1760 : 1175;
       g.gain.setValueAtTime(0.0001, at);
-      g.gain.exponentialRampToValueAtTime(strong ? 0.32 : 0.18, at + 0.003);
+      g.gain.exponentialRampToValueAtTime((strong ? 0.32 : 0.18) * (soft ? 0.62 : 1), at + 0.003);
       g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
       osc.connect(g); g.connect(master);
       osc.start(at); osc.stop(at + 0.08);
@@ -1890,6 +1930,7 @@ function createNoteTracker(on) {
     if (onset) {
       if (!armedAt || fr.t - armedAt > 90) {
         armedAt = fr.t;
+        if (on.onset) on.onset({ t: fr.t, rms: fr.rms });
         /* notes heard clearly just before this pluck are probably still ringing */
         /* most recent first; a note an octave or a twelfth below another ringing note is usually a misreading of it */
         const order = [];
@@ -1953,7 +1994,7 @@ const Mic = (() => {
   let stream = null, ctx = null, source = null, analyser = null, raw = null, half = null, raf = 0, sr2 = 24000;
   let tracker = null, quietUntil = 0, expectList = [], token = 0;
   const work = { d: null, maxTau: 0 };
-  const fns = { state: new Set(), frame: new Set(), note: new Set(), match: new Set() };
+  const fns = { state: new Set(), frame: new Set(), note: new Set(), match: new Set(), onset: new Set() };
   function emit(kind, v) { fns[kind].forEach(fn => { try { fn(v); } catch (e) { console.error(e); } }); }
   function supported() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && (window.AudioContext || window.webkitAudioContext));
@@ -1982,7 +2023,7 @@ const Mic = (() => {
       raw = new Float32Array(analyser.fftSize);
       half = new Float32Array(analyser.fftSize / 2);
       sr2 = ctx.sampleRate / 2;
-      tracker = createNoteTracker({ note: ev => emit('note', ev), match: ev => emit('match', ev) });
+      tracker = createNoteTracker({ note: ev => emit('note', ev), match: ev => emit('match', ev), onset: ev => emit('onset', ev) });
       tracker.expect(expectList);
       if (ctx.state !== 'running') { try { await ctx.resume(); } catch (e) { /* needs a tap */ } }
       stream.getAudioTracks().forEach(t => { t.onended = () => { if (stream === s) { release(); set('error'); } }; });
@@ -2082,7 +2123,7 @@ function mountMic(root, o) {
     btn.setAttribute('aria-pressed', s === 'on');
     btnTxt.textContent = s === 'on' ? 'Stop' : s === 'asking' ? 'Wait…' : 'Listen';
     btn.disabled = s === 'asking' || s === 'unsupported';
-    if (s !== 'on') { text.textContent = MIC_TEXT[s] || MIC_TEXT.off; text.className = 'mic-text'; meter.style.width = '0'; name.textContent = '–'; tune.style.left = '50%'; el.classList.remove('hears'); }
+    if (s !== 'on') { text.textContent = (s === 'off' && o.offText) || MIC_TEXT[s] || MIC_TEXT.off; text.className = 'mic-text'; meter.style.width = '0'; name.textContent = '–'; tune.style.left = '50%'; el.classList.remove('hears'); }
     else if (!msg || performance.now() > msgUntil) { msg = null; text.textContent = idle(); text.className = 'mic-text'; }
   }
   function say(t, cls, ms) { msg = t; msgUntil = performance.now() + (ms || 2200); text.textContent = t; text.className = 'mic-text ' + (cls || ''); }
@@ -2103,6 +2144,7 @@ function mountMic(root, o) {
     }),
     Mic.on('note', ev => { if (o.onNote) o.onNote(ev, say); }),
     Mic.on('match', ev => { if (o.onMatch) o.onMatch(ev, say); }),
+    Mic.on('onset', ev => { if (o.onOnset) o.onOnset(ev, say); }),
   ];
   btn.addEventListener('click', e => {
     e.stopPropagation();
@@ -2125,12 +2167,13 @@ function mountMic(root, o) {
    so phone and computer share one history.
    ============================================================ */
 const STORE_KEY = 'guitar-note-reading-v1';
-const DEFAULT_SETTINGS = { names: 'letters', sound: true, autoNext: true, listen: false, speaker: false, melNames: false };
+const DEFAULT_SETTINGS = { names: 'letters', sound: true, autoNext: true, listen: false, speaker: false, melNames: false, tapCounts: true, tapSpeed: 'medium' };
 const DEFAULT_PRACTICE = {
   notes: { strings: [1, 2, 3, 4, 5, 6], maxFret: 3, accidentals: false },
   rhythm: { rests: true, dotted: false },
   keys: { max: 2 },
   melody: { range: 'treble', key: 'C', rhythm: 1 },
+  tap: { level: 1 },
 };
 const DAILY_GOAL = 50;
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -2177,6 +2220,8 @@ function sanitizeStore(d) {
     if (typeof d.settings.listen === 'boolean') b.settings.listen = d.settings.listen;
     if (typeof d.settings.speaker === 'boolean') b.settings.speaker = d.settings.speaker;
     if (typeof d.settings.melNames === 'boolean') b.settings.melNames = d.settings.melNames;
+    if (typeof d.settings.tapCounts === 'boolean') b.settings.tapCounts = d.settings.tapCounts;
+    if (['slow', 'medium', 'fast'].indexOf(d.settings.tapSpeed) >= 0) b.settings.tapSpeed = d.settings.tapSpeed;
   }
   if (obj(d.practice)) {
     const n = d.practice.notes;
@@ -2196,6 +2241,8 @@ function sanitizeStore(d) {
       if (['C', 'G', 'F', 'D'].indexOf(ml.key) >= 0) b.practice.melody.key = ml.key;
       if ([1, 2, 3].indexOf(ml.rhythm) >= 0) b.practice.melody.rhythm = ml.rhythm;
     }
+    const tp = d.practice.tap;
+    if (tp && [1, 2, 3, 4, 5].indexOf(tp.level) >= 0) b.practice.tap.level = tp.level;
   }
   b.settingsAt = +d.settingsAt || 0;
   b.updated = +d.updated || 0;
@@ -3661,6 +3708,428 @@ function startTune(id) {
   startRun({ kind: 'practice', title: t.title, mode: 'tune', tune: id, cards: [melodyCard(t)], total: 1, origin: 'practice' });
 }
 
+/* ============================================================
+   Tap the rhythm. A short rhythm sits on the staff; after a
+   count-in, tap once for every note, in time with the clicks.
+   Each tap is compared with its note after taking away a steady
+   delay (a slow loudspeaker or Bluetooth headphones), so what
+   counts is the rhythm itself.
+   ============================================================ */
+/* Cells are one or two beats long; a token is a length (w h q e s), then . for a dot,
+   r for a rest, ~ to tie into the next note. Repeats in a list make a cell more likely. */
+const TAP_LEVELS = {
+  1: { label: 'Whole, half and quarter notes', short: 'Long notes', cells: ['q', 'q', 'q', 'q', 'h', 'h', 'h.', 'w'] },
+  2: { label: 'With rests', short: 'Rests', cells: ['q', 'q', 'q', 'h', 'h.', 'qr', 'qr', 'hr'], must: /r/ },
+  3: { label: 'Eighth notes', short: 'Eighths', cells: ['q', 'q', 'h', 'qr', 'e e', 'e e', 'e e'], must: /(^| )e( |$)/ },
+  4: { label: 'Dotted notes and ties', short: 'Dots and ties', cells: ['q', 'qr', 'e e', 'e e', 'q. e', 'q. e', 'h.', 'q~ q', 'er e'], must: /\.|~|er/ },
+  5: { label: 'Sixteenth notes', short: 'Sixteenths', cells: ['q', 'e e', 'e e', 's s s s', 's s s s', 'e s s', 's s e', 'q. e', 'qr'], must: /(^| )s( |$)/ },
+};
+const TAP_SPEEDS = [{ id: 'slow', bpm: 60, label: 'Slow' }, { id: 'medium', bpm: 72, label: 'Medium' }, { id: 'fast', bpm: 90, label: 'Fast' }];
+const TAP_MIDI = 71; /* the note a tap sounds: written B, the open 2nd string an octave up */
+
+function tokBeats(t) { const m = /^([whqes])(\.?)/.exec(t); return durBeats(m[1], m[2] ? 1 : 0); }
+function cellBeats(cell) { return cell.split(' ').reduce((a, t) => a + tokBeats(t), 0); }
+
+/* 'q q h | e e e e h' in 4/4: two measures. */
+function parseRh(src, time) {
+  const evs = [];
+  let bar = 0;
+  src.trim().split(/\s+/).forEach(tok => {
+    if (tok === '|') { bar++; return; }
+    const m = /^([whqes])(\.?)(r?)(~?)$/.exec(tok);
+    if (!m) throw new Error('bad rhythm ' + tok);
+    evs.push({ dur: m[1], dots: m[2] ? 1 : 0, rest: !!m[3], tie: !!m[4], bar, beats: durBeats(m[1], m[2] ? 1 : 0) });
+  });
+  const rh = { time, evs, src, per: time[0] * 4 / time[1] };
+  let at = 0;
+  evs.forEach((ev, i) => {
+    ev.i = i; ev.start = at; at += ev.beats;
+    ev.held = i > 0 && evs[i - 1].tie && !ev.rest; /* a note tied from the one before: no new tap */
+  });
+  rh.total = at;
+  rh.bars = Math.round(at / rh.per);
+  /* beams: eighths and sixteenths inside one beat */
+  let group = [];
+  const flush = () => { if (group.length > 1) group.forEach(ev => { ev.beam = 'b' + group[0].i; }); group = []; };
+  evs.forEach(ev => {
+    const short = !ev.rest && (ev.dur === 'e' || ev.dur === 's');
+    if (!short) { flush(); return; }
+    const beat = Math.floor(ev.start + 1e-6);
+    if (group.length && Math.floor(group[0].start + 1e-6) !== beat) flush();
+    group.push(ev);
+    if (ev.start + ev.beats >= beat + 1 - 1e-6) flush();
+  });
+  flush();
+  rh.onsets = evs.filter(ev => !ev.rest && !ev.held).map(ev => ev.start);
+  rh.onsetEv = evs.filter(ev => !ev.rest && !ev.held).map(ev => ev.i);
+  return rh;
+}
+
+function tapCellFits(cell, pos, per, bar, lastRest) {
+  const len = cellBeats(cell);
+  if (pos + len > per + 1e-6) return false;
+  const rest = /r/.test(cell.split(' ')[0]);
+  if (rest && bar === 0 && pos === 0) return false; /* start on a note */
+  if (rest && lastRest) return false;
+  if (cell === 'w') return pos === 0 && per === 4;
+  if (cell === 'h.') return pos === 0;
+  if (len === 2) return pos === 0 || (per === 4 && pos === 2) || (per === 3 && pos === 1 && (cell === 'h' || cell === 'hr'));
+  return true;
+}
+/* Two measures at the chosen level: 4/4 or 3/4, and 2/4 for sixteenths, which need the room. */
+function genRhythm(level, time) {
+  const L = TAP_LEVELS[level] || TAP_LEVELS[1];
+  for (let attempt = 0; attempt < 80; attempt++) {
+    const t = time || (level >= 5 ? [2, 4] : Math.random() < 0.68 ? [4, 4] : [3, 4]);
+    const per = t[0];
+    const toks = [];
+    let fine = true;
+    for (let b = 0; b < 2; b++) {
+      if (b) toks.push('|');
+      let pos = 0, notes = 0, lastRest = false;
+      while (pos < per - 1e-6) {
+        const fits = L.cells.filter(cell => tapCellFits(cell, pos, per, b, lastRest));
+        const cell = fits.length ? rnd(fits) : 'q';
+        const parts = cell.split(' ');
+        parts.forEach(x => toks.push(x));
+        if (parts.some(x => !/r/.test(x))) notes++;
+        lastRest = /r/.test(parts[parts.length - 1]);
+        pos += cellBeats(cell);
+      }
+      if (!notes) fine = false;
+    }
+    const src = toks.join(' ');
+    if (!fine || (L.must && !L.must.test(src))) continue;
+    if (/^w \| w$/.test(src)) continue;
+    const rh = parseRh(src, t);
+    if (rh.onsets.length < 3) continue;
+    rh.level = level;
+    return rh;
+  }
+  return parseRh('q q h | q q h', [4, 4]);
+}
+
+/* How a note is counted: 1 2 3 4 for beats, & halfway, e and a for the quarters between. */
+function rhCount(rh, ev) {
+  const b = ev.start - ev.bar * rh.per, n = Math.floor(b + 1e-6), f = Math.round((b - n) * 4);
+  const s = f === 0 ? String(n + 1) : f === 2 ? '&' : f === 1 ? 'e' : 'a';
+  return ev.rest ? '(' + s + ')' : ev.held ? '' : s;
+}
+/* "beat 3 of bar 2", "“2 &” of bar 1": where in the rhythm a moment falls, for feedback. */
+function rhPlace(rh, beat) {
+  const bar = Math.min(rh.bars - 1, Math.floor(beat / rh.per + 1e-6)), b = beat - bar * rh.per, n = Math.floor(b + 1e-6), f = Math.round((b - n) * 4) % 4;
+  const where = f === 0 ? 'beat ' + (n + 1) : '“' + (n + 1) + ' ' + (f === 2 ? '&' : f === 1 ? 'e' : 'a') + '”';
+  return where + (rh.bars > 1 ? ' of bar ' + (bar + 1) : '');
+}
+
+/* Compare taps (seconds after the first beat) with the notes (beats).
+   A steady delay up to 0.2 s is taken away first: the median gap from each tap to its nearest note. */
+function gradeTaps(onsets, taps, spb) {
+  const exp = onsets.map(b => b * spb);
+  let minIOI = spb * 4;
+  for (let i = 1; i < exp.length; i++) minIOI = Math.min(minIOI, exp[i] - exp[i - 1]);
+  const W = Math.min(0.24, 0.45 * minIOI), T = Math.min(0.11, 0.3 * minIOI);
+  const run = d => {
+    const used = taps.map(() => false);
+    const notes = exp.map(e => {
+      let best = -1, bd = W;
+      taps.forEach((t, j) => { const dd = Math.abs(t - d - e); if (!used[j] && dd <= bd) { bd = dd; best = j; } });
+      if (best < 0) return { grade: 'miss' };
+      used[best] = true;
+      const err = taps[best] - d - e;
+      return { tap: best, err, grade: Math.abs(err) <= T ? 'good' : err < 0 ? 'early' : 'late' };
+    });
+    const extras = [];
+    used.forEach((u, j) => { if (!u) extras.push(j); });
+    const hits = notes.filter(n => n.grade !== 'miss').length;
+    const cost = notes.reduce((a, n) => a + (n.grade === 'miss' ? W : Math.abs(n.err)), 0);
+    return { notes, extras, hits, cost, d };
+  };
+  const reach = Math.min(0.3, minIOI / 2);
+  const near = [];
+  taps.forEach(t => {
+    let m = null;
+    exp.forEach(e => { const dd = t - e; if (Math.abs(dd) <= reach && (m === null || Math.abs(dd) < Math.abs(m))) m = dd; });
+    if (m !== null) near.push(m);
+  });
+  near.sort((a, b) => a - b);
+  const med = near.length ? near[Math.floor(near.length / 2)] : 0;
+  const a = run(0), b = run(Math.max(-0.2, Math.min(0.2, med)));
+  const better = b.hits > a.hits || (b.hits === a.hits && (b.extras.length < a.extras.length || (b.extras.length === a.extras.length && b.cost < a.cost)));
+  const g = better ? b : a;
+  g.total = exp.length;
+  g.good = g.notes.filter(n => n.grade === 'good').length;
+  g.misses = g.total - g.hits;
+  g.off = g.hits - g.good;
+  g.ok = g.misses === 0 && g.extras.length === 0 && g.off <= Math.floor(g.total / 4);
+  g.perfect = g.good === g.total && g.extras.length === 0;
+  g.W = W; g.T = T;
+  return g;
+}
+
+/* ---------- The tap card ---------- */
+function tapCard(rh, o) {
+  o = o || {};
+  const lvl = TAP_LEVELS[rh.level];
+  return {
+    t: 'tap', kicker: 'Tap the rhythm', prompt: o.prompt || 'Tap this rhythm', rh,
+    key: o.key || null,
+    hear: () => tapDemo(),
+    answerText: '', review: 'Tapping' + (lvl ? ': ' + lvl.label.toLowerCase() : ' a rhythm'),
+    explain: st => tapExplain(rh, st),
+  };
+}
+function tapSpeed() { return TAP_SPEEDS.find(s => s.id === Store.settings.tapSpeed) || TAP_SPEEDS[1]; }
+function tapCountIn(rh) { return rh.time[0] >= 3 ? rh.time[0] : rh.time[0] * 2; }
+/* Map AudioContext time to the page clock (performance.now), adding the output delay where the browser reports it.
+   getOutputTimestamp is not used: some WebKit builds run its clock at the wrong rate. Whatever delay is left
+   (Bluetooth headphones) is taken off when the taps are graded. */
+function ctxToPerf(ctx, t) {
+  const lat = Math.min(0.5, (+ctx.outputLatency || 0) + (+ctx.baseLatency || 0));
+  return performance.now() + (t - ctx.currentTime + lat) * 1000;
+}
+
+/* The staff, drawn with room above it for the tap marks, and a map from beats to x positions. */
+function tapScore(el, c, st) {
+  const rh = c.rh, beatW = rh.time[0] === 2 ? 5.4 : 4;
+  const res = st.choice && st.choice.grade;
+  const gradeOf = {};
+  if (res) rh.onsetEv.forEach((ei, k) => { gradeOf[ei] = res.notes[k].grade; });
+  const extraIn = {};
+  if (res) res.extras.forEach(j => {
+    const b = (st.taps[j] - res.d) / st.spb;
+    const ev = rh.evs.find(e => b >= e.start - 0.2 && b < e.start + e.beats - 0.2) || rh.evs[rh.evs.length - 1];
+    extraIn[ev.i] = true;
+  });
+  const items = [], itemOf = [];
+  rh.evs.forEach((ev, i) => {
+    if (i && ev.bar !== rh.evs[i - 1].bar) items.push({ kind: 'bar' });
+    const it = ev.rest ? { kind: 'rest', dur: ev.dur, dots: ev.dots } : { kind: 'note', p: 3, dur: ev.dur, dots: ev.dots, beam: ev.beam, tie: ev.tie, midi: TAP_MIDI };
+    it.w = Math.max(ev.beats * beatW, ev.dur === 's' ? 1.5 : 1.9) + (ev.dots ? 0.5 : 0);
+    const g = gradeOf[i];
+    const gc = g === 'good' ? 'good' : g === 'early' || g === 'late' ? 'late' : g === 'miss' ? 'bad' : extraIn[i] ? 'bad' : '';
+    it.cls = gc;
+    if (st.counts) { it.label = rhCount(rh, ev); if (gc) it.labelCls = 't-' + gc; }
+    items.push(it); itemOf[i] = items.length - 1;
+  });
+  const spec = { clef: null, time: rh.time, items, padR: 0.8, endBar: 'final', reserveLabel: st.counts, yRange: [-3.3, 4.9], aria: 'A rhythm of ' + rh.bars + ' measures in ' + rh.time.join('/') + ' time' };
+  const avail = Math.max(240, el.clientWidth - 8);
+  const r = staffSVG(spec);
+  const sp = Math.min(staffSp(true), avail / r.W);
+  el.innerHTML = r.svg;
+  const svg = el.firstChild;
+  svg.setAttribute('width', Math.round(r.W * sp));
+  svg.setAttribute('height', Math.round(r.H * sp));
+  /* beats to x: each note's head, then the final bar line */
+  const geoOf = {};
+  r.noteGeo.forEach(gm => { geoOf[gm.i] = gm; });
+  const ax = rh.evs.map(ev => { const gm = geoOf[itemOf[ev.i]]; return { b: ev.start, x: gm.x + gm.w / 2 }; });
+  ax.push({ b: rh.total, x: r.W - 1.2 });
+  st.ax = ax;
+  const NS_ = 'http://www.w3.org/2000/svg';
+  const marks = document.createElementNS(NS_, 'g');
+  marks.setAttribute('class', 'tap-marks');
+  svg.appendChild(marks);
+  st.marksEl = marks;
+  const ph = document.createElementNS(NS_, 'rect');
+  ph.setAttribute('class', 'tap-ph'); ph.setAttribute('y', '-3'); ph.setAttribute('width', '0.22'); ph.setAttribute('height', '7.6'); ph.setAttribute('rx', '0.11');
+  ph.setAttribute('x', n3(ax[0].x - 0.11));
+  ph.style.display = st.phase === 'count' || st.phase === 'take' || st.phase === 'demo' ? '' : 'none';
+  svg.appendChild(ph);
+  st.ph = ph;
+  st.ntEls = Array.from(svg.querySelectorAll('.nt'));
+  /* the taps so far, or the graded ones */
+  if (res) st.taps.forEach((t, j) => {
+    const k = res.notes.findIndex(n => n.tap === j);
+    const cls = k < 0 ? 'extra' : res.notes[k].grade === 'good' ? 'good' : 'off';
+    tapMark(st, (t - res.d) / st.spb, cls);
+  });
+  else if (st.phase === 'take' || st.phase === 'count') st.taps.forEach(t => tapMark(st, t / st.spb, ''));
+}
+function tapX(st, beat) {
+  const ax = st.ax;
+  if (!ax || !ax.length) return 0;
+  if (beat <= ax[0].b) return ax[0].x;
+  for (let k = 1; k < ax.length; k++) {
+    if (beat <= ax[k].b) { const a = ax[k - 1], b = ax[k]; return a.x + (b.x - a.x) * (beat - a.b) / (b.b - a.b || 1); }
+  }
+  return ax[ax.length - 1].x;
+}
+function tapMark(st, beat, cls) {
+  if (!st.marksEl) return;
+  const x = tapX(st, Math.max(-0.3, beat));
+  const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  p.setAttribute('class', 'tap-mk' + (cls ? ' ' + cls : ''));
+  p.setAttribute('d', 'M' + n3(x - 0.5) + ' -2.75L' + n3(x + 0.5) + ' -2.75L' + n3(x) + ' -1.85Z');
+  st.marksEl.appendChild(p);
+}
+
+/* The pad: Start, then the count, then Tap. */
+function tapPadHTML(c, st) {
+  const n = tapCountIn(c.rh);
+  return '<button class="tap-pad" data-tap data-phase="' + st.phase + '" aria-label="Start">' +
+    '<b class="tap-big">Start</b><small class="tap-small">' + n + ' clicks count you in</small></button>';
+}
+function tapPadSet(st, phase, big, small) {
+  const pad = $('#runCard [data-tap]');
+  if (!pad) return;
+  if (pad.dataset.phase !== phase) { pad.dataset.phase = phase; pad.setAttribute('aria-label', phase === 'take' ? 'Tap' : phase === 'count' ? 'Get ready' : phase === 'demo' ? 'Listening' : 'Start'); }
+  const b = pad.querySelector('.tap-big'), s = pad.querySelector('.tap-small');
+  if (b && b.textContent !== big) b.textContent = big;
+  if (s && s.textContent !== small) s.textContent = small;
+}
+
+/* Count in, then tap (or, for Hear it, listen). Clicks mark every beat; the playhead follows. */
+function tapGo(demo, again) {
+  const R = App.run;
+  if (!R || R.card.t !== 'tap') return;
+  const c = R.card, st = R.st;
+  if (!demo && st.answered) return;
+  tapHalt(st);
+  const ctx = Sound.context();
+  if (ctx && ctx.state !== 'running' && !again) {
+    /* the sound wakes up first (phones), then the count starts */
+    st.phase = 'wait';
+    let done = false;
+    const go = () => { if (done) return; done = true; if (App.run === R && R.st === st && st.phase === 'wait') tapGo(demo, true); };
+    try { const p = ctx.resume(); if (p && p.then) p.then(go, go); } catch (e) { go(); }
+    st.timer = setTimeout(go, 500);
+    return;
+  }
+  const spb = 60 / tapSpeed().bpm;
+  const n = tapCountIn(c.rh), per = c.rh.time[0];
+  st.spb = spb; st.taps = demo ? st.taps : [];
+  st.phase = demo ? 'demo' : 'count';
+  if (!demo && st.marksEl) st.marksEl.innerHTML = '';
+  let t0;
+  if (ctx) {
+    const tStart = ctx.currentTime + 0.1;
+    t0 = tStart + n * spb;
+    st.perfT0 = ctxToPerf(ctx, t0);
+    for (let b = 0; b < n; b++) Sound.click(tStart + b * spb, b % per === 0);
+    /* the clicks go on while you tap; not while the microphone listens, as it is deaf during the app's own sounds */
+    if (demo || Mic.state !== 'on') for (let b = 0; b < Math.ceil(c.rh.total - 1e-6); b++) Sound.click(t0 + b * spb, b % per === 0, true);
+    if (demo) c.rh.evs.forEach((ev, i) => {
+      if (ev.rest || ev.held) return;
+      let len = ev.beats, k = i;
+      while (c.rh.evs[k].tie && c.rh.evs[k + 1]) { k++; len += c.rh.evs[k].beats; }
+      Sound.note(TAP_MIDI, { at: t0 + ev.start * spb, dur: Math.max(0.12, len * spb * 0.9), vol: 0.8 });
+    });
+  } else st.perfT0 = performance.now() + 100 + n * spb * 1000;
+  const tail = demo ? 0.15 : Math.max(0.3, Math.min(0.24, 0.45 * spb) + 0.12);
+  st.timer = setTimeout(() => tapEnd(demo), Math.max(0, st.perfT0 + (c.rh.total * spb + tail) * 1000 - performance.now()));
+  if (st.ph) st.ph.style.display = '';
+  const pad = $('#runCard [data-tap]');
+  if (pad) pad.classList.toggle('demo', !!demo);
+  const step = () => {
+    if (App.run !== R || R.st !== st || !(st.phase === 'count' || st.phase === 'take' || st.phase === 'demo')) return;
+    const beat = (performance.now() - st.perfT0) / 1000 / spb;
+    if (st.ph) st.ph.setAttribute('x', n3(tapX(st, Math.max(0, beat)) - 0.11));
+    if (st.phase === 'count' && beat >= -0.02) st.phase = 'take';
+    if (beat < 0) tapPadSet(st, st.phase === 'demo' ? 'demo' : 'count', String(Math.min(n, Math.floor(beat + n) + 1)), st.phase === 'demo' ? 'Listen' : 'Get ready');
+    else tapPadSet(st, st.phase, st.phase === 'demo' ? 'Listen' : 'Tap', st.phase === 'demo' ? 'Here is how it sounds' : 'Once for every note');
+    const cur = c.rh.evs.findIndex(ev => beat >= ev.start - 0.02 && beat < ev.start + ev.beats - 0.02);
+    if (st.ntEls && cur !== st.curEv) {
+      if (st.curEv >= 0 && st.ntEls[st.curEv]) st.ntEls[st.curEv].classList.remove('now');
+      if (cur >= 0 && st.ntEls[cur]) st.ntEls[cur].classList.add('now');
+      st.curEv = cur;
+    }
+    st.raf = requestAnimationFrame(step);
+  };
+  st.curEv = -1;
+  st.raf = requestAnimationFrame(step);
+}
+/* Stop what is running for this card: the timer, the playhead and any scheduled sound. */
+function tapHalt(st) {
+  if (st.raf) cancelAnimationFrame(st.raf);
+  if (st.timer) clearTimeout(st.timer);
+  st.raf = 0; st.timer = 0;
+  const running = st.phase === 'count' || st.phase === 'take' || st.phase === 'demo' || st.phase === 'wait';
+  if (running) Sound.stopAll();
+  if (st.ntEls && st.curEv >= 0 && st.ntEls[st.curEv]) st.ntEls[st.curEv].classList.remove('now');
+  st.curEv = -1;
+  if (st.ph) st.ph.style.display = 'none';
+  if (running) st.phase = st.answered ? 'done' : 'ready';
+}
+function tapEnd(demo) {
+  const R = App.run;
+  if (!R || R.card.t !== 'tap') return;
+  const c = R.card, st = R.st;
+  if (demo) { tapHalt(st); if (!st.answered) { tapPadSet(st, 'ready', 'Start', tapCountIn(c.rh) + ' clicks count you in'); const pad = $('#runCard [data-tap]'); if (pad) pad.classList.remove('demo'); } return; }
+  if (st.phase !== 'take' && st.phase !== 'count') return;
+  if (st.raf) cancelAnimationFrame(st.raf);
+  st.raf = 0; st.timer = 0;
+  st.phase = 'done';
+  st.taps.sort((a, b) => a - b);
+  answerCard({ grade: gradeTaps(c.rh.onsets, st.taps, st.spb) });
+}
+/* One tap: from the pad, the space bar or Enter. */
+function tapPress() {
+  const R = App.run;
+  if (!R || R.done || R.card.t !== 'tap') return;
+  const st = R.st;
+  if (st.answered || (st.phase !== 'count' && st.phase !== 'take')) return;
+  const now = performance.now();
+  if (Mic.state !== 'on') Sound.note(TAP_MIDI, { dur: 0.2, vol: 0.62 });
+  const pad = $('#runCard [data-tap]');
+  if (pad) { pad.classList.remove('hit'); void pad.offsetWidth; pad.classList.add('hit'); }
+  const t = (now - st.perfT0) / 1000;
+  if (t < -0.32) return; /* tapping along with the count-in */
+  st.taps.push(t);
+  tapMark(st, t / st.spb, '');
+}
+/* A note heard through the microphone counts as a tap, at the moment it was plucked. */
+function tapHeard(at) {
+  const R = App.run;
+  if (!R || R.done || R.card.t !== 'tap') return;
+  const st = R.st;
+  if (st.answered || (st.phase !== 'count' && st.phase !== 'take')) return;
+  const t = (at - st.perfT0) / 1000;
+  if (t < -0.32) return;
+  st.taps.push(t);
+  tapMark(st, t / st.spb, '');
+}
+function tapDemo() {
+  const R = App.run;
+  if (!R || R.card.t !== 'tap') return;
+  const st = R.st;
+  if (st.phase === 'count' || st.phase === 'take') return; /* not while you are tapping */
+  tapGo(true);
+}
+function tapExplain(rh, st) {
+  const g = st.choice && st.choice.grade;
+  if (!g) return 'After the count-in, tap once for every note, in time with the clicks. Rests get no tap.';
+  if (!st.taps.length) return 'No taps came in. After the count-in clicks, tap the big button once for every note.';
+  const out = [];
+  out.push((g.hits === g.total ? 'All ' + g.total + ' notes' : g.hits + ' of ' + g.total + ' notes') + (g.off ? ', ' + g.good + ' of them right on time.' : g.hits ? ', right on time.' : '.'));
+  const at = kind => g.notes.map((n, k) => n.grade === kind ? rhPlace(rh, rh.onsets[k]) : null).filter(Boolean);
+  const list = a => a.length > 2 ? a.slice(0, 2).join(', ') + ' and ' + (a.length - 2) + ' more' : a.join(' and ');
+  const miss = at('miss'), early = at('early'), late = at('late');
+  if (miss.length) out.push('Missed: ' + list(miss) + '.');
+  if (early.length) out.push('Early on ' + list(early) + '.');
+  if (late.length) out.push('Late on ' + list(late) + '.');
+  if (g.extras.length) {
+    const b = (st.taps[g.extras[0]] - g.d) / st.spb;
+    const ev = rh.evs.find(e => b >= e.start - 0.2 && b < e.start + e.beats - 0.2);
+    const n = g.extras.length === 1 ? 'One tap too many' : g.extras.length + ' taps too many';
+    if (ev && ev.rest) out.push(n + ', during the rest on ' + rhPlace(rh, ev.start) + '. A rest gets no tap.');
+    else if (ev && (ev.beats >= 1.5 || ev.tie || ev.held)) out.push(n + ', while the note on ' + rhPlace(rh, (ev.held ? rh.evs[ev.i - 1] : ev).start) + ' was still sounding. A long note gets one tap; hold it while you count.');
+    else out.push(n + '.');
+  }
+  if (g.hits && g.hits === g.total && !g.extras.length && Math.abs(g.d) >= 0.06) out.push('Your taps ran a steady ' + Math.round(Math.abs(g.d) * 1000) + ' milliseconds ' + (g.d > 0 ? 'behind' : 'ahead of') + ' the clicks; that was allowed for.');
+  return out.join(' ');
+}
+
+/* Rhythms to tap inside the rhythm levels, one picked at random. */
+const TAP_SETS = {
+  lengths: [['q q h | q q q q', [4, 4]], ['h q q | w', [4, 4]], ['q e e q q | h h', [4, 4]], ['q q q | h q', [3, 4]]],
+  rests: [['q qr q qr | h hr', [4, 4]], ['q q qr | h qr', [3, 4]], ['h qr q | qr q h', [4, 4]]],
+  dots: [['h. q | q. e h', [4, 4]], ['h. | q. e q', [3, 4]], ['q. e q q | q~ q h', [4, 4]]],
+};
+function tapLevelCard(id) {
+  const k = Math.floor(Math.random() * TAP_SETS[id].length), x = TAP_SETS[id][k];
+  return tapCard(parseRh(x[0], x[1]), { key: 'tap:' + id + k });
+}
 /* ---------- The levels ---------- */
 const LV = {
   names: () => {
@@ -3779,6 +4248,7 @@ const LV = {
       mc('Notes joined by two beams are…', ['Sixteenth notes', 'Eighth notes', 'Quarter notes', 'Played twice'], 'One beam means eighth notes; two beams mean sixteenth notes.',
         { visual: staffOf(() => [1, 2, 3, 4].map(() => ({ kind: 'note', p: 3, dur: 's', beam: 1, midi: 69, w: 2.3 })), { clef: null, big: true, yRange: [-2.2, 6] }) }),
       qListenLength([1, 2, 4]),
+      tapLevelCard('lengths'),
       qFill(rnd(FILL_SETS.notes)),
     ];
   },
@@ -3793,6 +4263,7 @@ const LV = {
       { visual: staffOf(() => [{ kind: 'note', p: 3, dur: 'q', label: '1', midi: 69 }, { kind: 'rest', dur: 'q', label: '(2)' }, { kind: 'note', p: 3, dur: 'q', label: '3', midi: 69 }, { kind: 'rest', dur: 'q', label: '(4)' }], { time: [4, 4], beatW: 3.2, endBar: 'final', yRange: [-2.2, 6] }) }),
     ...sample(FILL_SETS.rests, 2).map(qFill),
     qListenRest(),
+    tapLevelCard('rests'),
   ],
   dots: () => [
     teach('Dots and ties', '<p>A <b>dot</b> adds half of the note’s own length: a dotted half note is 2 + 1 = 3 beats.</p><p>A <b>tie</b> joins two notes of the same pitch into one longer sound. Pick only the first.</p>', { fig: 'tie' }),
@@ -3808,6 +4279,7 @@ const LV = {
     ...sample(RHYTHM_ITEMS.filter(x => x.dotted), 3).map(x => qRhythm(x, { values: [4, 3, 2, 1.5, 1, 0.75, 0.5] })),
     qFill(rnd(FILL_SETS.dots)),
     qListenLength([2, 3, 4]),
+    tapLevelCard('dots'),
   ],
   keys: () => {
     const sharpsVis = staffOf((st, c) => {
@@ -3887,7 +4359,7 @@ function levelCount(lv) {
 
 /* ---------- Practice generators ---------- */
 function practicePool(mode, cfg) {
-  if (mode === 'melody') return [1];
+  if (mode === 'melody' || mode === 'tap') return [1];
   if (mode === 'read' || mode === 'find' || mode === 'play') return notePool(cfg);
   if (mode === 'fret') return positionPool(cfg);
   if (mode === 'rhythm') return rhythmPool(cfg);
@@ -3895,6 +4367,7 @@ function practicePool(mode, cfg) {
 }
 function practiceGen(mode, cfg) {
   if (mode === 'melody') return () => melodyCard(genMelody(cfg));
+  if (mode === 'tap') return () => tapCard(genRhythm(cfg.level), { key: 'tap:level' + cfg.level });
   const pool = practicePool(mode, cfg);
   const yr = (mode === 'read' || mode === 'find' || mode === 'play') ? poolYRange(pool) : null;
   const vals = mode === 'rhythm' ? Array.from(new Set(pool.map(it => durBeats(it.dur, it.dots)))).sort((a, b) => b - a) : null;
@@ -3931,6 +4404,7 @@ function freshState(c) {
   if (c.t === 'staffTap') st.p = null;
   if (c.t === 'play') st.tries = 0;
   if (c.t === 'melody') { st.idx = 0; st.res = {}; st.right = 0; st.missHere = false; st.playing = -1; st.flash = -1; st.names = Store.settings.melNames; st.lastOnset = null; }
+  if (c.t === 'tap') { st.phase = 'ready'; st.taps = []; st.counts = Store.settings.tapCounts; st.spb = 60 / tapSpeed().bpm; st.curEv = -1; }
   return st;
 }
 function startRun(o) {
@@ -3956,7 +4430,7 @@ function startLevel(id) {
 }
 function startPractice(mode, cfg) {
   if (!practicePool(mode, cfg).length) return;
-  startRun({ kind: 'practice', title: MODES[mode].title, mode, cfg, gen: practiceGen(mode, cfg), total: mode === 'melody' ? 5 : 20, origin: 'practice' });
+  startRun({ kind: 'practice', title: MODES[mode].title, mode, cfg, gen: practiceGen(mode, cfg), total: mode === 'melody' ? 5 : mode === 'tap' ? 8 : 20, origin: 'practice' });
 }
 function startChallenge(mode, cfg) {
   if (!practicePool(mode, cfg).length) return;
@@ -3997,11 +4471,24 @@ function onRunClick(e) {
     else if (act === 'up') adjustTap(1);
     else if (act === 'down') adjustTap(-1);
     else if (act === 'melhear') { const R = App.run; if (R && R.card.t === 'melody') melPlay(R.card, R.st); }
+    else if (act === 'taphear') tapDemo();
+    else if (act === 'tapagain') tapAgain();
     else if (act === 'melrestart') { const R = App.run; if (R && R.card.t === 'melody' && !R.st.answered) { if (R.st.stopPlay) R.st.stopPlay(); R.st = freshState(R.card); renderCard(); } }
     return;
   }
   const ml = e.target.closest('[data-ml]');
   if (ml) { melTapName(+ml.dataset.ml); return; }
+  const tpad = e.target.closest('[data-tap]');
+  if (tpad) { const R = App.run; if (R && R.card.t === 'tap' && !R.st.answered && R.st.phase === 'ready') tapGo(false); return; }
+  const tsp = e.target.closest('[data-tspeed]');
+  if (tsp) {
+    const R = App.run;
+    Store.setSetting('tapSpeed', tsp.dataset.tspeed);
+    if (R && R.card.t === 'tap') { tapHalt(R.st); R.st.spb = 60 / tapSpeed().bpm; $$('[data-tspeed]').forEach(b => b.setAttribute('aria-pressed', String(b === tsp))); }
+    return;
+  }
+  const tcn = e.target.closest('[data-tapcounts]');
+  if (tcn) { const R = App.run; Store.setSetting('tapCounts', tcn.checked); if (R && R.card.t === 'tap') { R.st.counts = tcn.checked; if (R.st.phase !== 'count' && R.st.phase !== 'take') drawCardVisuals(); } return; }
   const mn = e.target.closest('[data-melnames]');
   if (mn) { const R = App.run; R.st.names = mn.checked; Store.setSetting('melNames', mn.checked); melRedraw(); return; }
   const mnote = e.target.closest('.mel-score .nt[data-ev]');
@@ -4043,6 +4530,18 @@ function renderCard() {
       '<div class="mel-tools"><button class="btn small" data-act="melhear">' + ICONS.play + 'Hear it</button>' +
       '<label class="check small"><input type="checkbox" data-melnames' + (st.names ? ' checked' : '') + '> Show note names</label>' +
       (!st.answered && st.idx > 0 ? '<button class="btn small ghost" data-act="melrestart">Start over</button>' : '') + '</div></article>';
+  } else if (c.t === 'tap') {
+    const sp = tapSpeed();
+    h = '<article class="card q q-tap">' + kickerHTML(c) + '<h2 class="card-prompt">' + esc(c.prompt) + '</h2>' +
+      (st.answered ? '' : '<p class="tap-how">Press Start. After the count-in, tap once for every note, in time with the clicks. Rests get no tap.</p>') +
+      '<div class="paper tap-score" data-tapscore></div>' +
+      (st.answered ? '<p class="tap-key"><span class="tap-tri" aria-hidden="true"></span>your taps · <span class="k-good">green</span> on time · <span class="k-late">amber</span> early or late · <span class="k-bad">red</span> missed or extra</p>' : tapPadHTML(c, st)) +
+      '<div class="tap-tools">' +
+        (st.answered ? '<button class="btn small" data-act="tapagain">' + ICONS.redo + 'Try again</button>' : '<button class="btn small" data-act="taphear">' + ICONS.play + 'Hear it first</button>') +
+        '<div class="tap-speed"><span class="opt-label" id="lblTapSpeed">Speed</span><div class="seg small" role="group" aria-labelledby="lblTapSpeed">' +
+          TAP_SPEEDS.map(x => '<button data-tspeed="' + x.id + '" aria-pressed="' + (x.id === sp.id) + '" title="' + x.bpm + ' beats a minute">' + x.label + '</button>').join('') + '</div></div>' +
+        '<label class="check small"><input type="checkbox" data-tapcounts' + (st.counts ? ' checked' : '') + '> Show the counts</label>' +
+      '</div>' + (st.answered ? '' : micPanelHTML({ alt: 'While the microphone listens, the clicks stop after the count-in, so it hears only you.' })) + '</article>';
   } else if (c.t === 'teach') {
     h = '<article class="card teach">' + kickerHTML(c) + '<h2 class="card-title">' + c.title + '</h2><div class="card-text">' + c.html + '</div>' +
       (c.fig ? '<figure class="fig" data-fig="' + c.fig + '"></figure>' : '') +
@@ -4090,6 +4589,20 @@ function renderCard() {
     App.cleanup = () => { stopMic(); if (prev) prev(); };
     if (c.autoHear && !st.played) { st.played = true; setTimeout(() => { if (App.run === R && R.st === st && !st.answered) c.hear(); }, 250); }
   }
+  if (c.t === 'tap') {
+    const pad = $('[data-tap]', el);
+    if (pad) pad.addEventListener(window.PointerEvent ? 'pointerdown' : 'touchstart', e => {
+      if (st.phase === 'count' || st.phase === 'take') { e.preventDefault(); tapPress(); }
+    }, { passive: false });
+    let stopMic = null;
+    if (!st.answered) stopMic = mountMic(el, {
+      expect: [],
+      offText: 'Or play the rhythm on your guitar, or clap it: tap Listen.',
+      idle: () => 'Listening. Press Start, then play or clap the rhythm.',
+      onOnset: ev => { if (App.run === R && R.st === st) tapHeard(ev.t); },
+    });
+    App.cleanup = () => { tapHalt(st); if (stopMic) stopMic(); };
+  }
   if (c.t === 'melody') {
     const stops = [() => { if (st.stopPlay) { const f = st.stopPlay; st.stopPlay = null; f(); } }];
     if (!st.answered) {
@@ -4132,6 +4645,8 @@ function drawCardVisuals() {
   if (v && c.visual) { try { c.visual(v, st, c); } catch (err) { console.error(err); } }
   const sc = $('[data-score]', el);
   if (sc && c.t === 'melody') { try { melodyScore(sc, c.mel, st); } catch (err) { console.error(err); } }
+  const tsc = $('[data-tapscore]', el);
+  if (tsc && c.t === 'tap') { try { tapScore(tsc, c, st); } catch (err) { console.error(err); } }
   const b = $('[data-board]', el);
   if (b && c.board) drawBoard(b, c, st);
   const v2 = $('[data-vis2]', el);
@@ -4229,6 +4744,7 @@ function hintFor(c) {
   if (c.t === 'play') return Mic.state === 'on' ? 'Play the note on your guitar.' : 'Play it, or tap the fretboard.';
   if (c.t === 'melody') return Mic.state === 'on' ? 'Play the highlighted note.' : 'Play the highlighted note, or tap its name.';
   if (c.t === 'listen') return 'Listen, then choose.';
+  if (c.t === 'tap') return 'Press Start, then tap along.';
   if (isPhone()) return 'Tap an answer.';
   if (c.layout === 'letters') return 'Tap a letter, or type it.';
   return 'Tap an answer, or press its number.';
@@ -4256,6 +4772,7 @@ function renderFoot() {
   const found = (c.t === 'play' && !st.ok && st.choice && st.choice.heard !== undefined) || (c.t === 'melody' && !st.ok && st.choice && !st.choice.skipped);
   let title = st.ok ? (R.combo >= 5 ? R.combo + ' in a row!' : PRAISE[CARD_UID % PRAISE.length]) : (st.choice === null ? 'Skipped' : found ? 'Found it' : 'Not quite');
   if (c.t === 'melody') title = st.choice && st.choice.skipped ? 'Skipped' : st.right === c.targets.length ? 'Perfect!' : st.ok ? 'Well read!' : 'Melody done';
+  if (c.t === 'tap' && st.choice) title = st.ok ? (st.choice.grade.perfect ? 'Perfect timing!' : 'In time!') : 'Not quite';
   foot.className = 'run-foot ' + (st.ok ? 'ok' : found ? 'ok found' : 'no');
   foot.innerHTML = '<div class="foot-in"><div class="foot-msg"><p class="foot-title"><span class="foot-icon">' + (st.ok || found ? ICONS.check : ICONS.close) + '</span>' + title +
     (st.gain ? '<span class="xp-pop">+' + st.gain + ' points</span>' : '') + '</p>' +
@@ -4344,6 +4861,7 @@ function answerCard(choice) {
   if (c.t === 'melody' && choice === null) choice = { right: st.right, total: c.targets.length, skipped: true };
   if (choice !== null) {
     if (c.t === 'melody') ok = !choice.skipped && choice.right / choice.total >= 0.8;
+    if (c.t === 'tap') ok = !!(choice.grade && choice.grade.ok);
     if (c.t === 'mc' || c.t === 'listen') ok = !!c.options[choice] && c.options[choice].correct;
     else if (c.t === 'fretTap') ok = !!c.accept(choice.s, choice.f);
     else if (c.t === 'play') ok = choice.heard !== undefined ? choice.tries === 0 : !!c.accept(choice.s, choice.f);
@@ -4351,7 +4869,7 @@ function answerCard(choice) {
     else if (c.t === 'order') ok = choice.length === c.answer.length && choice.every((x, i) => x === c.answer[i]);
   }
   st.answered = true; st.ok = ok; st.choice = choice;
-  R.answered++;
+  if (!c.again) R.answered++;
   if (c.t === 'melody') {
     /* a melody counts note by note */
     if (!c.retry) { R.first.total += choice.total; R.first.right += choice.right; if (choice.right < choice.total) R.missed.push(c); }
@@ -4359,7 +4877,7 @@ function answerCard(choice) {
     st.gain = choice.skipped ? 0 : 2 * choice.right + (choice.right === choice.total ? 10 : 0);
   } else {
     if (!c.retry) { R.first.total++; if (ok) R.first.right++; else R.missed.push(c); }
-    if (ok) { R.combo++; R.bestCombo = Math.max(R.bestCombo, R.combo); st.gain = R.kind === 'challenge' ? 3 : (c.retry ? 5 : 10) + (R.combo >= 3 ? 5 : 0); }
+    if (ok) { R.combo++; R.bestCombo = Math.max(R.bestCombo, R.combo); st.gain = R.kind === 'challenge' ? 3 : (c.retry ? 5 : 10) + (R.combo >= 3 ? 5 : 0) + (c.t === 'tap' && choice.grade.perfect ? 5 : 0); }
     else { R.combo = 0; st.gain = 0; }
   }
   if (st.gain) { R.xp += st.gain; Store.addXp(st.gain); }
@@ -4369,7 +4887,7 @@ function answerCard(choice) {
   else if (c.t === 'play' && choice && ok) Sound.fx('good');
   else if (ok) { if (c.playOnCorrect && c.hear) c.hear(); else Sound.fx('good'); }
   else Sound.fx('bad');
-  if (c.t === 'melody') renderCard(); else drawCardVisuals();
+  if (c.t === 'melody' || c.t === 'tap') renderCard(); else drawCardVisuals();
   refreshOptions();
   if (c.t === 'order') refreshOrder();
   renderFoot();
@@ -4377,7 +4895,18 @@ function answerCard(choice) {
   const card = $('#runCard .card');
   if (card) { card.classList.remove('shake', 'glow'); void card.offsetWidth; card.classList.add(ok ? 'glow' : 'shake'); }
   if (R.kind === 'challenge') R.nextTimer = setTimeout(() => { if (App.run === R && R.st === st && !R.done) nextCard(); }, ok ? 320 : 1200);
-  else if (ok && Store.settings.autoNext && c.t !== 'melody') R.nextTimer = setTimeout(() => { if (App.run === R && R.st === st && !R.done) nextCard(); }, 1500);
+  else if (ok && Store.settings.autoNext && c.t !== 'melody' && c.t !== 'tap') R.nextTimer = setTimeout(() => { if (App.run === R && R.st === st && !R.done) nextCard(); }, 1500);
+}
+function tapAgain() {
+  const R = App.run;
+  if (!R || R.done || R.card.t !== 'tap' || !R.st.answered) return;
+  clearTimeout(R.nextTimer);
+  const again = Object.assign({}, R.card, { retry: true, again: true, uid: ++CARD_UID });
+  R.queue[R.pos] = again;
+  R.card = again;
+  R.st = freshState(again);
+  renderCard();
+  updateTop();
 }
 function nextCard() {
   const R = App.run;
@@ -4560,6 +5089,7 @@ const ICONS = {
   check: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.1L13 4.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   flame: '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.2c.6 3.3-1.8 4.9-1.8 7.6 0 1.3.9 2.2 2.1 2.2 1.5 0 2.2-1.4 1.9-3.4 2.6 1.8 4.2 4.4 4.2 7.1A7 7 0 0 1 12 22.5a7 7 0 0 1-7-6.8c0-4.6 4-6.7 5.1-10.2.3.9.6 1.6 1.2 2.2.1-2.1.6-4 1.3-5.5z" fill="currentColor"/></svg>',
   book: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 3.4c0-.4.3-.7.7-.7H7v10.6H2.7c-.4 0-.7-.3-.7-.7zM14 3.4c0-.4-.3-.7-.7-.7H9v10.6h4.3c.4 0 .7-.3.7-.7z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  redo: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M12.6 8.4A4.7 4.7 0 1 1 11 4.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M11.6 1.9v3.4H8.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   clock: '<svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8.6" r="5.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 5.6v3.2l2 1.4M6.4 1.6h3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
 };
 const MODES = {
@@ -4569,6 +5099,7 @@ const MODES = {
   melody: { title: 'Read short melodies', desc: 'Four bars at a time. Play each note as it lights up and the microphone follows you, or tap the note names.' },
   play: { title: 'Play it on your guitar', desc: 'A note appears on the staff. Play it; the microphone listens. No microphone? Tap the fretboard.' },
   rhythm: { title: 'Note lengths', desc: 'A note or a rest appears. Say how many beats it lasts.' },
+  tap: { title: 'Tap the rhythm', desc: 'Two measures of rhythm appear. After four clicks, tap once for every note, in time.' },
   keys: { title: 'Key signatures', desc: 'A key signature appears. Name its major key.' },
 };
 
@@ -4852,6 +5383,7 @@ function modeArt(mode) {
   if (mode === 'fret') return '<svg viewBox="0 0 24 18" aria-hidden="true"><path d="M1 4h22M1 9h22M1 14h22" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M8 1v16M16 1v16" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="9" r="4.4" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="12" y="11.4" font-size="6.6" font-weight="700" text-anchor="middle" fill="currentColor">?</text></svg>';
   if (mode === 'melody') return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<ellipse cx="5.5" cy="12" rx="2.1" ry="1.6" transform="rotate(-22 5.5 12)" fill="currentColor"/><path d="M7.4 11.6V4.6" stroke="currentColor" stroke-width="1"/><ellipse cx="12" cy="9" rx="2.1" ry="1.6" transform="rotate(-22 12 9)" fill="currentColor"/><path d="M13.9 8.6V1.8" stroke="currentColor" stroke-width="1"/><path d="M7.4 4.6l6.5-2.8" stroke="currentColor" stroke-width="1.6"/><rect x="16.4" y="1" width="2.6" height="16" rx="1.3" fill="currentColor" opacity=".35"/></svg>';
   if (mode === 'play') return '<svg viewBox="0 0 24 18" aria-hidden="true"><rect x="9" y="1.5" width="6" height="9.5" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8.6a6 6 0 0 0 12 0M12 14.6v2.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2 6.5c1 1.2 1 3.8 0 5M22 6.5c-1 1.2-1 3.8 0 5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".6"/></svg>';
+  if (mode === 'tap') return '<svg viewBox="0 0 24 18" aria-hidden="true"><rect x="3.5" y="7" width="17" height="10" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="2.1" fill="currentColor"/><path d="M7.4 4.6a6.4 6.4 0 0 1 9.2 0M5 2.4a9.8 9.8 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".7"/></svg>';
   if (mode === 'rhythm') return '<svg viewBox="0 0 24 18" aria-hidden="true"><ellipse cx="7" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 7 14)" fill="currentColor"/><path d="M9.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><ellipse cx="16" cy="14" rx="2.6" ry="1.9" transform="rotate(-22 16 14)" fill="currentColor"/><path d="M18.3 13.4V2.5" stroke="currentColor" stroke-width="1.2"/><path d="M9.3 2.5h9" stroke="currentColor" stroke-width="2.2"/></svg>';
   return '<svg viewBox="0 0 24 18" aria-hidden="true">' + st + '<path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(8 6) scale(3)" fill="currentColor"/><path d="' + GLYPHS.accidentalSharp.d + '" transform="translate(13.5 10.5) scale(3)" fill="currentColor"/></svg>';
 }
@@ -4892,10 +5424,11 @@ function viewPractice(main) {
     melodyBlock(P.melody) +
     '<section class="pr-block"><h2 class="sec-title">Rhythm and keys</h2><div class="mode-list">' +
       modeRow('rhythm', '<div class="mode-opts"><label class="check small"><input type="checkbox" id="cfgRests"' + (P.rhythm.rests ? ' checked' : '') + '> Rests</label><label class="check small"><input type="checkbox" id="cfgDots"' + (P.rhythm.dotted ? ' checked' : '') + '> Dotted notes</label></div>') +
+      tapRow(P.tap) +
       modeRow('keys', '<div class="mode-opts"><span class="opt-label" id="lblKeys">Up to</span><div class="seg small" role="group" aria-labelledby="lblKeys">' + [1, 2, 3, 4].map(n => '<button data-k="' + n + '" aria-pressed="' + (P.keys.max === n) + '">' + n + '</button>').join('') + '</div><span class="opt-label">sharps or flats</span></div>') +
     '</div></section></section>';
   const root = main.firstElementChild;
-  const cfgFor = m => m === 'rhythm' ? Store.data.practice.rhythm : m === 'keys' ? Store.data.practice.keys : m === 'melody' ? Store.data.practice.melody : Store.data.practice.notes;
+  const cfgFor = m => m === 'rhythm' ? Store.data.practice.rhythm : m === 'keys' ? Store.data.practice.keys : m === 'melody' ? Store.data.practice.melody : m === 'tap' ? Store.data.practice.tap : Store.data.practice.notes;
   function saveNotes(c) { Store.setPractice('notes', c); viewPractice(main); }
   root.addEventListener('click', e => {
     const sb = e.target.closest('[data-s]');
@@ -4913,6 +5446,10 @@ function viewPractice(main) {
     if (mb) { const c = clone(P.melody), k = mb.dataset.mel; c[k] = k === 'rhythm' ? +mb.dataset.v : mb.dataset.v; Store.setPractice('melody', c); viewPractice(main); return; }
     const tb = e.target.closest('[data-tune]');
     if (tb) { startTune(tb.dataset.tune); return; }
+    const tl = e.target.closest('[data-taplevel]');
+    if (tl) { Store.setPractice('tap', { level: +tl.dataset.taplevel }); viewPractice(main); return; }
+    const tsb = e.target.closest('[data-tspeed]');
+    if (tsb) { Store.setSetting('tapSpeed', tsb.dataset.tspeed); viewPractice(main); return; }
     const st = e.target.closest('[data-start]');
     if (st) { startPractice(st.dataset.start, cfgFor(st.dataset.start)); return; }
     const ch = e.target.closest('[data-challenge]');
@@ -4924,6 +5461,17 @@ function viewPractice(main) {
   });
 }
 
+function tapRow(T) {
+  const sp = tapSpeed();
+  return '<div class="mode tall"><div class="mode-art">' + modeArt('tap') + '</div><div class="mode-txt"><h3>' + MODES.tap.title + '</h3><p>' + MODES.tap.desc + '</p>' +
+    '<div class="mode-fields">' +
+      '<div class="mode-field"><span class="opt-label" id="lblTapLvl">Rhythms</span><div class="seg small wrap" role="group" aria-labelledby="lblTapLvl">' +
+        [1, 2, 3, 4, 5].map(n => '<button data-taplevel="' + n + '" aria-pressed="' + (T.level === n) + '" title="' + TAP_LEVELS[n].label + '">' + TAP_LEVELS[n].short + '</button>').join('') + '</div></div>' +
+      '<div class="mode-field"><span class="opt-label" id="lblTapSp">Speed</span><div class="seg small" role="group" aria-labelledby="lblTapSp">' +
+        TAP_SPEEDS.map(x => '<button data-tspeed="' + x.id + '" aria-pressed="' + (x.id === sp.id) + '" title="' + x.bpm + ' beats a minute">' + x.label + '</button>').join('') + '</div></div>' +
+    '</div><p class="mode-last">' + lastRoundText('tap') + '</p></div>' +
+    '<div class="mode-btns"><button class="btn primary" data-start="tap">8 rhythms' + ICONS.next + '</button></div></div>';
+}
 function melodyBlock(M) {
   const seg = (k, label, opts) => '<div class="mode-field"><span class="opt-label" id="lblMel' + k + '">' + label + '</span><div class="seg small wrap" role="group" aria-labelledby="lblMel' + k + '">' +
     opts.map(o => '<button data-mel="' + k + '" data-v="' + o[0] + '" aria-pressed="' + (String(M[k]) === String(o[0])) + '">' + o[1] + '</button>').join('') + '</div></div>';
@@ -4936,7 +5484,7 @@ function melodyBlock(M) {
       '<span class="tune-best">' + (best === null ? '<span class="tune-play">' + ICONS.play + 'Play</span>' : starsHTML(stars) + '<small>' + best + '%</small>') + '</span></button>';
   };
   return '<section class="pr-block"><h2 class="sec-title">Sight-reading</h2><div class="mode-list">' +
-    '<div class="mode"><div class="mode-art">' + modeArt('melody') + '</div><div class="mode-txt"><h3>' + MODES.melody.title + '</h3><p>' + MODES.melody.desc + '</p>' +
+    '<div class="mode tall"><div class="mode-art">' + modeArt('melody') + '</div><div class="mode-txt"><h3>' + MODES.melody.title + '</h3><p>' + MODES.melody.desc + '</p>' +
       '<div class="mode-fields">' +
         seg('range', 'Notes', Object.keys(MEL_RANGES).map(k => [k, MEL_RANGES[k].label])) +
         seg('key', 'Key', MEL_KEYS.map(k => [k, keyLbl(k)])) +
@@ -5058,6 +5606,12 @@ function runKey(e) {
   const t = e.target;
   if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
   const c = R.card, st = R.st;
+  if (c.t === 'tap' && !st.answered && (e.key === ' ' || e.key === 'Enter') && !(e.key === 'Enter' && t && t.tagName === 'BUTTON' && !t.hasAttribute('data-tap'))) {
+    e.preventDefault();
+    if (e.repeat) return;
+    if (st.phase === 'ready') tapGo(false); else tapPress();
+    return;
+  }
   if (e.key === 'Enter' || e.key === ' ') {
     if (t && t.tagName === 'BUTTON') return;
     e.preventDefault();
