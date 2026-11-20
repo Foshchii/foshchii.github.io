@@ -1,0 +1,30 @@
+{
+  "id": "/ad0-e606/",
+  "name": "AD0-E606 · Developer Practice Lab",
+  "short_name": "Practice Lab",
+  "description": "Offline-capable Adobe Journey Optimizer Developer Expert practice questions, explanations and progress tracking.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#101522",
+  "theme_color": "#101522",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

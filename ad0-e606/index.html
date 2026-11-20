@@ -7,11 +7,26 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="Independent Adobe Journey Optimizer Developer Expert AD0-E606 practice questions with immediate explanations and links to Adobe documentation.">
   <link rel="canonical" href="https://foshchii.com/ad0-e606/">
-  <link rel="icon" href="../assets/favicon.svg">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Practice Lab">
+  <meta name="application-name" content="Practice Lab">
+  <link rel="icon" href="./icon.svg">
   <title>AD0-E606 · Developer Expert Practice Lab</title>
   <link rel="stylesheet" href="./styles.css">
   <script src="./questions.js" defer></script>
   <script src="./app.js" defer></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("./sw.js", {scope: "./"}).catch(function (error) {
+          console.warn("Offline mode is unavailable:", error);
+        });
+      });
+    }
+  </script>
 </head>
 <body>
   <a class="skip" href="#app">Skip to practice</a>
