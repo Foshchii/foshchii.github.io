@@ -779,7 +779,7 @@ function menuView() {
       ${item("#home", "metronome", "Today", "Your session and where you left off.")}
       ${item("#course", "book", "Curriculum", "Twelve modules, the first 28 days and months 7–12.")}
       ${item("#reading", "note", "Music Reading Academy", "Note names, frets, rhythm and sight-reading on a staff.")}
-      ${item("note-reading/", "note", "Note-reading quiz", "Twelve quiz levels on the staff and the fretboard, with sound and stars.")}
+      ${item("note-reading/", "note", "Note-reading quiz", "Eighteen quiz levels on the staff and the fretboard, rhythm, dynamics, scales and chords, with sound and stars.")}
       ${item("#technique", "wave", "Playing Without Nails", "Each stroke, adapted for fingertip pads.")}
       ${item("#estas", "star", "Estas Tonne guide", "Four pieces, studied one phrase at a time.")}
       ${item("#repertoire", "sheet", "Repertoire", "Pieces to practise from the score.")}
