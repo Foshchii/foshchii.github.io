@@ -765,6 +765,10 @@ body.in-run .tabbar { display: none; }
   --shadow: none;
 }
 /* Signs, chords and theory */
+.pr-jump { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.pr-jump .chip { cursor: pointer; font-weight: 600; color: var(--ink); }
+.pr-jump .chip:hover { border-color: var(--accent); }
+.pr-block { scroll-margin-top: 76px; }
 .chip-txt { font-variant-numeric: lining-nums; }
 .gsym { display: inline-block; vertical-align: middle; color: var(--staff-ink); }
 .dyn-opt { display: inline-flex; min-width: 46px; justify-content: center; margin-right: 6px; }
@@ -6261,8 +6265,9 @@ function viewPractice(main) {
   const modeRow = (mode, opts) => '<div class="mode"><div class="mode-art">' + modeArt(mode) + '</div><div class="mode-txt"><h3>' + MODES[mode].title + '</h3><p>' + MODES[mode].desc + '</p>' + (opts || '') + '<p class="mode-last">' + lastRoundText(mode) + '</p></div>' +
     '<div class="mode-btns"><button class="btn primary" data-start="' + mode + '">20 questions' + ICONS.next + '</button><button class="btn" data-challenge="' + mode + '">' + ICONS.clock + '60 seconds</button></div></div>';
   main.innerHTML = '<section class="view practice">' +
-    '<header class="view-head"><h1 class="title">Practice</h1><p class="lede">Rounds of 20 questions, or a 60-second race against the clock. Notes you miss come back more often until you know them.</p></header>' +
-    '<section class="pr-block"><h2 class="sec-title">Notes</h2>' +
+    '<header class="view-head"><h1 class="title">Practice</h1><p class="lede">Rounds of questions, or a 60-second race against the clock. What you miss comes back more often until you know it.</p>' +
+      '<nav class="pr-jump" aria-label="Kinds of practice">' + [['notes', 'Notes'], ['sight', 'Sight-reading'], ['rhythm', 'Rhythm and keys'], ['theory', 'Signs and theory'], ['ear', 'Ear training']].map(x => '<button class="chip" data-jump="' + x[0] + '">' + x[1] + '</button>').join('') + '</nav></header>' +
+    '<section class="pr-block" id="pr-notes"><h2 class="sec-title">Notes</h2>' +
       '<div class="pr-config">' +
         '<div class="field"><span class="field-label" id="lblStrings">Strings</span><div class="seg multi" role="group" aria-labelledby="lblStrings">' + [6, 5, 4, 3, 2, 1].map(s => '<button data-s="' + s + '" aria-pressed="' + (cfg.strings.indexOf(s) >= 0) + '" aria-label="' + ordinal(s) + ' string">' + s + '<small>' + letterName(STRING_LETTER[s], NS() === 'solfege' ? 'solfege' : 'letters') + '</small></button>').join('') + '</div></div>' +
         '<div class="field"><span class="field-label" id="lblFrets">Frets</span><div class="seg" role="group" aria-labelledby="lblFrets">' + [0, 3, 5, 7, 12].map(f => '<button data-f="' + f + '" aria-pressed="' + (cfg.maxFret === f) + '">' + (f === 0 ? 'Open' : '0–' + f) + '</button>').join('') + '</div></div>' +
@@ -6272,12 +6277,12 @@ function viewPractice(main) {
       '<div class="mode-list">' + ['read', 'find', 'fret', 'play'].map(m => modeRow(m)).join('') + '</div>' +
     '</section>' +
     melodyBlock(P.melody) +
-    '<section class="pr-block"><h2 class="sec-title">Rhythm and keys</h2><div class="mode-list">' +
+    '<section class="pr-block" id="pr-rhythm"><h2 class="sec-title">Rhythm and keys</h2><div class="mode-list">' +
       modeRow('rhythm', '<div class="mode-opts"><label class="check small"><input type="checkbox" id="cfgRests"' + (P.rhythm.rests ? ' checked' : '') + '> Rests</label><label class="check small"><input type="checkbox" id="cfgDots"' + (P.rhythm.dotted ? ' checked' : '') + '> Dotted notes</label></div>') +
       tapRow(P.tap) +
       modeRow('keys', '<div class="mode-opts"><span class="opt-label" id="lblKeys">Up to</span><div class="seg small" role="group" aria-labelledby="lblKeys">' + [1, 2, 3, 4].map(n => '<button data-k="' + n + '" aria-pressed="' + (P.keys.max === n) + '">' + n + '</button>').join('') + '</div><span class="opt-label">sharps or flats</span></div>') +
     '</div></section>' +
-    '<section class="pr-block"><h2 class="sec-title">Signs and theory</h2><div class="mode-list">' + MORE_MODES.map(m => modeRow(m)).join('') + '</div></section>' +
+    '<section class="pr-block" id="pr-theory"><h2 class="sec-title">Signs and theory</h2><div class="mode-list">' + MORE_MODES.map(m => modeRow(m)).join('') + '</div></section>' +
     earBlock(P) + '</section>';
   const root = main.firstElementChild;
   const cfgFor = m => m === 'rhythm' ? Store.data.practice.rhythm : m === 'keys' ? Store.data.practice.keys : m === 'melody' ? Store.data.practice.melody : m === 'tap' ? Store.data.practice.tap : m === 'earint' ? Store.data.practice.earint : EAR_MODES.indexOf(m) >= 0 || MORE_MODES.indexOf(m) >= 0 ? {} : Store.data.practice.notes;
@@ -6298,6 +6303,8 @@ function viewPractice(main) {
     if (mb) { const c = clone(P.melody), k = mb.dataset.mel; c[k] = k === 'rhythm' ? +mb.dataset.v : mb.dataset.v; Store.setPractice('melody', c); viewPractice(main); return; }
     const tb = e.target.closest('[data-tune]');
     if (tb) { startTune(tb.dataset.tune); return; }
+    const jb = e.target.closest('[data-jump]');
+    if (jb) { const sec = document.getElementById('pr-' + jb.dataset.jump); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
     const es = e.target.closest('[data-earset]');
     if (es) { Store.setPractice('earint', { set: +es.dataset.earset }); viewPractice(main); return; }
     const tl = e.target.closest('[data-taplevel]');
@@ -6320,7 +6327,7 @@ function earBlock(P) {
     '<p class="mode-last">' + lastRoundText(mode) + '</p></div><div class="mode-btns"><button class="btn primary" data-start="' + mode + '">12 questions' + ICONS.next + '</button></div></div>';
   const sets = '<div class="mode-fields"><div class="mode-field"><span class="opt-label" id="lblEarSet">Intervals</span><div class="seg small wrap" role="group" aria-labelledby="lblEarSet">' +
     [1, 2, 3].map(n => '<button data-earset="' + n + '" aria-pressed="' + (P.earint.set === n) + '" title="' + IV_SETS[n].map(k => IV[k].name).join(', ') + '">' + IV_SET_LABELS[n] + '</button>').join('') + '</div></div></div>';
-  return '<section class="pr-block"><h2 class="sec-title">Ear training</h2><p class="pr-lede">Questions you answer by listening. Use headphones or turn the sound up.</p><div class="mode-list">' +
+  return '<section class="pr-block" id="pr-ear"><h2 class="sec-title">Ear training</h2><p class="pr-lede">Questions you answer by listening. Use headphones or turn the sound up.</p><div class="mode-list">' +
     row('earupdown') + row('earint', sets) + row('earname') + row('earchord') + row('earecho') + '</div></section>';
 }
 function tapRow(T) {
@@ -6345,7 +6352,7 @@ function melodyBlock(M) {
     return '<button class="tune" data-tune="' + t.id + '"><span class="tune-main"><b>' + esc(t.title) + '</b><small>' + esc(t.by) + ' · ' + k + ' · ' + t.time.join('/') + ' · ' + melTargets(t).length + ' notes</small></span>' +
       '<span class="tune-best">' + (best === null ? '<span class="tune-play">' + ICONS.play + 'Play</span>' : starsHTML(stars) + '<small>' + best + '%</small>') + '</span></button>';
   };
-  return '<section class="pr-block"><h2 class="sec-title">Sight-reading</h2><div class="mode-list">' +
+  return '<section class="pr-block" id="pr-sight"><h2 class="sec-title">Sight-reading</h2><div class="mode-list">' +
     '<div class="mode tall"><div class="mode-art">' + modeArt('melody') + '</div><div class="mode-txt"><h3>' + MODES.melody.title + '</h3><p>' + MODES.melody.desc + '</p>' +
       '<div class="mode-fields">' +
         seg('range', 'Notes', Object.keys(MEL_RANGES).map(k => [k, MEL_RANGES[k].label])) +
