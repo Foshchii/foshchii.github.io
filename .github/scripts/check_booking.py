@@ -6,7 +6,8 @@
 The backend is a Google Apps Script web app, and when it breaks nothing says
 so: the site quietly hides the booking block, and a backend that cannot answer
 cannot send its own alert. This asks it what the booking widget asks, over the
-same JSONP GET, and fails when:
+JSONP GET the widget falls back to and the plain GET it tries first, and
+fails when:
   - it does not answer, or answers with a web page (a Google sign-in,
     "Authorization needed" or error page) instead of data
   - action=health reports Google Calendar, the iCloud feed or mail as broken,
@@ -15,6 +16,8 @@ same JSONP GET, and fails when:
   - the deployed code is not this repo's booking-api/google-apps-script.gs
     (their VERSIONs differ), i.e. the editor or the deployment is out of date
   - action=availability for the next working day returns no list of slots
+  - a plain GET, the way the widget's fetch() asks first, cannot be read
+    from the site: a hop without Access-Control-Allow-Origin, or no JSON
 
 The URL comes from the booking widget's data-api in contact.html. Pass another
 /exec URL to check a deployment before pointing the site at it.
@@ -30,7 +33,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import stamp_backend_version  # noqa: E402
@@ -47,6 +50,8 @@ REDEPLOY = (f"Paste {SCRIPT} into the Apps Script editor and save, check that th
             "Settings → Script properties), run testHealth there, then Deploy → Manage "
             "deployments → pencil on the site's deployment → Version: New version → Deploy.")
 PROPERTIES = "Apps Script → Project Settings → Script properties"
+# The site's own origin, which the widget's fetch() sends as Origin.
+ORIGIN = "https://" + (ROOT / "CNAME").read_text(encoding="utf-8").strip()
 
 
 class Problem(Exception):
@@ -152,10 +157,57 @@ def check_availability(api, tz):
     return [], f"{len(slots)} free 30-minute slots on {day}"
 
 
+class _Hold(HTTPRedirectHandler):
+    """Hand a redirect back instead of following it, so each hop can be checked."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+def check_fetch(api):
+    """The widget's first transport: a fetch() GET with no cookies and no
+    callback. The browser reads the reply only if every hop allows the site's
+    origin, and after the cross-site redirect it sends Origin: null. Without
+    this the widget falls back to JSONP, which sends the visitor's Google
+    cookies and turns any error page into "could not be reached"."""
+    url = api + ("&" if "?" in api else "?") + urlencode({"action": "health"})
+    opener, origin = build_opener(_Hold), ORIGIN
+    for _ in range(4):
+        host = url.split("/")[2]
+        try:
+            with opener.open(Request(url, headers={"User-Agent": "foshchii.com booking check",
+                                                   "Origin": origin}), timeout=TIMEOUT) as r:
+                status, headers, body = r.status, r.headers, r.read().decode("utf-8", "replace")
+        except HTTPError as e:
+            status, headers, body = e.code, e.headers, ""
+            e.close()
+        except (URLError, OSError) as e:
+            raise Problem(f"fetch() path: no answer from {host} ({getattr(e, 'reason', e)}).")
+        allowed = headers.get("Access-Control-Allow-Origin")
+        if allowed not in ("*", origin):
+            return [f"fetch() path: {host} answers without Access-Control-Allow-Origin for {origin} "
+                    f"(got {allowed!r}), so browsers cannot read it and the widget falls back to JSONP."]
+        if status in (301, 302, 303, 307, 308) and headers.get("Location"):
+            url, origin = headers["Location"], "null"
+            continue
+        if status != 200:
+            return [f"fetch() path: {host} answered HTTP {status}."]
+        try:
+            json.loads(body)
+        except ValueError:
+            return [f"fetch() path: {host} answered with something other than JSON: {body[:80]!r}."]
+        return []
+    return ["fetch() path: more than three redirects."]
+
+
 def run(api, tz, want):
     problems, offered = [], None
     try:
         problems += check_health(api, want)
+    except Problem as e:
+        problems.append(str(e))
+    try:
+        problems += check_fetch(api)
     except Problem as e:
         problems.append(str(e))
     try:
@@ -197,7 +249,7 @@ def main():
               "Troubleshooting: booking-api/README.md")
         return 1
     print(f"ok: the live backend runs version {want}; Google Calendar, iCloud and mail all work; "
-          f"{offered}.")
+          f"the widget's fetch() and JSONP calls both get through; {offered}.")
     return 0
 
 

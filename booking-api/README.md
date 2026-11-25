@@ -160,6 +160,22 @@ the visitor's connection, a browser extension or a network filter is blocking
 fills with these from many visitors at once, check step 1 and Google's [Apps
 Script status](https://www.google.com/appsstatus/dashboard/).
 
+Each `Booking widget issue` alert says how the call failed, in its context:
+
+| Field | Meaning |
+| --- | --- |
+| `via` | the transport that failed: `fetch`, `jsonp`, or `fetch, then jsonp` (both) |
+| `status` | the HTTP status, when Google answered with an error |
+| `tries`, `ms` | how many tries, over how many milliseconds |
+| `online` | `false` when the visitor's browser knew it was offline |
+
+`online: false` is the visitor's connection. A 5xx `status` is Google's side.
+`fetch, then jsonp` with no `status` and a small `ms` means something blocked
+Google for that visitor. A large `ms` is a slow or cold Apps Script. To see
+the backend's side of one failure, open the Apps Script project's
+**Executions** page: a failed `doGet` at the alert's time means the script
+failed; no `doGet` at that time means the request never reached it.
+
 ### Keep this file and the deployment in sync
 
 The live `/exec` URL runs whatever was last pasted into the Apps Script editor
@@ -212,8 +228,10 @@ approve permissions.
 ## Daily check
 
 `.github/workflows/booking-health.yml` runs `.github/scripts/check_booking.py`
-every morning at 06:17 UTC. It calls the backend in `contact.html`'s `data-api`
-over JSONP, the way the widget's fallback does, and fails when:
+every day, scheduled for 06:17 UTC (GitHub often starts scheduled runs hours
+late). It calls the backend in `contact.html`'s `data-api` both ways the widget
+does — a plain GET, as `fetch()` sends it, and the JSONP fallback — and fails
+when:
 
 - it doesn't answer, or answers with a Google sign-in, "Authorization needed" or
   error page instead of data
@@ -223,6 +241,10 @@ over JSONP, the way the widget's fallback does, and fails when:
   alerts or the iCloud copy of each booking would silently stop
 - the deployed `version` differs from `VERSION` in this file
 - `action=availability` for the next working day returns no list of slots
+- a plain GET cannot be read from the site: a hop without
+  `Access-Control-Allow-Origin`, or a reply that isn't JSON. The widget still
+  works then, over JSONP, but that sends visitors' Google cookies and cannot
+  tell an error page from a dropped connection
 
 It tries three times over a minute first, so a blip is not reported as an
 outage. A failed run is GitHub's email to you, sent to the account that added
