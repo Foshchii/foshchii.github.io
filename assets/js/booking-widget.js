@@ -159,12 +159,65 @@
     if (msg === "timeout") return "The calendar service did not answer in time.";
     if (msg === "network") return "The calendar service could not be reached.";
     if (msg === "badresponse") return "The calendar service replied with something this page could not read — its deployment may need re-authorising.";
+    if (msg === "http") return "The calendar service answered with an error (HTTP " + err.status + ").";
     return msg;
   }
 
-  // Call an Apps Script web app cross-origin. Apps Script sends no CORS headers
-  // and 302-redirects, so fetch() can't read its response — but a JSONP
-  // <script> load can. Resolves with the object the backend returns.
+  /* ------------------------- talking to the backend ------------------------
+     An Apps Script web app's replies carry Access-Control-Allow-Origin: *, on
+     the /exec redirect and on the googleusercontent.com page it leads to, so
+     fetch() can read them. fetch() goes first because it
+       • leaves the visitor's Google cookies out, so being signed in to Google,
+         to several accounts or to a work account cannot change the answer;
+       • reports the HTTP status, so an error page is not mistaken for silence;
+       • is not a cross-site <script> load, which browsers, blockers and Google
+         itself all treat with suspicion.
+     JSONP stays as the fallback for a browser where fetch() cannot get through.
+     Both reject with "timeout", "network", "badresponse" or "http" (with a
+     .status) when no readable reply came back.                              */
+  function fetchJSON(url, timeoutMs) {
+    var ctrl = new AbortController();
+    var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 20000);
+    var status;
+    return fetch(url, { credentials: "omit", cache: "no-store", signal: ctrl.signal })
+      .then(function (res) { status = res.status; return res.text(); })
+      .then(function (text) {
+        clearTimeout(timer);
+        if (status < 200 || status > 299) {
+          var e = new Error("http");
+          e.status = status;
+          throw e;
+        }
+        try { return JSON.parse(text); } catch (err) { throw new Error("badresponse"); }
+      }, function () {
+        clearTimeout(timer);
+        throw new Error(ctrl.signal.aborted ? "timeout" : "network");
+      });
+  }
+
+  // The page's transport: fetch(), until fetch() fails to get through where
+  // JSONP succeeds. Browsers without fetch() and AbortController start on JSONP.
+  var useJsonp = typeof fetch !== "function" || typeof AbortController !== "function";
+
+  // One call to the backend. `fallback` lets a call that fetch() could not
+  // deliver go out again over JSONP — only for calls that are safe to send
+  // twice. A booking is not: fetch() may have reached the backend and lost
+  // only the reply.
+  function call(url, timeoutMs, fallback) {
+    if (useJsonp) return jsonp(url, timeoutMs);
+    return fetchJSON(url, timeoutMs).catch(function (err) {
+      // After an HTTP error, an unreadable reply or a timeout the backend was
+      // reached, or is slow, and JSONP would get the same answer.
+      if (!fallback || err.message !== "network") throw err;
+      return jsonp(url, timeoutMs).then(function (data) {
+        useJsonp = true;
+        return data;
+      });
+    });
+  }
+
+  // Call an Apps Script web app with a JSONP <script> load: the fallback
+  // transport. Resolves with the object the backend returns.
   function jsonp(url, timeoutMs) {
     return new Promise(function (resolve, reject) {
       var cb = "sfb_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
@@ -225,7 +278,8 @@
     cfg.emails = cfg.email.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
     cfg.organizer = cfg.emails[0] || cfg.email;
     var visitorTz = Intl.DateTimeFormat().resolvedOptions().timeZone || cfg.tz;
-    var state = { view: new Date(), date: null, slot: null, duration: cfg.durations[0] || 30 };
+    // `load` counts the times list's loads: only the newest may paint it.
+    var state = { view: new Date(), date: null, slot: null, duration: cfg.durations[0] || 30, load: 0 };
     state.view.setDate(1);
 
     // Today's date where the host is (data-timezone), moved on by `days`, as a
@@ -324,12 +378,26 @@
       });
     }
 
-    async function loadAvailability(date, timeoutMs) {
+    // Availability is a read, so a call that got no readable reply is safe to
+    // send again, and worth it: an Apps Script web app now and then fails one
+    // request (a cold start, a passing error on Google's side) and answers the
+    // next. Up to `attempts` tries, but none started after 12 seconds, so after
+    // a timeout there is one more try at most.
+    async function loadAvailability(date, timeoutMs, attempts) {
       var u = cfg.api.replace(/\/$/, "") + "?action=availability&date=" + ymd(date) +
               "&duration=" + state.duration + "&tz=" + encodeURIComponent(cfg.tz);
-      var j = await jsonp(u, timeoutMs || (cfg.strictLive ? 10000 : 8000));
-      if (!j || j.ok === false) throw new Error(j && j.error ? j.error : "Calendar service did not confirm availability.");
-      return parseLiveSlots(j.slots);
+      var started = Date.now();
+      for (var attempt = 1; ; attempt++) {
+        try {
+          var j = await call(u, timeoutMs || (cfg.strictLive ? 10000 : 8000), true);
+          if (!j || j.ok === false) throw new Error(j && j.error ? j.error : "Calendar service did not confirm availability.");
+          return parseLiveSlots(j.slots);
+        } catch (err) {
+          var again = attempt < (attempts || 3) && retryable(err) && Date.now() - started < 12000;
+          if (!again) throw err;
+          await new Promise(function (resolve) { setTimeout(resolve, attempt * 700); });
+        }
+      }
     }
 
     // Transport failures only: the request went out and nothing readable came
@@ -339,14 +407,21 @@
     // would confirm a booking that was refused.
     function lostReply(err) {
       var m = err && err.message;
-      return m === "timeout" || m === "network" || m === "badresponse";
+      return m === "timeout" || m === "network" || m === "badresponse" || m === "http";
+    }
+
+    // Worth another try: no readable reply, except an HTTP 4xx that is no
+    // passing state (a removed deployment answers 404 every time).
+    function retryable(err) {
+      var s = err && err.status;
+      return lostReply(err) && !(s >= 400 && s < 500 && s !== 408 && s !== 429);
     }
 
     async function slotTaken(start) {
       try {
         // Deliberately brief: this runs after a call that already spent its
         // own timeout, and the visitor is still staring at a disabled button.
-        var slots = await loadAvailability(start, 6000);
+        var slots = await loadAvailability(start, 6000, 1);
         return !slots.some(function (s) { return s.getTime() === start.getTime(); });
       } catch (e) {
         return false; // can't tell — leave the booking unconfirmed
@@ -354,10 +429,10 @@
     }
 
     // Failure telemetry must not ride only the transport that just failed: if
-    // JSONP is what's broken, a JSONP-only report is never delivered and the
-    // outage stays invisible. Always surface the failure locally, then try the
-    // backend over JSONP, then over sendBeacon (a POST, so it survives the
-    // <script> path being blocked or served a non-JS page).
+    // that is what's broken, the report is never delivered and the outage
+    // stays invisible. Always surface the failure locally, then try the
+    // backend over fetch() or JSONP, then over sendBeacon (a POST, so it
+    // survives the GET paths being blocked or served a non-JS page).
     function reportIssue(kind, message, extra) {
       var detail = { kind: kind, message: message, source: "booking-widget", extra: extra || {} };
       if (window.console && console.warn) console.warn("[sf-booking] " + kind + ": " + message, detail.extra);
@@ -370,7 +445,7 @@
         "&page=" + encodeURIComponent(location.href) +
         "&extra=" + encodeURIComponent(JSON.stringify(extra || {}));
       var base = cfg.api.replace(/\/$/, "");
-      jsonp(base + "?" + qs, 5000).catch(function () { beaconIssue(base, qs); });
+      call(base + "?" + qs, 5000, true).catch(function () { beaconIssue(base, qs); });
     }
 
     function beaconIssue(base, qs) {
@@ -459,6 +534,11 @@
 
     async function renderSide() {
       var side = el.querySelector(".sfb-side");
+      // Picking another day or length starts a new load while the last one may
+      // still be out. Whichever reply lands last would win, so a 60-minute view
+      // could show 30-minute times, or an abandoned load's error. Only the
+      // newest load may paint the list or report a failure.
+      var load = ++state.load;
       if (!state.date) {
         side.innerHTML = '<h' + cfg.hl + ' class="sfb-slots-title" tabindex="-1">Pick a day</h' + cfg.hl + '>' +
           '<div class="sfb-tz">Times shown in ' + visitorTz.replace(/_/g, " ") + '</div>' +
@@ -474,8 +554,12 @@
         durHTML() + '<div class="sfb-slotlist-wrap"></div>';
       wireDurations(side);
 
+      function current() {
+        return load === state.load && !!state.date && ymd(state.date) === ymd(capturedDate);
+      }
+
       function paintSlots(slots) {
-        if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
+        if (!current()) return;
         // Never offer a time before the earliest bookable day, even if an older
         // backend or a page left open overnight would allow it.
         var earliest = earliestStart();
@@ -504,7 +588,7 @@
         try {
           paintSlots(await loadAvailability(state.date));
         } catch (e) {
-          if (!state.date || ymd(state.date) !== ymd(capturedDate)) return;
+          if (!current()) return;
           var strictMessage = readableError(e);
           var strictContext = { date: ymd(capturedDate), duration: state.duration, strictLive: true };
           if (cfg.failureMode === "hide") {
@@ -527,6 +611,7 @@
         try {
           paintSlots(await loadAvailability(state.date));
         } catch (e) {
+          if (!current()) return;
           var fallbackWrap = side.querySelector(".sfb-slotlist-wrap");
           var fallbackMessage = readableError(e);
           reportIssue("availability", fallbackMessage, { date: ymd(capturedDate), duration: state.duration, strictLive: false });
@@ -597,9 +682,9 @@
       var btn = side.querySelector("#sfb-go"); btn.disabled = true; btn.textContent = "Booking…";
 
       if (cfg.api) {
-        // Book via JSONP GET. A readable fetch() to Apps Script is impossible
-        // (no CORS + 302 redirect), but a <script> load reaches doGet and
-        // returns the result. The backend creates the event and emails invites.
+        // Book with a GET to doGet, over whichever transport this page has
+        // been reaching the backend with. The backend creates the event and
+        // emails the invites.
         var u = cfg.api.replace(/\/$/, "") + "?action=book" +
           "&name=" + encodeURIComponent(name) +
           "&email=" + encodeURIComponent(email) +
@@ -616,7 +701,8 @@
         try {
           // Booking writes the event and dispatches invites, so it is the
           // slowest call the widget makes — give it longer than availability.
-          var res = await jsonp(u, 20000);
+          // No fallback and no retry: a lost reply is settled by the re-check.
+          var res = await call(u, 20000, false);
           if (!res || !res.booked) throw new Error(res && res.error ? res.error : "Booking failed");
           success(start, end, name, email, msg, true);
         } catch (e) {

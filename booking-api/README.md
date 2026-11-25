@@ -102,11 +102,17 @@ issue alert email and the website widget will block live booking.
 > change in this repo first — see [Keep this file and the deployment in
 > sync](#keep-this-file-and-the-deployment-in-sync).
 
-> **Why JSONP / GET?** Browsers can't read a normal `fetch()` response from
-> Apps Script (it returns no CORS headers and 302-redirects). So the widget
-> calls the backend with a JSONP `<script>` load over **GET**, passing a
-> `callback` param; the backend replies `callback({…})`. This is the reliable,
-> free way to reach Apps Script from a static site.
+> **How the widget calls it: `fetch()` first, JSONP as the fallback.** Apps
+> Script's replies carry `Access-Control-Allow-Origin: *` — on the `/exec`
+> 302 and on the `script.googleusercontent.com` page it redirects to — so the
+> widget reads them with a plain `fetch()` **GET**, sending no cookies. That
+> keeps a visitor's Google sign-in (several accounts, a work account) from
+> changing the answer, and an error page arrives as an HTTP status instead of
+> silence. If `fetch()` cannot get through, the widget falls back to a JSONP
+> `<script>` load with a `callback` param (the backend replies
+> `callback({…})`) and keeps using JSONP on that page. Availability checks
+> that get no readable reply are retried (three tries at most, none started
+> after 12 seconds) before the visitor sees an error; bookings never are.
 
 ---
 
@@ -114,8 +120,8 @@ issue alert email and the website widget will block live booking.
 
 ### "Booking was not confirmed — the calendar service did not answer in time"
 
-That message is the widget's **timeout** branch: the JSONP `<script>` for
-`action=book` never called its callback. It is silence, not a refusal — and the
+That message is the widget's **timeout** branch: the call for `action=book`
+got no reply in time. It is silence, not a refusal — and the
 difference matters, because `route()` catches everything the handlers throw and
 replies `{ok:false,error}`, which the widget prints verbatim. **If you got a
 generic timeout instead of a real reason, `doGet` never reached `reply()`.**
@@ -125,9 +131,8 @@ Work through it in this order:
 1. **Open `…/exec?action=health&callback=x` in a browser tab.** A healthy
    deployment prints `x({"ok":true,…})`. If you get a Google **sign-in page, an
    "Authorization needed" page, or an error page** instead, that is the whole
-   bug: a `<script>` tag handed HTML fires `load`, not `error` — it throws a
-   SyntaxError, never calls back, and the widget waits out its full timeout.
-   Re-authorise the script and **Deploy → Manage deployments → New version**.
+   bug: the widget cannot read a web page as data. Re-authorise the script and
+   **Deploy → Manage deployments → New version**.
 2. **Check `mail.ok` in that same response.** Booking calls `createEvent(…,
    {sendInvites:true})` and every alert goes through `MailApp` — availability
    reads no mail at all. So a revoked mail scope or a spent daily quota breaks
@@ -139,12 +144,21 @@ Work through it in this order:
    `Booking widget issue: booking`. Its context JSON carries the slot and the
    widget's own message. No alert at all points back at step 2.
 
-The widget no longer waits out the full timeout for step 1's failure — a script
-that loads non-JS now reports "replied with something this page could not read"
-straight away. And when a booking reply is merely *lost*, the widget re-checks
-the day's availability before showing an error, so an event that was created
-server-side is not reported as a failure the visitor will retry into a double
-booking.
+The widget does not wait out the full timeout for step 1's failure: an error
+page shows up as "answered with an error (HTTP …)" or "replied with something
+this page could not read" straight away. And when a booking reply is merely
+*lost*, the widget re-checks the day's availability before showing an error, so
+an event that was created server-side is not reported as a failure the visitor
+will retry into a double booking.
+
+### "Calendar connection needs attention — the calendar service could not be reached"
+
+Neither `fetch()` nor the JSONP fallback got any reply, on three tries. When
+`action=health` (step 1 above) answers fine, the backend is not the problem:
+the visitor's connection, a browser extension or a network filter is blocking
+`script.google.com` or `script.googleusercontent.com`. If the alert inbox
+fills with these from many visitors at once, check step 1 and Google's [Apps
+Script status](https://www.google.com/appsstatus/dashboard/).
 
 ### Keep this file and the deployment in sync
 
@@ -199,7 +213,7 @@ approve permissions.
 
 `.github/workflows/booking-health.yml` runs `.github/scripts/check_booking.py`
 every morning at 06:17 UTC. It calls the backend in `contact.html`'s `data-api`
-the way the widget does, and fails when:
+over JSONP, the way the widget's fallback does, and fails when:
 
 - it doesn't answer, or answers with a Google sign-in, "Authorization needed" or
   error page instead of data
@@ -227,9 +241,12 @@ back on from the Actions tab.
 
 ## Endpoint contract (if you ever swap in another backend)
 
-The widget calls the backend over **GET with JSONP** (a `callback` param);
-the backend wraps its JSON reply as `callback({…})`. It routes on an `action`
-param. A drop-in backend needs to support:
+The widget calls the backend over **GET**, and it routes on an `action` param.
+It first asks with `fetch()` and no `callback` param, expecting plain JSON
+sent with `Access-Control-Allow-Origin: *`; if that cannot get through, it
+asks again with JSONP (a `callback` param), expecting the JSON wrapped as
+`callback({…})`. A backend that serves only JSONP still works: the widget
+falls back to it. A drop-in backend needs to support:
 
 **`GET {api}?action=availability&date=YYYY-MM-DD&duration=30&tz=Area/City&callback=fn`**
 ```js
