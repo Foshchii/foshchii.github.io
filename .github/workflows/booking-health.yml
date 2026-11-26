@@ -1,8 +1,9 @@
-# Checks every morning that the live booking backend (the Google Apps Script
-# web app in contact.html's data-api) answers, can read both calendars and send
+# Checks every hour that the live booking backend (the Google Apps Script web
+# app in contact.html's data-api) answers, can read both calendars and send
 # mail, and runs the same code as booking-api/google-apps-script.gs.
 # Neither the site nor a broken backend can raise that alarm themselves, so
-# this runs on GitHub, and a failed run is GitHub's email to you.
+# this runs on GitHub, and a failed run is GitHub's email to you: one an hour
+# for as long as the outage lasts.
 #
 # Run it now: Actions → Check booking backend → Run workflow.
 # Run it locally: python3 .github/scripts/check_booking.py
@@ -14,9 +15,9 @@ name: Check booking backend
 
 on:
   schedule:
-    # 06:17 UTC: 08:17 in Copenhagen in summer, 07:17 in winter. Off the hour,
-    # when GitHub's scheduled runs are most often delayed.
-    - cron: "17 6 * * *"
+    # Every hour at :17, off the hour, when GitHub's scheduled runs are most
+    # often delayed. An outage then shows within about an hour, not a day.
+    - cron: "17 * * * *"
   workflow_dispatch:
   # Test changes to the check itself against the live backend.
   pull_request:
@@ -36,4 +37,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check booking backend
-        run: python3 .github/scripts/check_booking.py
+        # A pull request's backend is not deployed until it merges, so there
+        # the version is not compared.
+        run: python3 .github/scripts/check_booking.py ${{ github.event_name == 'pull_request' && '--any-version' || '' }}

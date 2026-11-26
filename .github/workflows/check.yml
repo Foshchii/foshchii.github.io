@@ -1,5 +1,6 @@
 # Checks the site for broken links and anchors, invalid structured data,
-# canonical/sitemap/feed mistakes and JavaScript syntax errors.
+# canonical/sitemap/feed mistakes and JavaScript syntax errors, and tests the
+# booking backend.
 # Runs on every pull request, and before every deploy (deploy-pages.yml calls
 # it), so a broken change never goes live.
 # Run the same checks locally with: python3 .github/scripts/check_site.py
@@ -28,3 +29,8 @@ jobs:
 
       - name: Check site
         run: python3 .github/scripts/check_site.py
+
+      # The booking backend runs on Google Apps Script, so it is tested here
+      # with fake Google services: a change that breaks booking fails here.
+      - name: Test booking backend
+        run: node .github/scripts/test_backend.js

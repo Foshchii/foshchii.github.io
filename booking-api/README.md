@@ -25,13 +25,21 @@ The backend is a **Google Apps Script** (`google-apps-script.gs`). It runs as
 reads your **published calendar `.ics` feed** and creates the booking with your
 iCloud address as a guest, so the event lands on your iCloud calendar too.
 
-When `data-api` is set, the widget runs in strict live mode by default. If live
-availability cannot be confirmed, this site quietly hides the booking block,
-booking CTAs and booking-related proof items for a few hours instead of showing
-possibly wrong slots. The backend also emails `NOTIFICATION_EMAIL` when
-availability, booking or health checks fail. If Apps Script itself is
-unreachable, neither the browser nor the script can send that email, so a
-[daily check](#daily-check) on GitHub looks for exactly that.
+Apple's feed is the one outside service every check depends on, so the script
+reads it at most every five minutes and keeps the last copy it could read for
+six hours. If the feed cannot be read, booking carries on with that copy and the
+script emails `NOTIFICATION_EMAIL`: a short iCloud outage no longer takes
+booking down. (`action=health` still reads the feed itself, so the outage shows
+in the [hourly check](#hourly-check).)
+
+When `data-api` is set, the widget runs in strict live mode by default: it
+never shows times it could not confirm. If live availability cannot be
+confirmed after a few tries, it says so and, with `data-fallback-href` set,
+offers another way to reach you (`data-failure-mode="hide"` removes the booking
+block instead). The backend also emails `NOTIFICATION_EMAIL` when availability,
+booking or health checks fail. If Apps Script itself is unreachable, neither
+the browser nor the script can send that email, so an
+[hourly check](#hourly-check) on GitHub looks for exactly that.
 
 **No same-day bookings.** The first bookable time is tomorrow at 00:00
 Copenhagen time. The rule is in two places: `CONFIG.minDaysAhead` in the script
@@ -205,17 +213,34 @@ each change:
 
 `action=health` reports the deployed `version`, which must equal `VERSION` in
 this file. If it doesn't, or the reply has no `version` at all, the editor or
-the deployment is out of date. The daily check compares them for you.
+the deployment is out of date. The hourly check compares them for you.
+
+## Backend tests
+
+`node .github/scripts/test_backend.js` loads the script as it is, gives it fake
+Google services (Calendar, the iCloud feed, cache, lock, mail) and a frozen
+clock, and checks what it books, refuses and offers, and what happens when the
+iCloud feed is down. It runs on every pull request and before every deploy, so
+a change that breaks booking does not reach the live backend. Add a case when
+you change what the backend accepts.
 
 ## Automatic deploys
 
 `.github/workflows/booking-deploy.yml` deploys the script for you whenever
 `google-apps-script.gs` or `appsscript.json` changes on `main`, using
 [clasp](https://github.com/google/clasp), Google's Apps Script command line
-tool. It replaces the code in the "Sviatoslav Booking Widget" project, saves a
-new version, moves the site's deployment (the `/exec` URL in `contact.html`)
-to it, and runs the booking check. Once it is set up, skip the paste-and-deploy
-steps above.
+tool. It runs the backend tests, replaces the code in the "Sviatoslav Booking
+Widget" project, saves a new version, moves the site's deployment (the `/exec`
+URL in `contact.html`) to it, and runs the booking check. Once it is set up,
+skip the paste-and-deploy steps above.
+
+**If the new code fails the check, it is rolled back.** The deployment goes
+back to the version it ran before, and that is checked too. If the old version
+passes, it stays, and the run fails saying the new code was rolled back. If the
+old version fails as well, the code is not the cause (Google, the iCloud feed or
+mail is), so the deployment goes forward to the new version again and the run
+fails with the problems found. Either way a bad change takes booking down for a
+minute or two, not until someone notices.
 
 One-time setup, on a computer with Node:
 
@@ -235,11 +260,11 @@ If a code change needs a new Google permission (a service the script did not
 use before), run any function once in the editor to approve it; a deploy cannot
 approve permissions.
 
-## Daily check
+## Hourly check
 
 `.github/workflows/booking-health.yml` runs `.github/scripts/check_booking.py`
-every day, scheduled for 06:17 UTC (GitHub often starts scheduled runs hours
-late). It calls the backend in `contact.html`'s `data-api` both ways the widget
+every hour, at 17 minutes past (GitHub sometimes starts scheduled runs late).
+It calls the backend in `contact.html`'s `data-api` both ways the widget
 does — a plain GET, as `fetch()` sends it, and the JSONP fallback — and fails
 when:
 
@@ -257,13 +282,16 @@ when:
   tell an error page from a dropped connection
 
 It tries three times over a minute first, so a blip is not reported as an
-outage. A failed run is GitHub's email to you, sent to the account that added
-or last changed the schedule (**Settings → Notifications → Actions** if it
-doesn't arrive); the run's log says what failed and what to do.
+outage. A failed run is GitHub's email to you, one an hour for as long as the
+outage lasts, sent to the account that added or last changed the schedule
+(**Settings → Notifications → Actions** if it doesn't arrive); the run's log
+says what failed and what to do.
 
 Run it any time from **Actions → Check booking backend → Run workflow**, or
 locally with `python3 .github/scripts/check_booking.py`. Pass an `/exec` URL
-to check a deployment before pointing the site at it.
+to check a deployment before pointing the site at it, and `--any-version` to
+skip the version check (a pull request's run does: its code is not deployed
+yet).
 
 GitHub pauses scheduled workflows in a public repository after 60 days without
 commits, and emails a warning first. The site keeps working; turn the check
@@ -313,7 +341,7 @@ fn({ "ok": true,
 `mail` is the one to read first when booking fails but availability works:
 invites and alerts both go out by mail, so a revoked scope or a spent quota
 takes out exactly those two paths. `version` says which copy of the script is
-deployed; the daily check fails when it is not this repo's. The reply is
+deployed; the hourly check fails when it is not this repo's. The reply is
 public, so it says only *whether* the alert and iCloud addresses are set,
 never the addresses themselves.
 
@@ -339,7 +367,9 @@ defaults to `book`.
      data-timezone="Europe/Copenhagen"
      data-min-days-ahead="1"
      data-strict-live="true"
-     data-failure-mode="hide"
+     data-failure-mode="show"
+     data-fallback-href="https://www.linkedin.com/in/your-name/"
+     data-fallback-label="Message me on LinkedIn"
      data-api="https://script.google.com/macros/s/XXXX/exec"></div>
 <script src="https://foshchii.com/assets/js/booking-widget.js" defer></script>
 ```

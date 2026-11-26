@@ -14,6 +14,8 @@
           data-days-ahead="21"
           data-min-days-ahead="1"        // 1 = no same-day bookings: tomorrow at the earliest (0 = today)
           data-message-label="…"         // optional: label for the free-text field
+          data-fallback-href="…"         // optional: another way to reach you, offered whenever booking fails
+          data-fallback-label="…"        //   (a link, tel: or mailto:) and the text on its button
           data-api=""                    // optional backend base URL (see /booking-api)
           data-strict-live="true"        // connected mode blocks booking if live availability fails
           data-failure-mode="show">      // "show" displays an error; "hide" lets the site quietly remove booking
@@ -272,6 +274,10 @@
       daysAhead: parseInt(el.dataset.daysAhead || "21", 10),
       minDaysAhead: Math.max(0, parseInt(el.dataset.minDaysAhead || "0", 10) || 0),
       messageLabel: el.dataset.messageLabel || "What's it about? (optional)",
+      // Where a visitor can still reach you when booking fails, so a calendar
+      // outage is never a dead end. Set on the page, never from visitor input.
+      fallbackHref: /^\s*javascript:/i.test(el.dataset.fallbackHref || "") ? "" : (el.dataset.fallbackHref || "").trim(),
+      fallbackLabel: el.dataset.fallbackLabel || "Contact me another way",
       api: (el.dataset.api || "").trim(),
       strictLive: el.dataset.strictLive !== "false",
       failureMode: el.dataset.failureMode || "show",
@@ -349,12 +355,19 @@
       );
     }
 
+    function fallbackLinkHTML() {
+      return cfg.fallbackHref
+        ? '<a class="sfb-btn sfb-btn--secondary sfb-fallback" href="' + html(cfg.fallbackHref) + '">' + html(cfg.fallbackLabel) + '</a>'
+        : "";
+    }
+
     function serviceErrorHTML(message) {
       return '<div class="sfb-status sfb-status--error" role="alert">' +
         '<strong>Calendar connection needs attention</strong>' +
         '<p>' + html(message) + '</p>' +
         '<div class="sfb-actions">' +
           (cfg.organizer ? '<a class="sfb-btn sfb-btn--secondary" href="' + fallbackMailHref(message) + '">Email directly</a>' : "") +
+          fallbackLinkHTML() +
           '<button class="sfb-link sfb-retry" type="button">Try again</button>' +
         '</div>' +
       '</div>';
@@ -372,8 +385,9 @@
         '<strong>Booking was not confirmed</strong>' +
         '<p>' + html(message) + '</p>' +
         '<p>Please try another time.</p>' +
-        (cfg.organizer ? '<div class="sfb-actions">' +
-          '<a class="sfb-btn sfb-btn--secondary" href="' + bookingMailHref(start, end, name, email, msg, message) + '">Email this request</a>' +
+        (cfg.organizer || cfg.fallbackHref ? '<div class="sfb-actions">' +
+          (cfg.organizer ? '<a class="sfb-btn sfb-btn--secondary" href="' + bookingMailHref(start, end, name, email, msg, message) + '">Email this request</a>' : "") +
+          fallbackLinkHTML() +
         '</div>' : "") +
       '</div>';
     }
