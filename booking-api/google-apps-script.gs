@@ -38,22 +38,25 @@ var CONFIG = {
   startHour: 9,                 // 09:00
   endHour:   17,                // 17:00
   stepMin:   30,
-  daysAhead: 21,
+  daysAhead: 21,                // the last bookable day is today + daysAhead
   bufferMin: 60,                // don't offer slots within the next hour
-  minDaysAhead: 1               // 1 = no same-day bookings: the first slot is tomorrow
+  minDaysAhead: 1,              // 1 = no same-day bookings: the first slot is tomorrow
+  durations: [20, 30, 45, 60]   // meeting lengths, in minutes: every data-durations
+                                // on the booking pages (contact.html, psychology/contact.html)
 };
 
 /* Which copy of this file is deployed. action=health reports it, and a daily
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "5a3cc3bfe5d6";
+var VERSION = "74c7b57161f9";
 
 /* ----------------------------- routing ----------------------------- *
- * Browsers can't read a normal fetch() response from Apps Script (it sends no
- * CORS headers and 302-redirects), so the widget calls us with JSONP via GET:
- *   ?callback=fn&action=availability&date=…&duration=…&tz=…
- *   ?callback=fn&action=book&name=…&email=…&start=…&end=…&title=…
+ * The widget calls us with GET. It asks with fetch() first: our replies carry
+ * Access-Control-Allow-Origin: *, so a page anywhere can read the plain JSON.
+ * Where fetch() cannot get through it falls back to JSONP, adding callback=fn:
+ *   ?action=availability&date=…&duration=…&tz=…[&callback=fn]
+ *   ?action=book&name=…&email=…&start=…&end=…&duration=…&title=…[&callback=fn]
  * The original pathInfo routes and POST still work, for compatibility.        */
 function doGet(e) {
   e = e || {}; var p = e.parameter || {};
@@ -115,12 +118,19 @@ function route(action, p) {
 /* --------------------------- availability -------------------------- */
 function availability(p) {
   var duration = parseInt(p.duration, 10) || 30;
+  // Only the lengths the booking pages offer, so a page asking for another one
+  // fails here, where it shows, rather than only when someone tries to book.
+  if (CONFIG.durations.indexOf(duration) === -1) {
+    return { ok: false, error: "That meeting length is not offered.", slots: [] };
+  }
   var parts = (p.date || "").split("-");
   if (parts.length !== 3) return { slots: [] };
   var y = +parts[0], m = +parts[1], d = +parts[2];
 
   var day = new Date(y, m - 1, d);
   if (CONFIG.workdays.indexOf(day.getDay()) === -1) return { slots: [] };
+  // The widget shows CONFIG.daysAhead days ahead; nothing after that is offered.
+  if (day.getTime() >= bookingWindowEnd()) return { slots: [] };
 
   var dayStart = new Date(y, m - 1, d, 0, 0, 0);
   var dayEnd   = new Date(y, m - 1, d, 23, 59, 59);
@@ -144,44 +154,82 @@ function availability(p) {
   return { ok: true, slots: slots, checkedAt: new Date().toISOString() };
 }
 
-/* ----------------------------- booking ----------------------------- */
+/* ----------------------------- booking ----------------------------- *
+ * The slot check: book only a time that availability() offers for this
+ * length. The rules that decide what a visitor sees then also decide what can
+ * be booked: a working day inside the booking window, inside working hours,
+ * on the slot grid, and free on Google and iCloud alike. The widget shows only
+ * such times, but a page left open, a stale list or a hand-made request could
+ * send any time at all, and the event would be created as asked.           */
 function book(b) {
   if (!b || !b.start || !b.end || !b.email) return { ok: false, error: "Missing fields" };
   var start = new Date(b.start), end = new Date(b.end);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    return { ok: false, error: "That booking request is not valid." };
+  }
   // The widget never offers these times; refuse them here too, for a page left
   // open overnight or a request that did not come from the widget.
   if (!(start.getTime() >= firstBookableTime())) {
     return { ok: false, error: "That time is too soon to book. Please pick a later day." };
   }
-  var cal = getGoogleCal(CONFIG.googleCalendarIds[0]);
-
-  // Last-second double-booking guard (Google side).
-  if (cal.getEvents(start, end).length) {
-    return { ok: false, error: "That time was just taken — please pick another." };
+  var duration = parseInt(b.duration, 10) || Math.round((end.getTime() - start.getTime()) / 60000);
+  if (CONFIG.durations.indexOf(duration) === -1 || end.getTime() - start.getTime() !== duration * 60000) {
+    return { ok: false, error: "That meeting length is not offered." };
   }
 
-  var guests = [b.email];
-  var iCloudGuestEmail = PropertiesService.getScriptProperties().getProperty("ICLOUD_GUEST_EMAIL");
-  if (iCloudGuestEmail) guests.push(iCloudGuestEmail);
-
-  cal.createEvent(
-    (b.title || "Meeting") + " — " + (b.name || "Guest"),
-    start, end,
-    {
-      description: "Booked via website\n\nName: " + (b.name || "") +
-                   "\nEmail: " + (b.email || "") +
-                   "\nNotes: " + (b.message || "—"),
-      guests: guests.join(","),
-      sendInvites: true
+  // Check and book under one lock. Two visitors after the same last free time
+  // would otherwise both pass the check before either event exists.
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) {
+    return { ok: false, error: "Another booking is being saved. Please try again in a moment." };
+  }
+  try {
+    var offered;
+    try {
+      // The start's day in the script's time zone, as availability() reads it.
+      var day = start.getFullYear() + "-" + ("0" + (start.getMonth() + 1)).slice(-2) + "-" +
+                ("0" + start.getDate()).slice(-2);
+      offered = availability({ date: day, duration: String(duration) }).slots || [];
+    } catch (err) {
+      // Google or the iCloud feed could not be read: say so plainly to the
+      // visitor, and send the details to the alert inbox.
+      notifyIssueSafe("booking", err, b);
+      return { ok: false, error: "The calendar could not be checked just now. Please try again in a moment." };
     }
-  );
-  return { ok: true, booked: true };
+    var open = offered.some(function (s) { return new Date(s).getTime() === start.getTime(); });
+    if (!open) return { ok: false, error: "That time is not available — please pick another." };
+
+    var guests = [b.email];
+    var iCloudGuestEmail = PropertiesService.getScriptProperties().getProperty("ICLOUD_GUEST_EMAIL");
+    if (iCloudGuestEmail) guests.push(iCloudGuestEmail);
+
+    getGoogleCal(CONFIG.googleCalendarIds[0]).createEvent(
+      (b.title || "Meeting") + " — " + (b.name || "Guest"),
+      start, end,
+      {
+        description: "Booked via website\n\nName: " + (b.name || "") +
+                     "\nEmail: " + (b.email || "") +
+                     "\nNotes: " + (b.message || "—"),
+        guests: guests.join(","),
+        sendInvites: true
+      }
+    );
+    return { ok: true, booked: true };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 /* Midnight, in the script's time zone, CONFIG.minDaysAhead days from today. */
 function firstBookableTime() {
   var t = new Date();
   return new Date(t.getFullYear(), t.getMonth(), t.getDate() + CONFIG.minDaysAhead).getTime();
+}
+
+/* Midnight after the last bookable day, CONFIG.daysAhead days from today. */
+function bookingWindowEnd() {
+  var t = new Date();
+  return new Date(t.getFullYear(), t.getMonth(), t.getDate() + CONFIG.daysAhead + 1).getTime();
 }
 
 /* --------------------------- Google busy --------------------------- */
