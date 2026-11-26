@@ -22,11 +22,11 @@ jobs:
   check:
     uses: ./.github/workflows/check.yml
 
-  deploy:
+  # The upload has its own job so that re-running a failed deploy reuses it.
+  # Re-running a job that both uploads and deploys adds a second "github-pages"
+  # artifact to the run, and the deploy then refuses to choose between them.
+  build:
     needs: check
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,6 +44,26 @@ jobs:
         with:
           path: "."
 
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url || steps.retry.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      # GitHub's side of a Pages deploy fails now and then and works a minute
+      # later: "Deployment failed, try again later", or the artifact not found
+      # yet. So a failed deploy waits and tries once more before the run fails.
       - name: Deploy
         id: deployment
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Wait before trying again
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 60
+
+      - name: Deploy (second try)
+        id: retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4

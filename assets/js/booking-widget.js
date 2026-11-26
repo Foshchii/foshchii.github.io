@@ -174,7 +174,15 @@
          itself all treat with suspicion.
      JSONP stays as the fallback for a browser where fetch() cannot get through.
      Both reject with "timeout", "network", "badresponse" or "http" (with a
-     .status) when no readable reply came back.                              */
+     .status) when no readable reply came back, and say which transport failed
+     in .via, so an issue report can name the cause.                         */
+  function transportError(message, via, status) {
+    var e = new Error(message);
+    e.via = via;
+    if (status) e.status = status;
+    return e;
+  }
+
   function fetchJSON(url, timeoutMs) {
     var ctrl = new AbortController();
     var timer = setTimeout(function () { ctrl.abort(); }, timeoutMs || 20000);
@@ -183,15 +191,11 @@
       .then(function (res) { status = res.status; return res.text(); })
       .then(function (text) {
         clearTimeout(timer);
-        if (status < 200 || status > 299) {
-          var e = new Error("http");
-          e.status = status;
-          throw e;
-        }
-        try { return JSON.parse(text); } catch (err) { throw new Error("badresponse"); }
+        if (status < 200 || status > 299) throw transportError("http", "fetch", status);
+        try { return JSON.parse(text); } catch (err) { throw transportError("badresponse", "fetch"); }
       }, function () {
         clearTimeout(timer);
-        throw new Error(ctrl.signal.aborted ? "timeout" : "network");
+        throw transportError(ctrl.signal.aborted ? "timeout" : "network", "fetch");
       });
   }
 
@@ -212,6 +216,9 @@
       return jsonp(url, timeoutMs).then(function (data) {
         useJsonp = true;
         return data;
+      }, function (jerr) {
+        jerr.via = "fetch, then jsonp";
+        throw jerr;
       });
     });
   }
@@ -223,7 +230,7 @@
       var cb = "sfb_cb_" + Date.now() + "_" + Math.floor(Math.random() * 1e6);
       var s = document.createElement("script");
       var done = false;
-      var timer = setTimeout(function () { finish(new Error("timeout")); }, timeoutMs || 20000);
+      var timer = setTimeout(function () { finish(transportError("timeout", "jsonp")); }, timeoutMs || 20000);
       function cleanup() {
         clearTimeout(timer);
         try { delete window[cb]; } catch (e) { window[cb] = undefined; }
@@ -236,13 +243,15 @@
         if (err) reject(err); else resolve(data);
       }
       window[cb] = function (data) { finish(null, data); };
-      s.onerror = function () { finish(new Error("network")); };
-      // A <script> handed non-JS — an Apps Script sign-in or error page, served
-      // with a 200 — fires load, not error: it throws a SyntaxError and never
-      // calls back. Without this the widget just waits out the whole timeout.
-      // A real JSONP reply runs the callback during eval, so `done` is already
-      // set by the time load fires.
-      s.onload = function () { setTimeout(function () { finish(new Error("badresponse")); }, 0); };
+      s.onerror = function () { finish(transportError("network", "jsonp")); };
+      // A <script> handed non-JS — an Apps Script sign-in or error page — mostly
+      // fires error, not load: Google marks its pages nosniff, so the browser
+      // will not run them, and that reads as "network", the same as a dropped
+      // connection. Where one does load, it throws a SyntaxError and never calls
+      // back; without this the widget would wait out the whole timeout. A real
+      // JSONP reply runs the callback during eval, so `done` is already set by
+      // the time load fires.
+      s.onload = function () { setTimeout(function () { finish(transportError("badresponse", "jsonp")); }, 0); };
       s.src = url + (url.indexOf("?") === -1 ? "?" : "&") + "callback=" + cb;
       document.head.appendChild(s);
     });
@@ -394,7 +403,11 @@
           return parseLiveSlots(j.slots);
         } catch (err) {
           var again = attempt < (attempts || 3) && retryable(err) && Date.now() - started < 12000;
-          if (!again) throw err;
+          if (!again) {
+            err.tries = attempt;
+            err.ms = Date.now() - started;
+            throw err;
+          }
           await new Promise(function (resolve) { setTimeout(resolve, attempt * 700); });
         }
       }
@@ -426,6 +439,20 @@
       } catch (e) {
         return false; // can't tell — leave the booking unconfirmed
       }
+    }
+
+    // What an issue report says about a failed call, so the alert names the
+    // cause, not only "could not be reached": the transport that failed, the
+    // HTTP status, how many tries over how long, and whether the browser
+    // thought it was online.
+    function failure(err, extra) {
+      var out = extra || {};
+      if (err && err.via) out.via = err.via;
+      if (err && err.status) out.status = err.status;
+      if (err && err.tries) out.tries = err.tries;
+      if (err && err.ms != null) out.ms = err.ms;
+      if (typeof navigator.onLine === "boolean") out.online = navigator.onLine;
+      return out;
     }
 
     // Failure telemetry must not ride only the transport that just failed: if
@@ -590,7 +617,7 @@
         } catch (e) {
           if (!current()) return;
           var strictMessage = readableError(e);
-          var strictContext = { date: ymd(capturedDate), duration: state.duration, strictLive: true };
+          var strictContext = failure(e, { date: ymd(capturedDate), duration: state.duration, strictLive: true });
           if (cfg.failureMode === "hide") {
             quietUnavailable(strictMessage, strictContext);
             return;
@@ -614,7 +641,7 @@
           if (!current()) return;
           var fallbackWrap = side.querySelector(".sfb-slotlist-wrap");
           var fallbackMessage = readableError(e);
-          reportIssue("availability", fallbackMessage, { date: ymd(capturedDate), duration: state.duration, strictLive: false });
+          reportIssue("availability", fallbackMessage, failure(e, { date: ymd(capturedDate), duration: state.duration, strictLive: false }));
           if (fallbackWrap) fallbackWrap.insertAdjacentHTML("afterbegin", warningHTML(fallbackMessage));
         }
       }
@@ -714,20 +741,20 @@
           var lost = lostReply(e);
           if (lost) btn.textContent = "Checking…";
           if (lost && await slotTaken(start)) {
-            reportIssue("booking-late-ack", bookingMessage, {
+            reportIssue("booking-late-ack", bookingMessage, failure(e, {
               start: start.toISOString(),
               end: end.toISOString(),
               duration: state.duration
-            });
+            }));
             success(start, end, name, email, msg, true, true);
             return;
           }
           btn.disabled = false; btn.textContent = "Confirm booking";
-          reportIssue("booking", bookingMessage, {
+          reportIssue("booking", bookingMessage, failure(e, {
             start: start.toISOString(),
             end: end.toISOString(),
             duration: state.duration
-          });
+          }));
           btn.insertAdjacentHTML("beforebegin", bookingErrorHTML(bookingMessage, start, end, name, email, msg));
         }
         return;
