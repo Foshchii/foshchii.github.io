@@ -40,6 +40,16 @@ on the widget hides today straight away, even on a page left open overnight.
 Set both to `0` to allow same-day bookings again (the script still keeps
 `CONFIG.bufferMin`, an hour, clear).
 
+**Bookings are checked on the server too.** The script books a time only if
+it would offer that time itself, for that length: a working day no more than
+`CONFIG.daysAhead` days ahead, inside working hours, on the `CONFIG.stepMin`
+grid, and free on both Google and iCloud. The widget never shows anything
+else, but a page left open or a hand-made request could ask for any time. The
+check and the booking run under one lock, so two visitors cannot both take the
+last free time. Lengths must be listed in `CONFIG.durations`: if you add a
+length to `data-durations` on a booking page, add it there too and deploy the
+script, or that page will say "That meeting length is not offered".
+
 > Why not pure CalDAV for iCloud? Apps Script can't send the `PROPFIND`/`REPORT`
 > methods CalDAV needs. The published-feed + guest-invite approach is the
 > reliable, free way to cover iCloud from Apps Script. (If you'd rather have full
@@ -274,7 +284,9 @@ falls back to it. A drop-in backend needs to support:
 ```js
 fn({ "ok": true, "slots": ["2026-07-01T07:00:00.000Z", "2026-07-01T07:30:00.000Z"] })
 ```
-Return free slot start times as ISO-8601 UTC strings.
+Return free slot start times as ISO-8601 UTC strings. A day past
+`CONFIG.daysAhead` gets no slots, and a `duration` not in `CONFIG.durations` gets
+`{ "ok": false, "error": "That meeting length is not offered." }`.
 
 **`GET {api}?action=book&callback=fn&...`** with the booking fields as query
 params: `name`, `email`, `message`, `title`, `start` (ISO), `end` (ISO),
@@ -284,7 +296,10 @@ organiser, i.e. the first entry in `data-email` — not the whole list.
 fn({ "ok": true, "booked": true })   // or fn({ "ok": false, "error": "…" })
 ```
 The widget treats the booking as successful only when `booked` is `true`.
-(The original `POST {api}/book` with a JSON body still works too.)
+(The original `POST {api}/book` with a JSON body still works too.) The backend
+refuses, with `ok: false` and a reason, a `start` that `availability` would not
+offer for that `duration`, a `duration` not in `CONFIG.durations`, and an `end`
+other than `start` plus `duration`.
 
 **`GET {api}?action=health&callback=fn`**
 ```js
