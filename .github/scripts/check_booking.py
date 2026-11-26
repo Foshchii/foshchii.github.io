@@ -20,8 +20,10 @@ fails when:
     from the site: a hop without Access-Control-Allow-Origin, or no JSON
 
 The URL comes from the booking widget's data-api in contact.html. Pass another
-/exec URL to check a deployment before pointing the site at it.
-Runs every morning from .github/workflows/booking-health.yml.
+/exec URL to check a deployment before pointing the site at it, and
+--any-version to skip the version check (booking-health.yml does, for a pull
+request, whose backend is not deployed yet).
+Runs every hour from .github/workflows/booking-health.yml.
 """
 
 import json
@@ -124,7 +126,7 @@ def check_health(api, want):
     if h.get("ok") is not True and not problems:
         problems.append(f"action=health says ok={h.get('ok')!r}: {h.get('error', 'no reason given')}.")
     got = h.get("version")
-    if got != want:
+    if want is not None and got != want:
         running = f"runs version {got}" if got else "reports no version"
         problems.append(f"The live backend {running}, but {SCRIPT} is version {want}. {REDEPLOY}")
     return problems
@@ -223,22 +225,31 @@ def annotation(msg):
     return msg.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
-def main():
-    api, tz = widget()
-    if len(sys.argv) > 1:
-        api = sys.argv[1]
-    api = api.rstrip("/")
-    want = stamp_backend_version.find(stamp_backend_version.read()).group(1)
-
-    for attempt, wait in enumerate((*WAITS, None), 1):
+def check(api, tz, want, waits=WAITS):
+    """Every check, tried again after each wait in `waits` while any fails, so
+    a blip is not reported as an outage. want=None skips the version check.
+    Returns (problems, offered)."""
+    for attempt, wait in enumerate((*waits, None), 1):
         problems, offered = run(api, tz, want)
         if not problems or wait is None:
-            break
+            return problems, offered
         brief = "".join(f"\n  - {p if len(p) <= 120 else p[:117] + '...'}" for p in problems)
         print(f"attempt {attempt} found {len(problems)} problem(s), trying again in {wait}s:{brief}",
               file=sys.stderr)
         time.sleep(wait)
 
+
+def main():
+    api, tz = widget()
+    args = [a for a in sys.argv[1:] if a != "--any-version"]
+    if args:
+        api = args[0]
+    api = api.rstrip("/")
+    # A pull request's backend is not deployed until it merges, so its run
+    # checks everything else but not the version.
+    want = None if "--any-version" in sys.argv else stamp_backend_version.find(stamp_backend_version.read()).group(1)
+
+    problems, offered = check(api, tz, want)
     if problems:
         annotate = os.environ.get("GITHUB_ACTIONS") == "true"
         for msg in problems:
@@ -248,7 +259,8 @@ def main():
         print(f"\n{len(problems)} problem(s). Health report: {api}?action=health&callback=x\n"
               "Troubleshooting: booking-api/README.md")
         return 1
-    print(f"ok: the live backend runs version {want}; Google Calendar, iCloud and mail all work; "
+    running = f"version {want}" if want else "a deployed version"
+    print(f"ok: the live backend runs {running}; Google Calendar, iCloud and mail all work; "
           f"the widget's fetch() and JSONP calls both get through; {offered}.")
     return 0
 

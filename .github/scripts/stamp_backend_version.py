@@ -4,7 +4,7 @@
 The live booking backend runs whatever was last pasted into the Apps Script
 editor and deployed, not what is in this repo, and nothing says when the two
 drift apart. So the script carries a VERSION derived from its own code and
-reports it from action=health, and the daily check (check_booking.py) compares
+reports it from action=health, and the hourly check (check_booking.py) compares
 the live value with this file's.
 
 VERSION is the first 12 hex digits of the SHA-256 of the file with the VERSION

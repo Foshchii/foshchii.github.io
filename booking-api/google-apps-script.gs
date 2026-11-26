@@ -49,7 +49,7 @@ var CONFIG = {
  * check compares it with the repo's copy, because the live web app runs
  * whatever was last deployed, not what the repo says. Derived from the code:
  * don't edit it by hand, run .github/scripts/stamp_backend_version.py.      */
-var VERSION = "74c7b57161f9";
+var VERSION = "ca19ad866681";
 
 /* ----------------------------- routing ----------------------------- *
  * The widget calls us with GET. It asks with fetch() first: our replies carry
@@ -312,18 +312,58 @@ function health() {
 }
 
 /* ---------------------------- iCloud busy -------------------------- *
- * Reads the published iCloud calendar .ics feed and returns busy blocks
- * that overlap [start, end]. Handles concrete events and simple DAILY/WEEKLY
- * recurrences. (Complex RRULEs may not be fully expanded.)                */
+ * Busy blocks from the published iCloud calendar .ics feed that overlap
+ * [start, end]. Handles concrete events and simple DAILY/WEEKLY recurrences.
+ * (Complex RRULEs may not be fully expanded.)
+ *
+ * Every availability check and booking needs these, and Apple's feed is the
+ * one outside service they depend on. So the feed is read at most every
+ * ICLOUD_FRESH_SEC, and the last copy that could be read is kept for
+ * ICLOUD_KEEP_SEC (six hours, CacheService's longest). When the feed cannot
+ * be read, that copy is used and the alert inbox told: a short iCloud outage
+ * leaves booking up, on iCloud times up to six hours old, instead of taking
+ * it down. action=health still reads the feed itself, so the outage shows.  */
+var ICLOUD_FRESH_SEC = 300;
+var ICLOUD_KEEP_SEC = 21600;
+
 function icloudBusy(start, end) {
   var url = prop("ICLOUD_ICS_URL");
   if (!url) return [];
-  url = url.replace(/^webcal:/i, "https:");
+  return icloudBlocks(url)
+    .filter(function (b) { return b[0] < end.getTime() && b[1] > start.getTime(); })
+    .map(function (b) { return { s: new Date(b[0]), e: new Date(b[1]) }; });
+}
+
+/* The feed's busy blocks as [startMs, endMs], from today to a day past the
+ * booking window, so one copy answers every day a visitor can pick.        */
+function icloudBlocks(url) {
+  var cache = CacheService.getScriptCache();
+  var fresh = cache.get("icloud_busy");
+  if (fresh) return JSON.parse(fresh);
+  var blocks;
   try {
-    var res = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+    var res = UrlFetchApp.fetch(url.replace(/^webcal:/i, "https:"), { muteHttpExceptions: true, followRedirects: true });
     if (res.getResponseCode() >= 300) throw new Error("iCloud feed HTTP " + res.getResponseCode());
-    return parseIcsBusy(res.getContentText(), start, end);
-  } catch (err) { throw new Error("iCloud availability unavailable: " + safeError(err)); }
+    var t = new Date();
+    var from = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+    var to = new Date(bookingWindowEnd() + 24 * 3600000);
+    blocks = parseIcsBusy(res.getContentText(), from, to)
+      .map(function (b) { return [b.s.getTime(), b.e.getTime()]; });
+  } catch (err) {
+    var kept = cache.get("icloud_busy_kept");
+    if (!kept) throw new Error("iCloud availability unavailable: " + safeError(err));
+    notifyIssueSafe("icloud", "The iCloud feed could not be read, so booking uses the last copy " +
+      "(up to six hours old): " + safeError(err), {});
+    return JSON.parse(kept);
+  }
+  try {
+    var json = JSON.stringify(blocks);
+    cache.put("icloud_busy", json, ICLOUD_FRESH_SEC);
+    cache.put("icloud_busy_kept", json, ICLOUD_KEEP_SEC);
+  } catch (err) {
+    // Too big for the cache (100 KB a value): carry on, reading the feed each time.
+  }
+  return blocks;
 }
 
 function parseIcsBusy(text, rangeStart, rangeEnd) {
