@@ -632,6 +632,19 @@
       });
     }
 
+    // The form's check: whether name and email will do, and a message naming
+    // just the ones that won't.
+    function checkForm(side) {
+      var nameOk = !!side.querySelector("#sfb-n").value.trim();
+      var emailOk = /.+@.+\..+/.test(side.querySelector("#sfb-e").value.trim());
+      return {
+        nameOk: nameOk,
+        emailOk: emailOk,
+        message: !nameOk && !emailOk ? "Please enter your name and a valid email."
+          : !nameOk ? "Please enter your name." : "Please enter a valid email."
+      };
+    }
+
     function renderForm() {
       var side = el.querySelector(".sfb-side");
       var start = state.slot;
@@ -659,6 +672,20 @@
         var go = side.querySelector("#sfb-go");
         if (!go.disabled) submit(side, start, end);
       };
+      // A failed check marks the fields and shows "Check the form". Until the
+      // next press of the button nothing re-checked them, so a field filled in
+      // afterwards stayed red and the message stayed up. Once a check has
+      // failed, check again as the visitor types.
+      side.querySelector(".sfb-form").addEventListener("input", function () {
+        var box = side.querySelector(".sfb-form-check");
+        if (!box) return;
+        var c = checkForm(side);
+        side.querySelector("#sfb-n").setAttribute("aria-invalid", c.nameOk ? "false" : "true");
+        side.querySelector("#sfb-e").setAttribute("aria-invalid", c.emailOk ? "false" : "true");
+        if (c.nameOk && c.emailOk) { box.remove(); return; }
+        var p = box.querySelector("p");
+        if (p.textContent !== c.message) p.textContent = c.message;
+      });
       side.querySelector("#sfb-n").focus({ preventScroll: window.innerWidth > 680 });
     }
 
@@ -668,15 +695,15 @@
       var msg = side.querySelector("#sfb-m").value.trim();
       var oldError = side.querySelector(".sfb-booking-error");
       if (oldError) oldError.remove();
-      var nameOk = !!name, emailOk = /.+@.+\..+/.test(email);
-      side.querySelector("#sfb-n").setAttribute("aria-invalid", nameOk ? "false" : "true");
-      side.querySelector("#sfb-e").setAttribute("aria-invalid", emailOk ? "false" : "true");
-      if (!nameOk || !emailOk) {
+      var c = checkForm(side);
+      side.querySelector("#sfb-n").setAttribute("aria-invalid", c.nameOk ? "false" : "true");
+      side.querySelector("#sfb-e").setAttribute("aria-invalid", c.emailOk ? "false" : "true");
+      if (!c.nameOk || !c.emailOk) {
         side.querySelector("#sfb-go").insertAdjacentHTML(
           "beforebegin",
-          '<div class="sfb-status sfb-status--error sfb-booking-error" role="alert"><strong>Check the form</strong><p>Please enter your name and a valid email.</p></div>'
+          '<div class="sfb-status sfb-status--error sfb-booking-error sfb-form-check" role="alert"><strong>Check the form</strong><p>' + c.message + '</p></div>'
         );
-        side.querySelector(nameOk ? "#sfb-e" : "#sfb-n").focus();
+        side.querySelector(c.nameOk ? "#sfb-e" : "#sfb-n").focus();
         return;
       }
       var btn = side.querySelector("#sfb-go"); btn.disabled = true; btn.textContent = "Booking…";
