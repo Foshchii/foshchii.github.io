@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Guitar Academy: classical guitar &amp; flamenco without nails · Sviatoslav Foshchii</title>
-  <meta name="description" content="Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.">
+  <meta name="description" content="Learn classical guitar and flamenco without fingernails: a six-month curriculum, interactive reading and rhythm practice, a metronome, tuner, chord and compás trainers, and a hero who levels up as you practise. Installs on your phone, works offline and syncs between devices.">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#f6f1e8" data-auto="#f6f1e8" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#16110d" data-auto="#16110d" media="(prefers-color-scheme: dark)">
@@ -13,7 +13,7 @@
   <meta property="og:site_name" content="Guitar Academy">
   <meta property="og:url" content="https://foshchii.com/guitar/">
   <meta property="og:title" content="Guitar Academy · Classical guitar &amp; flamenco">
-  <meta property="og:description" content="Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.">
+  <meta property="og:description" content="Learn classical guitar and flamenco without fingernails: a six-month curriculum, interactive reading and rhythm practice, a metronome, tuner, chord and compás trainers, and a hero who levels up as you practise. Installs on your phone, works offline and syncs between devices.">
   <meta property="og:image" content="https://foshchii.com/guitar/img/share.jpg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -22,9 +22,11 @@
   <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Guitar">
+  <meta name="mobile-web-app-capable" content="yes">
   <link rel="preload" href="fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/commissioner-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="academy.css?v=3">
+  <link rel="stylesheet" href="academy.css?v=4">
   <script>
     // Before first paint: apply a saved theme, and note who the first-visit page below is not for,
     // so returning learners and deep links never see it flash by.
@@ -34,7 +36,7 @@
         saved = localStorage.getItem("guitar-academy.theme");
         if (saved === "light" || saved === "dark") root.dataset.theme = saved;
         saved = localStorage.getItem("guitar-academy.progress");
-        if (saved && /"lastLesson":"|"journal":\[\{|"(?:lessons|assessments|days|activities)":\{"/.test(saved)) root.classList.add("returning");
+        if (saved && /"lastLesson":"|"journal":\[\{|"(?:lessons|assessments|days|activities|counters|quests|badges)":\{"|"profile":\{"name":"[^"]/.test(saved)) root.classList.add("returning");
       } catch (error) {}
       if (/^#(?!home$|main$)./.test(location.hash)) root.classList.add("deep");
     })();
@@ -47,14 +49,21 @@
   <link rel="modulepreload" href="reading.js">
   <link rel="modulepreload" href="notation-symbols.js">
   <link rel="modulepreload" href="notation-accidentals.js">
-  <script type="module" src="academy.js?v=3" onerror="document.documentElement.classList.remove('deep', 'returning')"></script>
+  <link rel="modulepreload" href="rpg.js">
+  <link rel="modulepreload" href="quiz-store.js">
+  <link rel="modulepreload" href="chords.js">
+  <link rel="modulepreload" href="qr.js">
+  <link rel="modulepreload" href="sync.js">
+  <link rel="modulepreload" href="sync-config.js">
+  <link rel="modulepreload" href="app.js">
+  <script type="module" src="academy.js?v=4" onerror="document.documentElement.classList.remove('deep', 'returning')"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": ["WebApplication", "LearningResource"],
     "name": "Guitar Academy",
     "url": "https://foshchii.com/guitar/",
-    "description": "Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.",
+    "description": "Learn classical guitar and flamenco without fingernails: a six-month curriculum, interactive reading and rhythm practice, a metronome, tuner, chord and compás trainers, and a hero who levels up as you practise. Installs on your phone, works offline and syncs between devices.",
     "image": "https://foshchii.com/guitar/img/share.jpg",
     "inLanguage": "en",
     "applicationCategory": "EducationalApplication",
@@ -66,8 +75,10 @@
     "teaches": [
       "Classical guitar technique without fingernails",
       "Reading standard notation on the guitar",
-      "Flamenco rhythm and right-hand technique"
+      "Flamenco rhythm and right-hand technique",
+      "Chords, accompaniment and compás"
     ],
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
     "publisher": { "@type": "Person", "name": "Sviatoslav Foshchii", "url": "https://foshchii.com/" }
   }
   </script>
@@ -93,6 +104,23 @@
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3.5 5.5 6v5.4c0 4.1 2.6 7.3 6.5 9.1 3.9-1.8 6.5-5 6.5-9.1V6ZM9 12l2.1 2.1L15 10.2"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4.5 19.5h15M7.5 16v-4M12 16V7.5M16.5 16v-6.5"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.7v.3"/></symbol>
+    <symbol id="i-ear" viewBox="0 0 24 24"><path d="M7.5 9.5a4.5 4.5 0 1 1 9 0c0 2.4-1.6 3.3-2.6 4.4-.8.9-.9 1.8-1 2.8A2.6 2.6 0 0 1 10.3 19M10.2 9.6a1.9 1.9 0 0 1 3.7-.2c.2 1-.4 1.6-1.1 2.2"/></symbol>
+    <symbol id="i-chord" viewBox="0 0 24 24"><path d="M6.5 4.5h11M6.5 4.5v15M10.2 4.5v15M13.8 4.5v15M17.5 4.5v15M6.5 9.5h11M6.5 14.5h11"/><circle cx="10.2" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="13.8" cy="17" r="1.6" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12.2 3.5c.5 3-1.2 4.6-2.7 6.4-1.3 1.5-2 3-2 4.8a4.5 4.5 0 0 0 9 0c0-1.9-.8-3.3-1.8-4.4-.2 1.2-.8 2-1.7 2.4.5-3.4-.2-6.6-.8-9.2Z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4.5h8V9a4 4 0 0 1-8 0ZM8 6.5H5.5A2.5 2.5 0 0 0 8.2 10.3M16 6.5h2.5a2.5 2.5 0 0 1-2.7 3.8M12 13v3.3M8.5 19.5h7M9.6 19.5c0-1.7 1-3.2 2.4-3.2s2.4 1.5 2.4 3.2"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M4.5 18h15M5.2 18 4 8.3l4.6 3.6L12 5.3l3.4 6.6L20 8.3 18.8 18"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M11 4c.5 4 2.6 6.4 6.6 7-4 .7-6.1 3-6.6 7-.5-4-2.6-6.3-6.6-7C8.4 10.4 10.5 8 11 4ZM18.5 3.5v3.4M16.8 5.2h3.4"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M6.5 20.5v-16M6.5 5h10.5l-2.1 3.6L17 12.2H6.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9.5" rx="2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7.4 18.5H17a3.8 3.8 0 0 0 .5-7.6A5.6 5.6 0 0 0 6.8 9.6a4.5 4.5 0 0 0 .6 8.9ZM9.6 14.3 12 12l2.4 2.3M12 12.2v4.6"/></symbol>
+    <symbol id="i-offline" viewBox="0 0 24 24"><path d="m4 4 16 16M8.9 9a10 10 0 0 0-4.7 2.4M12.5 8.1a9.8 9.8 0 0 1 7.3 3.3M7.4 14.6a6.6 6.6 0 0 1 4.4-1.8M16.6 14.4a7 7 0 0 0-1.5-1"/><circle cx="12" cy="18.3" r="1.1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 14.5V3.8M8.4 7.4 12 3.8l3.6 3.6M8 10.5H6.5v9.7h11v-9.7H16"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="3.5" width="10" height="17" rx="2.2"/><path d="M10.8 17.4h2.4"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.7M10 3.5h4M17.9 7.6l1.4-1.4"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3.5" width="6" height="11" rx="3"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5v3"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8.6 12.2V6.7a1.3 1.3 0 0 1 2.6 0v4.5M11.2 10.9V5.4a1.3 1.3 0 0 1 2.6 0v5.5M13.8 10.9V6.4a1.3 1.3 0 0 1 2.6 0V13c0 4-2.4 6.5-5.7 6.5-2.4 0-3.8-1.3-5-3.4l-1.4-2.4a1.3 1.3 0 0 1 2.2-1.4l2.1 2.6"/></symbol>
     <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
   </svg>
   <a class="skip" href="#main">Skip to content</a>
@@ -105,21 +133,22 @@
       <nav class="primary-nav" aria-label="Main">
         <a href="#home" data-nav="home">Today</a>
         <a href="#course" data-nav="course">Curriculum</a>
+        <a href="#practice" data-nav="practice">Practice</a>
         <a href="#reading" data-nav="reading">Reading</a>
         <a href="#technique" data-nav="technique">No nails</a>
         <a href="#estas" data-nav="estas">Estas Tonne</a>
-        <a href="#repertoire" data-nav="repertoire">Repertoire</a>
         <a href="#journal" data-nav="journal">Journal</a>
       </nav>
       <div class="header-tools">
-        <a class="progress-chip" href="#progress" data-nav="progress" data-progress-chip aria-label="Progress">
+        <a class="progress-chip" href="#hero" data-nav="hero" data-progress-chip aria-label="Your hero">
           <svg class="ring" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle class="ring-track" cx="18" cy="18" r="15"/><circle class="ring-value" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 18 18)"/></svg>
-          <span>Progress</span>
+          <span class="chip-level" aria-hidden="true">Level <b data-chip-level>1</b></span>
         </a>
         <a class="tool-link" href="#settings" data-nav="settings" aria-label="Settings"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sliders"></use></svg></a>
       </div>
     </div>
   </header>
+  <div id="banner" class="banner shell" hidden></div>
   <main id="main" class="shell main" tabindex="-1">
     <div id="app"><div class="view" data-view="home"><section class="hero">
     <picture class="hero-media">
@@ -135,8 +164,8 @@
   </section>
   <ul class="facts">
     <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg><div><strong>12 modules, six months</strong><span>From your first open strings to a first improvisation.</span></div></li>
-    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg><div><strong>25 minutes a day</strong><span>Or 10 when time is short. The first 28 days are planned for you.</span></div></li>
-    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-shield"></use></svg><div><strong>No account</strong><span>Your progress and notes stay in this browser.</span></div></li>
+    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-clock"></use></svg><div><strong>25 minutes a day</strong><span>Or 10 when time is short. Every day of the course has its plan.</span></div></li>
+    <li><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-crown"></use></svg><div><strong>Level up as you practise</strong><span>Daily quests, six skills and a boss at the end of every module.</span></div></li>
   </ul>
   <div class="dashboard">
     <section class="card today">
@@ -148,6 +177,7 @@
       <p class="card-foot"><a class="link" href="#day/1">Open today’s <span class="nowrap">plan<svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></span></a></p>
     </section>
     <aside class="rail">
+      
       <section class="card">
         <p class="kicker">Current module · Foundation</p>
         <h2 class="card-title"><a href="#module/M01">Setup, pulse and your first notes</a></h2>
@@ -165,8 +195,10 @@
     </aside>
   </div>
   <nav class="explore" aria-label="More to practise">
+    <a href="#practice"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-metronome"></use></svg><span><strong>Practice room</strong><small>Guided session, metronome, tuner, chords and compás.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
     <a href="#reading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-note"></use></svg><span><strong>Music Reading Academy</strong><small>Note names, frets, rhythm and sight-reading on a staff.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
     <a href="#technique"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-wave"></use></svg><span><strong>Playing Without Nails</strong><small>Each stroke, adapted for fingertip pads.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
+    <a href="#hero"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-crown"></use></svg><span><strong>Your hero</strong><small>Level, skills, quests, bosses and achievements.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
     <a href="#estas"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-star"></use></svg><span><strong>Estas Tonne guide</strong><small>Four pieces, studied one phrase at a time.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
     <a href="#repertoire"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-sheet"></use></svg><span><strong>Repertoire</strong><small>Pieces to practise from the score.</small></span><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-right"></use></svg></a>
   </nav></div></div><!-- /app -->
@@ -174,11 +206,12 @@
   </main>
   <footer class="site-footer">
     <div class="shell footer-inner">
-      <p class="footer-note">Your progress stays in this browser.</p>
+      <p class="footer-note">Your progress stays on your devices. No account.</p>
       <nav aria-label="More academy pages">
         <a href="#about">About</a>
         <a href="#repertoire">Repertoire</a>
         <a href="#progress">Progress</a>
+        <a href="#sync">Sync</a>
         <a href="#settings">Settings</a>
         <a href="../">foshchii.com <svg class="icon" aria-hidden="true" focusable="false"><use href="#i-arrow-up-right"></use></svg></a>
       </nav>
@@ -187,10 +220,21 @@
   <nav class="tabbar" aria-label="Sections">
     <a href="#home" data-nav="home"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-metronome"></use></svg>Today</a>
     <a href="#course" data-nav="course"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-book"></use></svg>Course</a>
-    <a href="#reading" data-nav="reading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-note"></use></svg>Reading</a>
-    <a href="#journal" data-nav="journal"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-journal"></use></svg>Journal</a>
-    <a href="#menu" data-nav="menu technique estas repertoire progress settings about"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-more"></use></svg>More</a>
+    <a href="#practice" data-nav="practice reading"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-timer"></use></svg>Practice</a>
+    <a href="#hero" data-nav="hero"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-crown"></use></svg>Hero</a>
+    <a href="#menu" data-nav="menu technique estas repertoire journal progress settings about sync"><svg class="icon" aria-hidden="true" focusable="false"><use href="#i-more"></use></svg>More</a>
   </nav>
+  <div id="toasts" class="toasts" aria-hidden="true"></div>
+  <dialog id="level-up" class="level-up" aria-labelledby="level-up-title">
+    <div class="level-up-body">
+      <div data-level-crest></div>
+      <p class="kicker">Level up</p>
+      <h2 id="level-up-title" data-level-title>Level 2</h2>
+      <p class="level-up-name" data-level-name></p>
+      <p data-level-text></p>
+      <div class="actions"><button type="button" class="btn" data-close>Carry on</button><a class="btn btn--ghost" href="#hero" data-close>See your hero</a></div>
+    </div>
+  </dialog>
   <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
 </body>
 </html>

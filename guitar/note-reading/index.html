@@ -24,6 +24,9 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="Note Quiz">
+<!-- The academy's offline worker keeps this page available offline, and the academy's sync carries
+     the quiz's progress between devices (see ../quiz-link.js and Cloud below). -->
+<script type="module" src="../quiz-link.js"></script>
 <link rel="preload" href="../fonts/cormorant-garamond-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="../fonts/commissioner-latin.woff2" as="font" type="font/woff2" crossorigin>
 <script>
@@ -2582,15 +2585,19 @@ const Store = (() => {
   };
 })();
 
-/* Account sync through the page's private per-person document. */
+/* Sync. Inside Claude's artifact viewer, through the page's private per-person document. On the
+   website, through the academy's sync (../sync.js, loaded by ../quiz-link.js): it encrypts the
+   record and merges it with Store.merge, the same merge as here. state.mode: 'account' (the viewer),
+   'sync' (the academy's sync is on) or 'local'. */
 const Cloud = (() => {
-  let ref = null, writing = false, pending = false, timer = null, disabled = false, lastSent = '';
+  let ref = null, writing = false, pending = false, timer = null, disabled = false, lastSent = '', linked = null;
   const state = { mode: 'local' };
   function body() {
     const d = Store.data;
     return { v: 2, items: d.items, days: d.days, lessons: d.lessons, rounds: d.rounds, levels: d.levels, best: d.best, tunes: d.tunes, xp: d.xp, runs: d.runs, settings: d.settings, practice: d.practice, settingsAt: d.settingsAt, updated: d.updated, resetAt: d.resetAt || 0 };
   }
   async function write(force) {
+    if (linked) { if (force) linked.syncNow(); else linked.schedule(300); return; }
     if (!ref || disabled) return;
     if (writing) { pending = true; return; }
     const b = body();
@@ -2608,13 +2615,28 @@ const Cloud = (() => {
     if (pending) { pending = false; schedule(800); }
   }
   function schedule(delay) {
+    if (linked) { linked.schedule(delay); return; }
     if (!ref || disabled) return;
     clearTimeout(timer);
     timer = setTimeout(() => write(), delay || 2500);
   }
+  /* The academy's sync: register the quiz's part of the record with it. */
+  function link(onChange) {
+    const ready = sync => {
+      if (linked || !sync) return;
+      linked = sync;
+      sync.register('quiz', { read: () => body(), merge: remote => { const changed = Store.merge(remote); if (changed && onChange) onChange(); return changed; } });
+      const show = s => { const mode = s.on && s.configured ? 'sync' : 'local'; if (mode !== state.mode) { state.mode = mode; if (onChange) onChange(); } };
+      sync.subscribe(show);
+      sync.start();
+      show(sync.state());
+    };
+    if (window.guitarSync) ready(window.guitarSync);
+    else window.addEventListener('guitar-sync-ready', () => ready(window.guitarSync), { once: true });
+  }
   async function init(onChange) {
     try {
-      if (!window.claude || typeof window.claude.use !== 'function') return;
+      if (!window.claude || typeof window.claude.use !== 'function') { link(onChange); return; }
       const both = await Promise.all([window.claude.use('db'), window.claude.use('user')]);
       const db = both[0], user = both[1];
       if (!db || !user) return;
@@ -6662,7 +6684,7 @@ function viewProgress(main) {
   const streak = Store.dayStreak();
   const stat = (v, l) => '<div class="stat"><b>' + v + '</b><span>' + l + '</span></div>';
   main.innerHTML = '<section class="view progress">' +
-    '<header class="view-head"><h1 class="title">Progress</h1><p class="lede">' + (Cloud.state.mode === 'account' ? 'Saved to your account, so your phone and computer share the same progress.' : 'Saved on this device. On an iPhone, the Home Screen app and Safari each keep their own progress, so stay with one of them.') + '</p></header>' +
+    '<header class="view-head"><h1 class="title">Progress</h1><p class="lede">' + (Cloud.state.mode === 'account' ? 'Saved to your account, so your phone and computer share the same progress.' : Cloud.state.mode === 'sync' ? 'Synced with your other devices by the academy’s sync. Your points also count for your hero in the academy.' : 'Saved on this device. To share it with your other devices, or between the Home Screen app and Safari on an iPhone, <a href="../#sync">turn on sync in the academy</a>. Your points also count for your hero there.') + '</p></header>' +
     reviewCardHTML() +
     '<div class="stats">' + stat(Store.xpTotal(), 'points in total') + stat(stars + '/' + LEVELS.length * 3, 'stars') + stat(streak, streak === 1 ? 'day in a row' : 'days in a row') + stat(done + '/' + LEVELS.length, 'levels finished') + '</div>' +
     '<p class="pg-line">' + t.n + ' notes, rhythms and keys answered, ' + pct + ' of them right.</p>' +
@@ -6698,7 +6720,7 @@ function viewProgress(main) {
   }
   root.addEventListener('click', e => {
     if (e.target.closest('[data-review]')) { startReview(); return; }
-    if (e.target.closest('[data-act="reset"]')) openConfirm('Reset all progress?', 'Your points, stars, answers and round results will be cleared ' + (Cloud.state.mode === 'account' ? 'on every device' : 'in this browser') + '. Settings stay as they are.', 'Reset progress', () => { Store.reset(); render(false); });
+    if (e.target.closest('[data-act="reset"]')) openConfirm('Reset all progress?', 'Your points, stars, answers and round results will be cleared ' + (Cloud.state.mode !== 'local' ? 'on every device' : 'in this browser') + '. Settings stay as they are.', 'Reset progress', () => { Store.reset(); render(false); });
   });
   draw(); addResizer(draw);
 }
