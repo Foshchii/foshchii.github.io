@@ -24,7 +24,7 @@ const state = {
   progress: emptyProgress(),
   storageOk: true,
   reading: { mode: "notes", level: "open", bars: 2, attempts: 0, correct: 0 },
-  quiz: newQuestion("notes", "open"),
+  question: newQuestion("notes", "open"),
   answer: undefined,
   theme: "auto",
   confirmDelete: null,

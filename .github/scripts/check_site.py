@@ -22,6 +22,8 @@ and invisible until someone hits them on the live site:
   - JavaScript syntax errors, in every script the site serves
   - mistakes in the Guitar Academy's course data, which only show up once the
     browser draws a screen (see check_guitar.mjs)
+  - the Guitar Academy's offline worker (guitar/sw.js) out of date with its
+    files, which would keep installed apps on the old version
 """
 
 import json
@@ -353,6 +355,12 @@ def check_guitar():
         detail = next((l for l in r.stderr.splitlines() if "Error" in l), r.stderr.strip() or "no output")
         fail("guitar/views.js", 1, f"check_guitar.mjs stopped: {detail}")
         return
+    r = subprocess.run([node, str(scripts / "stamp_guitar_sw.mjs"), "--check"], capture_output=True, text=True)
+    if r.returncode == 1:
+        fail("guitar/sw.js", 1, "the offline file list or version is out of date, so installed apps would not update; "
+             "run: node .github/scripts/stamp_guitar_sw.mjs")
+    elif r.returncode:
+        fail("guitar/sw.js", 1, (r.stderr.strip() or "stamp_guitar_sw.mjs failed").splitlines()[-1])
     r = subprocess.run([node, str(scripts / "prerender_guitar.mjs"), "--check"], capture_output=True, text=True)
     if r.returncode == 1:
         # Not an error: academy.js redraws the screen when the copy is stale.
@@ -389,7 +397,7 @@ def main():
         print(f"\n{len(errors)} problem(s) found.")
         return 1
     print(f"ok: {len(pages)} pages, {refs} internal links, {blocks} JSON-LD blocks, "
-          f"{scripts} scripts, sitemap, llms.txt, security.txt, feed, backend version and the Guitar Academy all check out.")
+          f"{scripts} scripts, sitemap, llms.txt, security.txt, feed, backend version and the Guitar Academy (with its offline worker) all check out.")
     return 0
 
 

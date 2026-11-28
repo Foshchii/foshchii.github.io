@@ -1,16 +1,35 @@
 {
+  "id": "/guitar/",
   "name": "Guitar Academy",
   "short_name": "Guitar",
-  "description": "Learn classical guitar and flamenco without fingernails. Follow a six-month curriculum, practise reading notation, and keep your own practice journal.",
+  "description": "Learn classical guitar and flamenco without fingernails: a six-month course, interactive reading and rhythm practice, a metronome, tuner, chord and compás trainers, and a hero who levels up as you practise. Works offline and syncs between your devices.",
   "lang": "en",
+  "dir": "ltr",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
   "background_color": "#f6f1e8",
   "theme_color": "#1e1611",
+  "categories": ["education", "music"],
+  "prefer_related_applications": false,
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Today’s guided session", "short_name": "Session", "url": "./#practice/session", "icons": [{ "src": "icons/shortcut-session.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Metronome", "short_name": "Metronome", "url": "./#practice/metronome", "icons": [{ "src": "icons/shortcut-metronome.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Tuner", "short_name": "Tuner", "url": "./#practice/tuner", "icons": [{ "src": "icons/shortcut-tuner.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "Your hero", "short_name": "Hero", "url": "./#hero", "icons": [{ "src": "icons/shortcut-hero.png", "sizes": "96x96", "type": "image/png" }] }
+  ],
+  "screenshots": [
+    { "src": "img/screens/today-phone.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Today: the session checklist, your hero and the daily quests" },
+    { "src": "img/screens/metronome-phone.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "The metronome with its speed trainer" },
+    { "src": "img/screens/hero-phone.jpg", "sizes": "780x1688", "type": "image/jpeg", "form_factor": "narrow", "label": "Your hero: level, skills, quests and bosses" },
+    { "src": "img/screens/today-wide.jpg", "sizes": "1600x1000", "type": "image/jpeg", "form_factor": "wide", "label": "Today’s practice on a computer" },
+    { "src": "img/screens/compas-wide.jpg", "sizes": "1600x1000", "type": "image/jpeg", "form_factor": "wide", "label": "The compás trainer" }
   ]
 }

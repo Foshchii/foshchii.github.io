@@ -9,6 +9,11 @@
 //   - a screen that fails to draw, or draws "undefined"
 //   - a link inside the academy (#lesson/L07, #estas/…) that leads to "Page not found"
 //   - an icon that index.html does not define
+//   - chord shapes, chord-change pairs and compás cycles that are malformed (chords.js)
+//   - bosses, skills and achievements that do not add up (rpg.js)
+//   - quiz-store.js no longer merging the note quiz's record the way the quiz itself does
+//   - a file named in a web app manifest (icons, screenshots, shortcuts) that does not exist
+//   - the QR code for the sync link changing shape (qr.js)
 //
 //     node .github/scripts/check_guitar.mjs
 //
@@ -28,6 +33,7 @@ const error = (file, message) => say("ERROR", "guitar/" + file, message);
 const note = (file, message) => say("NOTE", "guitar/" + file, message);
 
 let views, course, supportTopics, supportVideos, estasPieces, estasVideos, estasDrills, readingModes, score, emptyProgress, newQuestion, practice, guided, fretPositions;
+let progressApi, rpg, chordData, quizStore, qr, plans;
 try {
   views = await import(new URL("views.js", guitar));
   ({ course } = await import(new URL("course.js", guitar)));
@@ -38,6 +44,12 @@ try {
   practice = await import(new URL("practice-videos.js", guitar));
   guided = await import(new URL("guided-lessons.js", guitar));
   ({ fretPositions } = await import(new URL("reading.js", guitar)));
+  progressApi = await import(new URL("progress.js", guitar));
+  rpg = await import(new URL("rpg.js", guitar));
+  chordData = await import(new URL("chords.js", guitar));
+  quizStore = await import(new URL("quiz-store.js", guitar));
+  qr = await import(new URL("qr.js", guitar));
+  plans = await import(new URL("plans.js", guitar));
 } catch (failure) {
   error("views.js", `the academy's modules do not load: ${failure.message}`);
   process.exit(0);
@@ -171,12 +183,159 @@ for (const [id, steps] of Object.entries(guided.guidedDays)) {
 }
 checkSteps("the fretboard lesson (guidedTheory)", guided.guidedTheory);
 
+// ---------------------------------------------------------------- chords and compás (chords.js)
+
+for (const chord of chordData.chords) {
+  const where = `chord ${chord.id}`;
+  if (chord.frets?.length !== 6 || chord.fingers?.length !== 6) error("chords.js", `${where} needs six frets and six fingers, string 6 first`);
+  chord.frets?.forEach((fret, i) => {
+    if (fret !== "x" && !(Number.isInteger(fret) && fret >= 0 && fret <= 12)) error("chords.js", `${where}: string ${6 - i} has fret ${fret}; use a number or "x"`);
+    const finger = chord.fingers?.[i];
+    if (!Number.isInteger(finger) || finger < 0 || finger > 4) error("chords.js", `${where}: string ${6 - i} has finger ${finger}; use 0–4`);
+    if (Number.isInteger(fret) && fret > 0 && !finger) error("chords.js", `${where}: string ${6 - i} is fretted but has no finger`);
+    if ((fret === 0 || fret === "x") && finger) error("chords.js", `${where}: string ${6 - i} is ${fret === 0 ? "open" : "not played"} but has finger ${finger}`);
+  });
+  if (!chord.name || !chord.tip) error("chords.js", `${where} needs a name and a tip`);
+}
+for (const group of chordData.changePairs) {
+  if (!moduleIds.has(group.module)) error("chords.js", `chord pairs "${group.label}" belong to module ${group.module}, which does not exist`);
+  for (const pair of group.pairs) for (const id of pair) if (!chordData.chordIndex.has(id)) error("chords.js", `chord pair ${pair.join("–")} uses ${id}, which is not in the chord list`);
+}
+for (const palo of chordData.palos) {
+  const steps = palo.stepLabels ?? palo.counts;
+  if (palo.stepLabels && palo.stepLabels.length !== palo.counts.length) error("chords.js", `${palo.name}: stepLabels and counts differ in length`);
+  for (const accent of palo.accents) if (!steps.includes(accent)) error("chords.js", `${palo.name}: accent ${accent} is not one of its steps`);
+  for (const clap of palo.palmas ?? []) if (!palo.counts.includes(clap)) error("chords.js", `${palo.name}: palmas on ${clap}, which is not one of its counts`);
+  if (palo.strokes && palo.strokes.length !== palo.counts.length) error("chords.js", `${palo.name}: one stroke per step, please`);
+  const [slow, start, fast] = palo.tempo ?? [];
+  if (!(slow < start && start < fast)) error("chords.js", `${palo.name}: tempo should be [slowest, start, fastest]`);
+  if (!moduleIds.has(palo.module)) error("chords.js", `${palo.name} belongs to module ${palo.module}, which does not exist`);
+  try { chordData.compasSvg(palo); } catch (failure) { error("chords.js", `${palo.name} cannot be drawn: ${failure.message}`); }
+}
+
+// ---------------------------------------------------------------- daily menus after day 28 (plans.js)
+
+for (const module of course.modules.slice(2)) {
+  const menus = plans.modulePlans[module.id];
+  if (!Array.isArray(menus) || menus.length !== 3) { error("plans.js", `module ${module.id} needs three daily menus`); continue; }
+  menus.forEach((menu, i) => {
+    for (const part of ["reading", "technique", "music"]) {
+      const step = menu[part];
+      if (!Array.isArray(step) || step.length !== 2 || !step.every(text => typeof text === "string" && text.trim())) error("plans.js", `module ${module.id}, menu ${i + 1}: "${part}" should be [label, what to do]`);
+      for (const id of `${step?.[1] ?? ""}`.match(/\b(?:[LS]\d{2}|M\d{2})\b/g) ?? []) {
+        if (!lessonIds.has(id) && !moduleIds.has(id)) error("plans.js", `module ${module.id}, menu ${i + 1} mentions ${id}, which does not exist`);
+      }
+    }
+  });
+}
+for (const id of Object.keys(plans.modulePlans)) if (!moduleIds.has(id)) error("plans.js", `menus are listed for module ${id}, which does not exist`);
+
+// ---------------------------------------------------------------- the hero (rpg.js)
+
+for (const module of course.modules) {
+  if (!rpg.bosses[module.id]) error("rpg.js", `module ${module.id} has no boss in bosses`);
+  if (!rpg.skills.some(skill => skill.id === rpg.moduleSkill[module.id])) error("rpg.js", `module ${module.id} trains no known skill in moduleSkill`);
+}
+const badgeIds = new Set();
+for (const badge of rpg.badges) {
+  if (badgeIds.has(badge.id)) error("rpg.js", `achievement ${badge.id} appears twice`);
+  badgeIds.add(badge.id);
+  if (!/^[a-z0-9-]{2,40}$/.test(badge.id)) error("rpg.js", `achievement id ${badge.id} cannot be saved (lowercase letters, digits and dashes)`);
+  if (!(badge.xp > 0)) error("rpg.js", `achievement ${badge.id} is worth no experience`);
+}
+if (rpg.titles.some(([level], i) => i && level <= rpg.titles[i - 1][0])) error("rpg.js", "titles must be in order of level");
+
+// A record full of everything the hero counts, to draw its screens and to test merging.
+const rich = progressApi.emptyProgress();
+progressApi.setMark(rich, "days/1", true, 1767225600000);
+progressApi.setMark(rich, "lessons/L01/practised", true, 1767225600000);
+progressApi.setMark(rich, "assessments/M01", true, 1767225600000);
+progressApi.setMark(rich, "activities/2026-01-01/day-2/25/reading", true, 1767225600000);
+progressApi.addCount(rich, "dcheck0001", "xp.rhythm", 12, "2026-01-01");
+progressApi.addCount(rich, "dcheck0001", "sec.metronome", 600, "2026-01-01");
+progressApi.setRecord(rich, "changes.Am-E", 18);
+progressApi.earn(rich, "badges", "first-steps");
+progressApi.earn(rich, "quests", "2026-01-01/steps");
+progressApi.setProfile(rich, { name: "Check", path: "both" });
+try {
+  const again = progressApi.readProgress(JSON.parse(JSON.stringify(rich)));
+  if (JSON.stringify(progressApi.mergeProgress(again, rich)) !== JSON.stringify(progressApi.mergeProgress(rich, again))) error("progress.js", "merging a record with its own copy depends on the order");
+} catch (failure) {
+  error("progress.js", `a full record does not survive a backup: ${failure.message}`);
+}
+
+// ---------------------------------------------------------------- the note quiz's store, two ways
+
+// quiz-store.js copies the quiz page's blankStore, sanitizeStore and Store.merge. Run both on the
+// same records: if the quiz changes how it keeps or merges progress, change quiz-store.js too.
+{
+  const { default: vm } = await import("node:vm");
+  const page = readFileSync(new URL("note-reading/index.html", guitar), "utf8");
+  const start = page.indexOf("const STORE_KEY = 'guitar-note-reading-v1';");
+  const end = page.indexOf("/* Sync. Inside Claude's artifact viewer");
+  if (start < 0 || end < 0) error("quiz-store.js", "cannot find the store code in note-reading/index.html to compare with");
+  else {
+    const code = page.slice(start, end);
+    const quizFor = (local, device) => {
+      const saved = new Map([["guitar-note-reading-device", device]]);
+      if (local) saved.set("guitar-note-reading-v1", JSON.stringify(local));
+      const sandbox = { localStorage: { getItem: k => saved.get(k) ?? null, setItem: (k, v) => saved.set(k, String(v)), removeItem: k => saved.delete(k) }, Cloud: { schedule() {}, writeNow() {} } };
+      vm.createContext(sandbox);
+      vm.runInContext(code + ";globalThis.api = { Store, sanitizeStore };", sandbox);
+      return sandbox.api;
+    };
+    let seed = 99;
+    const random = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+    const record = () => ({
+      v: 2, days: ["2026-01-01", "2026-01-03"].filter(() => random() > .3), lessons: random() > .5 ? { names: 1767225600000 } : {},
+      items: Object.fromEntries(["read:G4", "ear:iv3", "tap:a1", "chord:Am"].filter(() => random() > .3).map(key => [key, { n: 3, c: Math.floor(random() * 4), h: "101", t: 1767225600000 + Math.floor(random() * 1e8), ...(random() > .4 ? { b: 2, d: 1767225600000 } : {}) }])),
+      levels: random() > .4 ? { staff: { s: Math.floor(random() * 4), p: Math.floor(random() * 100), at: 1767225600000 + Math.floor(random() * 1e8) } } : {},
+      xp: Object.fromEntries(["dcheck0001", "dother0002"].filter(() => random() > .3).map(id => [id, { t: Math.floor(random() * 500), d: { "2026-01-01": 20 }, at: 1767225600000 + Math.floor(random() * 1e8) }])),
+      runs: {}, rounds: {}, best: {}, tunes: random() > .5 ? { ode: { p: Math.floor(random() * 100), at: 1 } } : {},
+      settings: { sound: random() > .5 }, practice: {}, settingsAt: Math.floor(random() * 3), updated: 1, resetAt: random() > .85 ? 1767225600000 + Math.floor(random() * 1e8) : 0
+    });
+    const sorted = value => Array.isArray(value) ? value.map(sorted) : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sorted(value[key])])) : value;
+    for (let i = 0; i < 60; i++) {
+      const local = record(), remote = record();
+      const original = quizFor(local, "dcheck0001");
+      const changedThere = original.Store.merge(JSON.parse(JSON.stringify(remote)));
+      const mine = quizStore.sanitizeQuiz(JSON.parse(JSON.stringify(local)));
+      const changedHere = quizStore.mergeQuiz(mine, JSON.parse(JSON.stringify(remote)), "dcheck0001");
+      if (JSON.stringify(sorted(JSON.parse(JSON.stringify(original.Store.data)))) !== JSON.stringify(sorted(mine)) || changedThere !== changedHere) {
+        error("quiz-store.js", "mergeQuiz no longer merges the way the note quiz's Store.merge does; bring quiz-store.js in line with note-reading/index.html");
+        break;
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------- the sync link's QR code (qr.js)
+
+{
+  const matrix = qr.qrMatrix("https://foshchii.com/guitar/#sync/7QKM-2XRD-9HFA-ZP3W-R8TC");
+  const bits = matrix.map(row => row.map(on => on ? 1 : 0).join("")).join("");
+  const { createHash } = await import("node:crypto");
+  const shape = createHash("sha256").update(bits).digest("hex").slice(0, 16);
+  // Checked against a QR decoder when qr.js was written; a change here means the encoder changed.
+  if (matrix.length !== 33 || shape !== "d04d18745d734f7e") error("qr.js", `the sync link's QR code changed (size ${matrix.length}, shape ${shape}); decode it with a QR reader before trusting the change`);
+}
+
 // ---------------------------------------------------------------- every screen
 
-const state = progress => ({
+const state = (progress, extra = {}) => ({
   progress, storageOk: true, reading: { mode: "notes", level: "open", bars: 2, attempts: 0, correct: 0 },
-  quiz: newQuestion("notes", "open"), answer: undefined, theme: "auto", confirmDelete: null, today: "0000-00-00"
+  question: newQuestion("notes", "open"), answer: undefined, theme: "auto", confirmDelete: null, today: "0000-00-00", ...extra
 });
+// The hero, the sync screen and the install card each have several forms; draw the busiest too.
+const busy = {
+  quiz: quizStore.sanitizeQuiz({ xp: { dcheck0001: { t: 120, d: { "2026-01-01": 120 }, at: 1 } }, items: { "read:G4": { n: 2, c: 2, h: "11", t: 1, b: 1, d: 1 } }, levels: { staff: { s: 2, p: 80, at: 1 } } }),
+  app: { installable: true, offlineReady: true, online: true },
+  sync: { configured: true, on: true, code: "7QKM2XRD9HFAZP3WR8TC", status: "synced", at: 1767225600000, link: "https://foshchii.com/guitar/#sync/7QKM-2XRD-9HFA-ZP3W-R8TC", share: true }
+};
+// A learner past the first 28 days, in module 5: Today shows that module's menu.
+const later = emptyProgress();
+for (let day = 1; day <= 28; day++) later.days[day] = true;
+for (const id of ["M01", "M02", "M03", "M04"]) later.assessments[id] = true;
 const practised = emptyProgress();
 practised.lastLesson = course.lessons[0]?.id ?? null;
 practised.lessons[course.lessons[0]?.id] = { watched: true, practised: true };
@@ -185,18 +344,19 @@ practised.journal.push({ id: "check-entry", date: "2026-01-01", minutes: 25, upd
 
 const screens = [
   ["home"], ["course"], ["days"], ["technique"], ["estas"], ["reading"], ["reading", "guided"], ["repertoire"], ["roadmap"], ["journal"], ["journal", "check-entry"],
-  ["progress"], ["settings"], ["about"], ["menu"],
+  ["progress"], ["settings"], ["about"], ["menu"], ["hero"], ["practice"], ...views.practiceTools.map(tool => ["practice", tool]),
+  ["sync"], ["sync", "7QKM-2XRD-9HFA-ZP3W-R8TC"],
   ...course.modules.map(module => ["module", module.id]),
   ...course.lessons.map(lesson => ["lesson", lesson.id]),
   ...course.days.map(day => ["day", String(day.id)]),
   ...estasPieces.map(piece => ["estas", piece.id])
 ];
 const drawn = [];
-for (const progress of [emptyProgress(), practised]) {
+for (const [progress, extra] of [[emptyProgress(), {}], [practised, {}], [rich, busy], [practised, { app: { ios: true }, sync: { configured: true, on: false } }], [later, { today: "2026-03-02" }]]) {
   for (const [page, id] of screens) {
     const name = "#" + page + (id ? "/" + id : "");
     try {
-      const result = views.renderRoute(state(progress), page, id);
+      const result = views.renderRoute(state(progress, extra), page, id);
       if (!result.found) error("views.js", `${name} draws "Page not found"`);
       const slip = /\bundefined\b|\[object Object\]|\bNaN\b/.exec(result.html.replace(/<[^>]*>/g, " "));
       if (slip) error("views.js", `${name} shows "${slip[0]}" on screen; a field is probably missing in the course data`);
@@ -223,6 +383,8 @@ const leadsSomewhere = href => {
   if (page === "reading") return !id || views.readingScreens.includes(id);
   if (page === "technique" && id) return ["hand-position", "speed-control", ...course.techniques.map(technique => technique.id)].includes(id);
   if (page === "journal") return true;                                                // #journal/<entry id>
+  if (page === "sync") return true;                                                   // #sync/<code>
+  if (page === "practice") return !id || views.practiceTools.includes(id);
   try {
     return views.renderRoute(state(emptyProgress()), page, id).found;
   } catch {
@@ -264,4 +426,19 @@ for (const file of [...files].filter(name => name.endsWith(".js"))) {
 }
 for (const [, target] of shell.matchAll(/<link rel="modulepreload" href="([^"?]+)/g)) {
   if (!existsSync(new URL(target, guitar))) error("index.html", `preloads ${target}, which does not exist`);
+}
+
+// ---------------------------------------------------------------- web app manifests
+
+for (const name of ["manifest.webmanifest", "note-reading/manifest.webmanifest"]) {
+  let manifest;
+  try { manifest = JSON.parse(readFileSync(new URL(name, guitar), "utf8")); } catch (failure) { error(name, `is not valid JSON: ${failure.message}`); continue; }
+  const folder = new URL(name.includes("/") ? name.slice(0, name.lastIndexOf("/") + 1) : "./", guitar);
+  const files = [...(manifest.icons ?? []), ...(manifest.screenshots ?? []), ...(manifest.shortcuts ?? []).flatMap(item => item.icons ?? [])].map(item => item.src);
+  for (const src of files) if (!existsSync(new URL(src, folder))) error(name, `names ${src}, which does not exist`);
+  for (const item of manifest.shortcuts ?? []) {
+    const hash = new URL(item.url, "https://x/guitar/").hash;
+    if (hash && !leadsSomewhere(hash)) error(name, `shortcut "${item.name}" opens ${hash}, which leads to "Page not found"`);
+  }
+  if (!manifest.icons?.some(icon => icon.purpose?.includes("maskable"))) note(name, "has no maskable icon; Android draws the icon on a white circle");
 }
