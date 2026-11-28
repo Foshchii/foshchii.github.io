@@ -137,7 +137,9 @@ async function call(name, body, { keepalive = false } = {}) {
   }
   if (!response.ok) {
     let detail = "";
-    try { detail = (await response.json()).message ?? ""; } catch { /* no details */ }
+    try { const body = await response.json(); detail = `${body.code ?? ""} ${body.message ?? ""}`; } catch { /* no details */ }
+    // The functions are not there (sync-api/schema.sql has not been run): sync is simply not available yet.
+    if (response.status === 404 || /PGRST202|could not find the function/i.test(detail)) throw new SyncError("setup", "Sync is not available yet: the sync service is still being set up. Your progress is safe on this device.");
     if (response.status === 413 || /too large/i.test(detail)) throw new SyncError("size", "Your records are too large to sync. Export a backup instead.");
     if (/full/i.test(detail)) throw new SyncError("full", "The sync service is full at the moment. Your progress is safe on this device.");
     throw new SyncError("server", `The sync service answered with an error (${response.status}). Your progress is safe on this device.`);

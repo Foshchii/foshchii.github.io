@@ -12,7 +12,7 @@
 // when one of them has been opened in full.
 
 // <precache>
-const VERSION = "62a4259c26623ce1";
+const VERSION = "6995ff5c7136845f";
 const MEDIA_VERSION = "ba871a86e1aa0243";
 const CORE = [
   "academy.css",
